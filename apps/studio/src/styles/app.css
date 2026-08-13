@@ -1706,3 +1706,144 @@ button.asset-item:hover {
   color: var(--danger, #e07a6d);
 }
 
+
+/* Script panel */
+.script-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.script-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-raised);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.script-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.script-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.script-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.script-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.script-line-index {
+  width: 16px;
+  text-align: right;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.script-line-text {
+  flex: 1;
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: text;
+}
+
+.script-line-text:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.script-line-editor {
+  flex: 1;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.script-line-character {
+  width: 86px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.script-line-time {
+  width: 58px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.script-line-seek,
+.script-line-remove {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.script-line-seek:hover:not(:disabled),
+.script-line-remove:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.script-line-seek:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.script-add {
+  display: flex;
+  gap: 6px;
+}
+
+.script-add input {
+  flex: 1;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+

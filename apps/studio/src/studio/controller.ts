@@ -1,6 +1,6 @@
-import { characterDraft, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { characterDraft, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
-import { newCharacterId, newTrackId, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
+import { newCharacterId, newLineId, newScriptId, newTrackId, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type LineId, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -108,6 +108,43 @@ export class StudioController {
   reportError(message: string, code = 'external'): void {
     this.#lastError = { code, message };
     this.#emit();
+  }
+
+  /** Create a script document (script-first editing). */
+  createScript(name?: string): ScriptId | null {
+    const now = new Date().toISOString();
+    const script = { id: newScriptId(), name: name ?? 'New script', lines: [], createdAt: now, updatedAt: now };
+    const result = this.mutate((tx) => tx.createScript({ script }));
+    return result.ok ? script.id : null;
+  }
+
+  addScriptLine(scriptId: ScriptId, text: string): MutationResult {
+    return this.mutate((tx) => tx.addScriptLine({ scriptId, line: { id: newLineId(), text } }));
+  }
+
+  updateScriptLine(scriptId: ScriptId, lineId: LineId, patch: ScriptLinePatch): MutationResult {
+    return this.mutate((tx) => tx.updateScriptLine({ scriptId, lineId, patch }));
+  }
+
+  removeScriptLine(scriptId: ScriptId, lineId: LineId): MutationResult {
+    return this.mutate((tx) => tx.removeScriptLine({ scriptId, lineId }));
+  }
+
+  removeScript(scriptId: ScriptId): MutationResult {
+    return this.mutate((tx) => tx.removeScript({ scriptId }));
+  }
+
+  /** Place script lines on a 'Script' text track (idempotent, undoable). */
+  syncScriptToTimeline(scriptId: ScriptId): void {
+    try {
+      syncTextClipsFromScript(this.#session, { scriptId });
+      this.#lastError = null;
+      this.#emit();
+    } catch (err) {
+      const e = err as OvmError;
+      this.#lastError = { code: e.code ?? 'unknown', message: e.message ?? String(err) };
+      this.#emit();
+    }
   }
 
   /** Apply a reviewed agent proposal; the edit lands as one undoable transaction. */

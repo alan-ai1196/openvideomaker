@@ -59,6 +59,12 @@ import type {
   TrackRemoveParams,
   TrackRenameParams,
   TranscriptCreateParams,
+  ScriptAddLineParams,
+  ScriptCreateParams,
+  ScriptRemoveLineParams,
+  ScriptRemoveParams,
+  ScriptRenameParams,
+  ScriptUpdateLineParams,
   TranscriptRemoveParams,
   TranscriptSetLanguageParams,
   TranscriptSetSegmentsParams,
@@ -66,7 +72,7 @@ import type {
   TransitionSetParams,
   VoiceChangeParams,
 } from '@openvideomaker/schema';
-import type { TranscriptId } from '@openvideomaker/schema';
+import type { ScriptId, TranscriptId } from '@openvideomaker/schema';
 
 /**
  * Collects operations for one transaction. Every method maps 1:1 to an
@@ -324,6 +330,37 @@ export class TransactionScope {
   /** Applies 'transcript.setLanguage'. */
   setTranscriptLanguage(params: TranscriptSetLanguageParams): void {
     this.push({ type: 'transcript.setLanguage', params });
+  }
+
+  /** Applies 'script.create'. */
+  createScript(params: ScriptCreateParams): ScriptId {
+    this.push({ type: 'script.create', params });
+    return params.script.id;
+  }
+
+  /** Applies 'script.remove'. */
+  removeScript(params: ScriptRemoveParams): void {
+    this.push({ type: 'script.remove', params });
+  }
+
+  /** Applies 'script.rename'. */
+  renameScript(params: ScriptRenameParams): void {
+    this.push({ type: 'script.rename', params });
+  }
+
+  /** Applies 'script.addLine'. */
+  addScriptLine(params: ScriptAddLineParams): void {
+    this.push({ type: 'script.addLine', params });
+  }
+
+  /** Applies 'script.updateLine'. */
+  updateScriptLine(params: ScriptUpdateLineParams): void {
+    this.push({ type: 'script.updateLine', params });
+  }
+
+  /** Applies 'script.removeLine'. */
+  removeScriptLine(params: ScriptRemoveLineParams): void {
+    this.push({ type: 'script.removeLine', params });
   }
 
   /** Applies 'transcript.remove'. */

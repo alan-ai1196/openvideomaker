@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 15). This file is the single living status source; it
+Updated: 2026-08-14 (round 16). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -154,6 +154,15 @@ describes the repository truth and is updated whenever that truth changes.
   `https://openvideomaker.heartboat.me` as a Cloudflare Workers
   static-assets project (custom domain verified over HTTPS, 404 and
   image serving confirmed). Visual + dead-link checks included.
+- **Script-first editing**: a durable Script document (ordered speech
+  lines linked to characters/voices with optional timeline placement)
+  with six typed operations, invariant checks and full history; the
+  core command `syncTextClipsFromScript` places lines on a Script text
+  track (timed lines exactly, untimed lines sequentially with a
+  deterministic duration estimate; idempotent + undoable). Studio
+  Script panel: write, edit, link characters, set times, seek and
+  place - the welcome project ships a demo script. 4 core tests +
+  Playwright-verified (edit/seek/place, no page errors).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -161,8 +170,8 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. More verified runner integrations (lip-sync/avatars next:
    LatentSync/MuseTalk).
-2. Script-first editing (Script view linked to characters/voices);
-   LLM-driven planner behind the agent proposal contract.
+2. LLM-driven planner behind the agent proposal contract;
+   script-to-speech generation (desktop).
 3. Model/Device/Job Centers; Electron packaging (desktop core adds
    persistence/model install/generation tools to the MCP surface);
    long-project performance hardening.

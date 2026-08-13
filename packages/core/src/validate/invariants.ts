@@ -67,6 +67,23 @@ export function collectViolations(project: Project): Violation[] {
     }
   }
 
+  for (const [key, script] of Object.entries(project.scripts)) {
+    if (key !== script.id) push('script.key-mismatch', 'script record key does not match script id', 'scripts.' + key);
+    const seenLineIds = new Set<string>();
+    for (let i = 0; i < script.lines.length; i++) {
+      const line = script.lines[i]!;
+      const linePath = 'scripts.' + key + '.lines[' + i + ']';
+      if (seenLineIds.has(line.id)) push('script.duplicate-line', 'duplicate line id: ' + line.id, linePath);
+      seenLineIds.add(line.id);
+      if (line.characterId && !project.characters[line.characterId]) {
+        push('script.character-missing', 'line references missing character: ' + line.characterId, linePath);
+      }
+      if (line.startUs !== undefined && line.durationUs !== undefined && line.durationUs <= 0) {
+        push('script.line-duration', 'line duration must be positive', linePath);
+      }
+    }
+  }
+
   // Pass 1: gather every clip id project-wide (links may point anywhere).
   const seenClipIds = new Set<string>();
   const clipPaths = new Map<string, string>();

@@ -1,8 +1,9 @@
 import { z } from 'zod';
-import { AssetIdSchema, CharacterIdSchema, ProjectIdSchema, SequenceIdSchema, TranscriptIdSchema } from './ids.js';
+import { AssetIdSchema, CharacterIdSchema, ProjectIdSchema, ScriptIdSchema, SequenceIdSchema, TranscriptIdSchema } from './ids.js';
 import { AssetSchema } from './media.js';
 import { SequenceSchema } from './sequence.js';
 import { TranscriptSchema } from './transcript.js';
+import { ScriptSchema } from './script.js';
 import { COMMON_FPS, RationalFpsSchema } from './time.js';
 
 export const ProjectSettingsSchema = z.object({
@@ -78,6 +79,7 @@ export const ProjectSchema = z.object({
   transcripts: z.record(z.string(), TranscriptSchema).default({}),
   /** assetId -> transcriptId linkage; at most one transcript per asset. */
   assetTranscripts: z.record(z.string(), TranscriptIdSchema).default({}),
+  scripts: z.record(z.string(), ScriptSchema).default({}),
   activeSequenceId: SequenceIdSchema.nullable().default(null),
 });
 export type Project = z.infer<typeof ProjectSchema>;

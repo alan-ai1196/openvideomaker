@@ -130,5 +130,18 @@
   "agent.apply": "Apply",
   "agent.reject": "Reject",
   "agent.preview.operations": "Operations",
-  "agent.preview.violations": "Invariant checks"
+  "agent.preview.violations": "Invariant checks",
+  "panel.script": "Script",
+  "script.new": "New script",
+  "script.empty": "No scripts yet",
+  "script.empty.hint": "Write speech lines, link characters, then place them on the timeline.",
+  "script.line": "Line text",
+  "script.character": "Speaker",
+  "script.start": "Start (s)",
+  "script.seek": "Jump here",
+  "script.place": "Place on timeline",
+  "script.delete": "Delete script",
+  "script.removeLine": "Remove line",
+  "script.addLine": "New line text",
+  "script.add": "Add"
 }

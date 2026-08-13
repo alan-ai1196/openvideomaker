@@ -278,6 +278,7 @@ export function blankProject(projectId: ProjectId): Project {
     sequences: {},
     transcripts: {},
     assetTranscripts: {},
+    scripts: {},
     activeSequenceId: null,
   };
 }

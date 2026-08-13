@@ -20,6 +20,14 @@ import {
 import { applyEffectAdd, applyEffectRemove, applyEffectUpdate, applyTransitionSet } from './effectTransition.js';
 import { applyGenerationCreate, applyGenerationRegenerate } from './generation.js';
 import {
+  applyScriptAddLine,
+  applyScriptCreate,
+  applyScriptRemove,
+  applyScriptRemoveLine,
+  applyScriptRename,
+  applyScriptUpdateLine,
+} from './script.js';
+import {
   applyTranscriptCreate,
   applyTranscriptRemove,
   applyTranscriptSetLanguage,
@@ -89,6 +97,12 @@ const registry = new Map<OperationType, ApplyFn<any>>([
   ['transcript.setSegmentText', applyTranscriptSetSegmentText],
   ['transcript.setLanguage', applyTranscriptSetLanguage],
   ['transcript.remove', applyTranscriptRemove],
+  ['script.create', applyScriptCreate],
+  ['script.remove', applyScriptRemove],
+  ['script.rename', applyScriptRename],
+  ['script.addLine', applyScriptAddLine],
+  ['script.updateLine', applyScriptUpdateLine],
+  ['script.removeLine', applyScriptRemoveLine],
 ]);
 
 /**

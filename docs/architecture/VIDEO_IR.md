@@ -32,6 +32,11 @@ ADR-0003.
   origin (`import|recorded|generated`), optional proxy link.
 - **Character** — identity (reference images/video), voice config with
   consent metadata, performance defaults. Reusable across scenes.
+- **Script** — ordered speech lines optionally linked to characters,
+  with optional timeline placement; edited as typed operations and
+  synced to a text track in one reviewable step.
+- **Transcript** — time-aligned segments linked one-to-one to an asset,
+  with ASR/import/manual sources.
 - **Marker** — timeline position + note/color.
 - **GenerationProvenance** — capability, model+revision, runner, settings
   snapshot, inputs, device, regeneration info. Generated clips are never

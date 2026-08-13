@@ -130,5 +130,18 @@
   "agent.apply": "应用",
   "agent.reject": "拒绝",
   "agent.preview.operations": "操作",
-  "agent.preview.violations": "一致性检查"
+  "agent.preview.violations": "一致性检查",
+  "panel.script": "脚本",
+  "script.new": "新建脚本",
+  "script.empty": "还没有脚本",
+  "script.empty.hint": "写下台词、关联角色，然后把它们放到时间线上。",
+  "script.line": "台词文本",
+  "script.character": "说话人",
+  "script.start": "开始（秒）",
+  "script.seek": "跳到这里",
+  "script.place": "放到时间线",
+  "script.delete": "删除脚本",
+  "script.removeLine": "删除台词",
+  "script.addLine": "新台词文本",
+  "script.add": "添加"
 }

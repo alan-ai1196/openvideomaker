@@ -4,9 +4,11 @@ import {
   CharacterIdSchema,
   ClipIdSchema,
   EffectIdSchema,
+  LineIdSchema,
   MarkerIdSchema,
   OperationIdSchema,
   ProjectIdSchema,
+  ScriptIdSchema,
   SegmentIdSchema,
   SequenceIdSchema,
   TrackIdSchema,
@@ -27,6 +29,7 @@ import { MarkerSchema } from './sequence.js';
 import { TrackKindSchema } from './track.js';
 import { CharacterDefaultsSchema, CharacterSchema, ProjectSettingsSchema, VoiceConfigSchema } from './project.js';
 import { TranscriptSchema, TranscriptSegmentSchema } from './transcript.js';
+import { ScriptLineSchema, ScriptSchema } from './script.js';
 
 /**
  * Every project mutation is an explicit typed operation. Human edits,
@@ -347,6 +350,45 @@ export type TranscriptSetLanguageParams = z.infer<typeof TranscriptSetLanguagePa
 export const TranscriptRemoveParamsSchema = z.object({ transcriptId: TranscriptIdSchema });
 export type TranscriptRemoveParams = z.infer<typeof TranscriptRemoveParamsSchema>;
 
+export const ScriptCreateParamsSchema = z.object({ script: ScriptSchema });
+export type ScriptCreateParams = z.infer<typeof ScriptCreateParamsSchema>;
+
+export const ScriptRemoveParamsSchema = z.object({ scriptId: ScriptIdSchema });
+export type ScriptRemoveParams = z.infer<typeof ScriptRemoveParamsSchema>;
+
+export const ScriptRenameParamsSchema = z.object({
+  scriptId: ScriptIdSchema,
+  name: z.string().min(1).max(200),
+});
+export type ScriptRenameParams = z.infer<typeof ScriptRenameParamsSchema>;
+
+export const ScriptAddLineParamsSchema = z.object({
+  scriptId: ScriptIdSchema,
+  line: ScriptLineSchema,
+});
+export type ScriptAddLineParams = z.infer<typeof ScriptAddLineParamsSchema>;
+
+export const ScriptLinePatchSchema = ScriptLineSchema.omit({ id: true }).partial().extend({
+  characterId: CharacterIdSchema.nullable().optional(),
+  voiceId: z.string().max(200).nullable().optional(),
+  startUs: z.number().int().nonnegative().nullable().optional(),
+  durationUs: z.number().int().positive().nullable().optional(),
+});
+export type ScriptLinePatch = z.infer<typeof ScriptLinePatchSchema>;
+
+export const ScriptUpdateLineParamsSchema = z.object({
+  scriptId: ScriptIdSchema,
+  lineId: LineIdSchema,
+  patch: ScriptLinePatchSchema,
+});
+export type ScriptUpdateLineParams = z.infer<typeof ScriptUpdateLineParamsSchema>;
+
+export const ScriptRemoveLineParamsSchema = z.object({
+  scriptId: ScriptIdSchema,
+  lineId: LineIdSchema,
+});
+export type ScriptRemoveLineParams = z.infer<typeof ScriptRemoveLineParamsSchema>;
+
 // ------------------------------------------------------------ operation --
 
 const envelope = {
@@ -404,6 +446,12 @@ export const OperationSchema = z.discriminatedUnion('type', [
   z.object({ ...envelope, type: z.literal('transcript.setSegmentText'), params: TranscriptSetSegmentTextParamsSchema }),
   z.object({ ...envelope, type: z.literal('transcript.setLanguage'), params: TranscriptSetLanguageParamsSchema }),
   z.object({ ...envelope, type: z.literal('transcript.remove'), params: TranscriptRemoveParamsSchema }),
+  z.object({ ...envelope, type: z.literal('script.create'), params: ScriptCreateParamsSchema }),
+  z.object({ ...envelope, type: z.literal('script.remove'), params: ScriptRemoveParamsSchema }),
+  z.object({ ...envelope, type: z.literal('script.rename'), params: ScriptRenameParamsSchema }),
+  z.object({ ...envelope, type: z.literal('script.addLine'), params: ScriptAddLineParamsSchema }),
+  z.object({ ...envelope, type: z.literal('script.updateLine'), params: ScriptUpdateLineParamsSchema }),
+  z.object({ ...envelope, type: z.literal('script.removeLine'), params: ScriptRemoveLineParamsSchema }),
 ]);
 
 export const OPERATION_TYPES = [
@@ -455,6 +503,12 @@ export const OPERATION_TYPES = [
   'transcript.setSegmentText',
   'transcript.setLanguage',
   'transcript.remove',
+  'script.create',
+  'script.remove',
+  'script.rename',
+  'script.addLine',
+  'script.updateLine',
+  'script.removeLine',
 ] as const;
 export type OperationType = (typeof OPERATION_TYPES)[number];
 

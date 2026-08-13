@@ -167,6 +167,10 @@ until the desktop core exists. `@openvideomaker/cli` provides
 packages. The marketing site (`apps/site`, Astro) is live at
 `https://openvideomaker.heartboat.me` (Cloudflare Workers static
 assets, custom domain; real Studio screenshots, honest status copy);
-deploy with `pnpm site:deploy`, verify with `pnpm site:check`. Next:
-lip-sync/avatar runner integrations, then script-first editing and
-the LLM planner. See `docs/STATUS.md`.
+deploy with `pnpm site:deploy`, verify with `pnpm site:check`.
+Scripts are durable project data (ordered speech lines linked to
+characters, six typed operations); `syncTextClipsFromScript` places
+lines on a Script text track, and the Studio Script panel edits,
+seeks and syncs them. Next: lip-sync/avatar runner integrations,
+then the LLM planner behind the proposal contract. See
+`docs/STATUS.md`.

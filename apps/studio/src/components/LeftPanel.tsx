@@ -5,19 +5,21 @@ import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import { Button } from './controls';
 import { ModelCenter } from './ModelCenter';
-import { AgentIcon, CaptionsIcon, FilmIcon, GridIcon, PersonIcon, SparkIcon, TranscriptIcon, TypeIcon, UploadIcon, WaveIcon } from './icons';
+import { AgentIcon, CaptionsIcon, FilmIcon, GridIcon, PersonIcon, ScriptIcon, SparkIcon, TranscriptIcon, TypeIcon, UploadIcon, WaveIcon } from './icons';
 import { TranscriptPanel } from './TranscriptPanel';
 import { CharacterPanel } from './CharacterPanel';
 import { AgentPanel } from './AgentPanel';
+import { ScriptPanel } from './ScriptPanel';
 import type { MessageKey } from '../i18n/strings';
 
-type PanelId = 'media' | 'text' | 'captions' | 'transcript' | 'audio' | 'avatars' | 'ai' | 'agent' | 'templates';
+type PanelId = 'media' | 'text' | 'captions' | 'transcript' | 'script' | 'audio' | 'avatars' | 'ai' | 'agent' | 'templates';
 
 const TABS: Array<{ id: PanelId; key: MessageKey; icon: (p: { className?: string }) => ReactElement }> = [
   { id: 'media', key: 'panel.media', icon: (p) => <FilmIcon {...p} /> },
   { id: 'text', key: 'panel.text', icon: (p) => <TypeIcon {...p} /> },
   { id: 'captions', key: 'panel.captions', icon: (p) => <CaptionsIcon {...p} /> },
   { id: 'transcript', key: 'panel.transcript', icon: (p) => <TranscriptIcon {...p} /> },
+  { id: 'script', key: 'panel.script', icon: (p) => <ScriptIcon {...p} /> },
   { id: 'audio', key: 'panel.audio', icon: (p) => <WaveIcon {...p} /> },
   { id: 'avatars', key: 'panel.avatars', icon: (p) => <PersonIcon {...p} /> },
   { id: 'ai', key: 'panel.ai', icon: (p) => <SparkIcon {...p} /> },
@@ -121,6 +123,8 @@ export function LeftPanel() {
           </>
         ) : active === 'transcript' ? (
           <TranscriptPanel />
+        ) : active === 'script' ? (
+          <ScriptPanel />
         ) : active === 'avatars' ? (
           <CharacterPanel />
         ) : active === 'ai' ? (

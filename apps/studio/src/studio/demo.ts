@@ -6,7 +6,7 @@ import {
   characterDraft,
   ProjectSession,
 } from '@openvideomaker/core';
-import { newSegmentId, newTranscriptId, type AssetId, type SequenceId, type TrackId } from '@openvideomaker/schema';
+import { newLineId, newScriptId, newSegmentId, newTranscriptId, type AssetId, type SequenceId, type TrackId } from '@openvideomaker/schema';
 
 /**
  * Builds the first-launch welcome project through ordinary operations,
@@ -110,20 +110,19 @@ export function createWelcomeSession(): ProjectSession {
   });
 
   // A demo character, so the Character Studio shows real content.
+  const ava = characterDraft({
+    name: 'Ava',
+    description: 'Friendly host for talking-head videos.',
+    voice: {
+      provider: 'hf/hexgrad/Kokoro-82M',
+      modelId: 'hf/hexgrad/Kokoro-82M',
+      voiceId: 'af_heart',
+      consent: { hasConsent: true, note: 'Built-in Kokoro voice profile' },
+    },
+    defaults: { realism: 0.7, gesture: 0.4, headMotion: 0.4, emotion: 'friendly' },
+  });
   session.transaction((tx) => {
-    tx.createCharacter({
-      character: characterDraft({
-        name: 'Ava',
-        description: 'Friendly host for talking-head videos.',
-        voice: {
-          provider: 'hf/hexgrad/Kokoro-82M',
-          modelId: 'hf/hexgrad/Kokoro-82M',
-          voiceId: 'af_heart',
-          consent: { hasConsent: true, note: 'Built-in Kokoro voice profile' },
-        },
-        defaults: { realism: 0.7, gesture: 0.4, headMotion: 0.4, emotion: 'friendly' },
-      }),
-    });
+    tx.createCharacter({ character: ava });
   });
 
   // A demo transcript linked to the talking-head asset, so the
@@ -145,6 +144,24 @@ export function createWelcomeSession(): ProjectSession {
         updatedAt: now,
       },
     });
+  });
+
+  // A demo script linked to Ava, so the Script panel shows real
+  // script-first editing on first launch.
+  session.transaction((tx) => {
+    const now = new Date().toISOString();
+    const script = {
+      id: newScriptId(),
+      name: 'Welcome video',
+      lines: [
+        { id: newLineId(), text: 'Hi, I am Ava.', characterId: ava.id },
+        { id: newLineId(), text: 'OpenVideoMaker keeps everything editable.', characterId: ava.id },
+        { id: newLineId(), text: 'AI helps you create - and you stay in control.', characterId: ava.id },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    };
+    tx.createScript({ script });
   });
 
   return session;

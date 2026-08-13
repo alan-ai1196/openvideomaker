@@ -49,6 +49,8 @@ stays a normal, editable part of your project instead of a dead-end file.
   land in projects as editable assets with full provenance.
 - **Agent editing** (`@openvideomaker/agent`) — EditPlan/EditScript
   proposals compiled to the same typed operations as manual edits.
+- **Script-first editing** — durable scripts (speech lines linked to
+  characters) that place onto the timeline in one reviewable step.
 - **MCP + CLI** (`@openvideomaker/mcp`, `@openvideomaker/cli`) — a
   semantic agent tool surface over the operation layer and the `ovm`
   command (doctor / models / render / mcp).

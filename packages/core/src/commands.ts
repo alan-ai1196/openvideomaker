@@ -1,6 +1,6 @@
-import { newClipId, newTrackId, type Clip, type ClipId, type SequenceId, type TrackId, type TranscriptId } from '@openvideomaker/schema';
+import { newClipId, newTrackId, type Clip, type ClipId, type ScriptId, type SequenceId, type TrackId, type TranscriptId } from '@openvideomaker/schema';
 import { ProjectSession } from './session.js';
-import { captionClip } from './builders.js';
+import { captionClip, textClip } from './builders.js';
 
 /**
  * Higher-level edit commands composed from the operation vocabulary.
@@ -148,6 +148,70 @@ export function syncCaptionsFromTranscript(session: ProjectSession, options: Syn
         segments: [{ text, start: 0, end: durationUs }],
       });
       clip.provenance = provenance;
+      tx.insertClip({ sequenceId, trackId, clip });
+      clipCount++;
+    }
+  });
+  return { trackId, clipCount };
+}
+
+/** Deterministic spoken-duration estimate: 60ms per character + 400ms, min 1s. */
+export function estimateLineDuration(text: string): number {
+  return Math.max(1_000_000, text.length * 60_000 + 400_000);
+}
+
+export interface SyncScriptOptions {
+  scriptId: ScriptId;
+  sequenceId?: SequenceId;
+  trackId?: TrackId;
+}
+
+export interface SyncScriptResult {
+  trackId: TrackId;
+  clipCount: number;
+}
+
+/**
+ * Place script lines on a 'Script' text track: timed lines use their
+ * start/duration; untimed lines follow sequentially with a
+ * deterministic duration estimate. Re-running replaces the previous
+ * sync in one undoable transaction.
+ */
+export function syncTextClipsFromScript(session: ProjectSession, options: SyncScriptOptions): SyncScriptResult | null {
+  const script = session.project.scripts[options.scriptId];
+  if (!script) return null;
+  const sequenceId = options.sequenceId ?? session.project.activeSequenceId ?? (Object.keys(session.project.sequences)[0] as SequenceId | undefined);
+  if (!sequenceId) return null;
+  const sequence = session.project.sequences[sequenceId];
+  if (!sequence) return null;
+  // Snapshot BEFORE the transaction: ops apply only when it commits.
+  const existingTrack = options.trackId
+    ? sequence.tracks.find((t) => t.id === options.trackId)
+    : sequence.tracks.find((t) => t.kind === 'text' && t.name === 'Script');
+  const trackId: TrackId = existingTrack?.id ?? options.trackId ?? newTrackId();
+  const createNeeded = !existingTrack;
+  const clipsToRemove = existingTrack ? existingTrack.clips.map((c) => c.id) : [];
+  const placements: Array<{ start: number; duration: number; content: string }> = [];
+  let cursor = 0;
+  for (const line of script.lines) {
+    const content = line.text.trim();
+    if (!content) continue;
+    if (line.startUs !== undefined) {
+      const duration = line.durationUs ?? estimateLineDuration(content);
+      placements.push({ start: line.startUs, duration, content });
+      cursor = line.startUs + duration;
+    } else {
+      const duration = estimateLineDuration(content);
+      placements.push({ start: cursor, duration, content });
+      cursor += duration;
+    }
+  }
+  let clipCount = 0;
+  session.transaction((tx) => {
+    if (createNeeded) tx.createTrack({ sequenceId, trackId, kind: 'text', name: 'Script' });
+    for (const clipId of clipsToRemove) tx.removeClip({ sequenceId, clipId });
+    for (const placement of placements) {
+      const clip = textClip({ trackId, start: placement.start, duration: placement.duration, content: placement.content });
       tx.insertClip({ sequenceId, trackId, clip });
       clipCount++;
     }

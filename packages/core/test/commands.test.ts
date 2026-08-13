@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { attachAsrResult, insertClipAt, rippleDeleteClip, splitClipAt } from '@openvideomaker/core';
+import { attachAsrResult, insertClipAt, planScriptPlacements, rippleDeleteClip, splitClipAt, syncTextClipsFromScript } from '@openvideomaker/core';
+import { newLineId, newScriptId } from '@openvideomaker/schema';
 import { mediaClip } from '@openvideomaker/core';
 import { importedAsset } from '@openvideomaker/core';
 import { AUDIO_MEDIA, setupSession, setupSessionWithAsset } from './helpers';
@@ -211,5 +212,70 @@ describe('attachAsrResult', () => {
     expect(session.project.sequences[sequenceId]!.tracks.some((t) => t.kind === 'caption')).toBe(false);
     session.undo();
     expect(session.project.transcripts[result.transcriptId]).toBeUndefined();
+  });
+});
+
+describe('planScriptPlacements', () => {
+  it('places untimed lines sequentially with deterministic durations', () => {
+    const script = {
+      id: newScriptId(),
+      name: 'Test',
+      createdAt: '2026-08-14T00:00:00.000Z',
+      updatedAt: '2026-08-14T00:00:00.000Z',
+      lines: [
+        { id: newLineId(), text: 'Hello' },
+        { id: newLineId(), text: 'World wide' },
+      ],
+    };
+    const placements = planScriptPlacements(script);
+    // The estimate clamps to a 1s minimum: 'Hello' would estimate 0.7s.
+    expect(placements.map((p) => p.start)).toEqual([0, 1_000_000]);
+    expect(placements[0]?.duration).toBe(1_000_000);
+    expect(placements[1]?.duration).toBe(1_000_000);
+    expect(placements[1]?.lineId).toBe(script.lines[1]?.id);
+  });
+
+  it('honors timed lines, skips empty lines, and resumes after the last timed line', () => {
+    const script = {
+      id: newScriptId(),
+      name: 'Test',
+      createdAt: '2026-08-14T00:00:00.000Z',
+      updatedAt: '2026-08-14T00:00:00.000Z',
+      lines: [
+        { id: newLineId(), text: 'Timed', startUs: 5_000_000, durationUs: 2_000_000 },
+        { id: newLineId(), text: '   ' },
+        { id: newLineId(), text: 'Follow' },
+      ],
+    };
+    const placements = planScriptPlacements(script);
+    expect(placements.map((p) => p.content)).toEqual(['Timed', 'Follow']);
+    expect(placements[0]?.start).toBe(5_000_000);
+    expect(placements[0]?.duration).toBe(2_000_000);
+    expect(placements[1]?.start).toBe(7_000_000);
+  });
+
+  it('drives the text sync, so text and speech share one timing plan', () => {
+    const { session, sequenceId } = setupSession();
+    const scriptId = newScriptId();
+    const firstLineId = newLineId();
+    session.transaction((tx) => {
+      tx.createScript({
+        script: {
+          id: scriptId,
+          name: 'Test',
+          createdAt: '2026-08-14T00:00:00.000Z',
+          updatedAt: '2026-08-14T00:00:00.000Z',
+          lines: [
+            { id: firstLineId, text: 'A' },
+            { id: newLineId(), text: 'B', startUs: 2_000_000 },
+          ],
+        },
+      });
+    });
+    const sync = syncTextClipsFromScript(session, { scriptId, sequenceId });
+    expect(sync?.clipCount).toBe(2);
+    const track = session.project.sequences[sequenceId]!.tracks.find((t) => t.name === 'Script');
+    expect(track?.clips[0]?.start).toBe(0);
+    expect(track?.clips[1]?.start).toBe(2_000_000);
   });
 });

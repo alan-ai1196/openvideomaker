@@ -158,5 +158,10 @@
   "script.delete": "Delete script",
   "script.removeLine": "Remove line",
   "script.addLine": "New line text",
-  "script.add": "Add"
+  "script.add": "Add",
+  "script.generate": "Generate speech",
+  "script.generate.disabled": "Speech generation runs in the desktop app",
+  "script.generate.disabled.character": "Link this line to a character with a TTS voice first",
+  "script.generating": "Generating...",
+  "script.generated": "Speech placed on the timeline"
 }

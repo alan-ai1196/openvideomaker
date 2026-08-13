@@ -15,6 +15,8 @@ await page.waitForTimeout(300);
 report.cards = await page.locator('.script-card').count();
 report.lineTexts = await page.locator('.script-line-text').allTextContents();
 report.characterValues = await page.locator('.script-line-character').first().inputValue();
+// Browser honesty: speech generation must stay disabled outside the desktop app.
+report.speechDisabled = await page.locator('.script-line-speech').first().isDisabled();
 
 // Edit the first line inline (typed operation).
 await page.locator('.script-line-text').first().click();
@@ -44,6 +46,7 @@ report.errors = errors;
 console.log(JSON.stringify(report, null, 2));
 
 if (report.cards !== 1) throw new Error('expected one script card, got ' + report.cards);
+if (report.speechDisabled !== true) throw new Error('speech generation must be disabled in the browser');
 if (report.lineTexts.length !== 3) throw new Error('expected three demo lines');
 if (report.firstLineAfter !== 'Hi, I am Ava - your host.') throw new Error('inline edit failed: ' + report.firstLineAfter);
 if (report.timecode !== '00:00:03:00') throw new Error('seek failed: ' + report.timecode);

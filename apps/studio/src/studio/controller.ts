@@ -1,4 +1,4 @@
-import { attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
 import type { MediaInfo } from '@openvideomaker/schema';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
@@ -493,6 +493,11 @@ export class StudioController {
 
   /** Place an asset on a compatible track at the playhead (creating the track if needed). */
   addAssetToTimeline(assetId: AssetId): MutationResult {
+    return this.placeAssetOnTimeline(assetId, this.playheadUs);
+  }
+
+  /** Place an asset on a compatible track at an explicit time (insert edit; creates the track if needed). */
+  placeAssetOnTimeline(assetId: AssetId, atUs: number): MutationResult {
     const project = this.project;
     const asset = project.assets[assetId];
     if (!asset) return { ok: false, code: 'op.not-found', message: 'asset not found' };
@@ -513,7 +518,7 @@ export class StudioController {
       track = this.activeSequence()?.tracks.find((t) => t.id === newId);
     }
     if (!track) return { ok: false, code: 'op.not-found', message: 'track missing' };
-    const clip = mediaClip({ trackId: track.id, assetId, start: this.playheadUs, duration: durationUs });
+    const clip = mediaClip({ trackId: track.id, assetId, start: Math.max(0, Math.round(atUs)), duration: durationUs });
     const ok = insertClipAt(this.#session, sequenceId, track.id, clip);
     this.#emit();
     return ok ? { ok: true } : { ok: false, code: 'op.validation', message: 'could not place clip on the timeline' };
@@ -586,7 +591,7 @@ export class StudioController {
     return asr.find((id) => id.includes('whisper')) ?? asr[0] ?? null;
   }
 
-  /** Generate speech locally and import it as a provenance-carrying audio asset (optionally placed at the playhead). */
+  /** Generate speech locally and import it as a provenance-carrying audio asset (optionally placed at an explicit time). */
   async generateSpeech(options: {
     modelId: string;
     text: string;
@@ -594,6 +599,7 @@ export class StudioController {
     name?: string;
     device?: 'cuda' | 'cpu';
     placeOnTimeline?: boolean;
+    placeAtUs?: number;
     onProgress?: (progress: number, stage: string) => void;
   }): Promise<MutationResult & { assetId?: AssetId }> {
     try {
@@ -635,7 +641,7 @@ export class StudioController {
       const imported = this.mutate((tx) => tx.importAsset({ asset }));
       if (!imported.ok) return imported;
       this.#mediaCache.registerPath(asset.id, output.path);
-      if (options.placeOnTimeline) this.addAssetToTimeline(asset.id);
+      if (options.placeOnTimeline) this.placeAssetOnTimeline(asset.id, options.placeAtUs ?? this.playheadUs);
       return { ok: true, assetId: asset.id };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -662,6 +668,47 @@ export class StudioController {
     });
   }
 
+
+  /**
+   * Generate speech for one script line: planScriptPlacements decides
+   * WHERE the audio lands (the same plan the text sync uses), and the
+   * real speech duration becomes the line's authoritative timing, so
+   * text clips and audio can never disagree.
+   */
+  async generateScriptLineSpeech(scriptId: ScriptId, lineId: LineId, onProgress?: (progress: number, stage: string) => void): Promise<MutationResult & { assetId?: AssetId }> {
+    const script = this.project.scripts[scriptId];
+    if (!script) return { ok: false, code: 'op.not-found', message: 'script not found' };
+    const lineIndex = script.lines.findIndex((l) => l.id === lineId);
+    const line = lineIndex >= 0 ? script.lines[lineIndex] : undefined;
+    if (!line) return { ok: false, code: 'op.not-found', message: 'line not found' };
+    const character = line.characterId ? this.project.characters[line.characterId] : undefined;
+    const modelId = character?.voice.modelId ?? character?.voice.provider;
+    if (!modelId || !this.#generationModels.some((m) => m.modelId === modelId && m.capability === 'audio.tts')) {
+      return { ok: false, code: 'generation', message: 'link this line to a character with a local TTS provider first' };
+    }
+    const placement = planScriptPlacements(script).find((p) => p.lineId === lineId);
+    if (!placement) return { ok: false, code: 'generation', message: 'the line has no text to speak' };
+    const speech = await this.generateSpeech({
+      modelId,
+      text: line.text,
+      voiceId: line.voiceId ?? character?.voice.voiceId,
+      name: (character?.name ?? 'voice') + ' line ' + (lineIndex + 1),
+      placeOnTimeline: true,
+      placeAtUs: placement.start,
+      onProgress,
+    });
+    if (!speech.ok || !speech.assetId) return speech;
+    // The real speech becomes the authoritative timing for this line, so
+    // re-syncing text clips follows the spoken duration.
+    const asset = this.project.assets[speech.assetId];
+    const durationUs = asset?.media?.durationUs;
+    this.mutate((tx) => tx.updateScriptLine({
+      scriptId,
+      lineId,
+      patch: { startUs: placement.start, ...(durationUs ? { durationUs: Math.round(durationUs) } : {}) },
+    }));
+    return speech;
+  }
   /** Transcribe a local media asset: durable transcript document + caption clips through core commands. */
   async transcribeAsset(assetId: AssetId, options?: { language?: string; onProgress?: (progress: number, stage: string) => void }): Promise<MutationResult & { transcriptId?: TranscriptId }> {
     const asset = this.project.assets[assetId];

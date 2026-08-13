@@ -80,6 +80,7 @@ function ScriptCard({ scriptId, name, lines }: { scriptId: ScriptId; name: strin
             <button type="button" className="script-line-seek" title={t('script.seek')} disabled={line.startUs === undefined} onClick={() => controller.setPlayhead(line.startUs ?? 0)}>
               ▶
             </button>
+            <LineSpeechButton scriptId={scriptId} line={line} />
             <button type="button" className="script-line-remove" title={t('script.removeLine')} onClick={() => controller.removeScriptLine(scriptId, line.id)}>
               ×
             </button>
@@ -112,6 +113,47 @@ function ScriptCard({ scriptId, name, lines }: { scriptId: ScriptId; name: strin
         </button>
       </div>
     </section>
+  );
+}
+
+/**
+ * Per-line local speech generation (desktop): the same TTS path the
+ * Character Studio uses, placed through planScriptPlacements so text
+ * clips and audio share one timing plan. Disabled honestly outside the
+ * desktop app or when the line has no speakable character.
+ */
+function LineSpeechButton({ scriptId, line }: { scriptId: ScriptId; line: ScriptLine }) {
+  const controller = useStudio();
+  const { t } = useI18n();
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [done, setDone] = useState(false);
+  const character = line.characterId ? controller.project.characters[line.characterId] : undefined;
+  const modelId = character?.voice.modelId ?? character?.voice.provider;
+  const runnable = Boolean(modelId) && controller.generationModels.some((m) => m.modelId === modelId && m.capability === 'audio.tts');
+  const available = controller.localGeneration && runnable;
+  let title: string;
+  if (!controller.localGeneration) title = t('script.generate.disabled');
+  else if (!line.characterId || !runnable) title = t('script.generate.disabled.character');
+  else title = t('script.generate');
+  const run = async (): Promise<void> => {
+    setRunning(true);
+    setDone(false);
+    setProgress(0);
+    const result = await controller.generateScriptLineSpeech(scriptId, line.id, (p) => setProgress(p));
+    setRunning(false);
+    if (result.ok) setDone(true);
+  };
+  return (
+    <button
+      type="button"
+      className="script-line-speech"
+      title={title}
+      disabled={!available || running}
+      onClick={() => void run()}
+    >
+      {running ? t('script.generating') + ' ' + Math.round(progress * 100) + '%' : done ? '✓ ' + t('script.generated') : '♪ ' + t('script.generate')}
+    </button>
   );
 }
 

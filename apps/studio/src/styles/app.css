@@ -1891,6 +1891,28 @@ button.asset-item:hover {
   cursor: default;
 }
 
+.script-line-speech {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.script-line-speech:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.script-line-speech:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .script-add {
   display: flex;
   gap: 6px;

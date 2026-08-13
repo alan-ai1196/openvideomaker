@@ -7,6 +7,8 @@ import {
   type Clip,
   type ClipId,
   type GenerationProvenance,
+  type LineId,
+  type Script,
   type ScriptId,
   type SequenceId,
   type TrackId,
@@ -173,6 +175,39 @@ export function estimateLineDuration(text: string): number {
   return Math.max(1_000_000, text.length * 60_000 + 400_000);
 }
 
+export interface ScriptPlacement {
+  lineId: LineId;
+  content: string;
+  start: number;
+  duration: number;
+}
+
+/**
+ * The single source of truth for where script lines land: timed lines
+ * use their own start/duration; untimed lines follow sequentially with
+ * a deterministic duration estimate; empty lines are skipped. Both the
+ * Script text-track sync and desktop speech generation place lines
+ * through this plan, so text and speech can never disagree on timing.
+ */
+export function planScriptPlacements(script: Script): ScriptPlacement[] {
+  const placements: ScriptPlacement[] = [];
+  let cursor = 0;
+  for (const line of script.lines) {
+    const content = line.text.trim();
+    if (!content) continue;
+    if (line.startUs !== undefined) {
+      const duration = line.durationUs ?? estimateLineDuration(content);
+      placements.push({ lineId: line.id, content, start: line.startUs, duration });
+      cursor = line.startUs + duration;
+    } else {
+      const duration = estimateLineDuration(content);
+      placements.push({ lineId: line.id, content, start: cursor, duration });
+      cursor += duration;
+    }
+  }
+  return placements;
+}
+
 export interface SyncScriptOptions {
   scriptId: ScriptId;
   sequenceId?: SequenceId;
@@ -185,10 +220,9 @@ export interface SyncScriptResult {
 }
 
 /**
- * Place script lines on a 'Script' text track: timed lines use their
- * start/duration; untimed lines follow sequentially with a
- * deterministic duration estimate. Re-running replaces the previous
- * sync in one undoable transaction.
+ * Place script lines on a 'Script' text track according to
+ * planScriptPlacements. Re-running replaces the previous sync in one
+ * undoable transaction.
  */
 export function syncTextClipsFromScript(session: ProjectSession, options: SyncScriptOptions): SyncScriptResult | null {
   const script = session.project.scripts[options.scriptId];
@@ -204,21 +238,7 @@ export function syncTextClipsFromScript(session: ProjectSession, options: SyncSc
   const trackId: TrackId = existingTrack?.id ?? options.trackId ?? newTrackId();
   const createNeeded = !existingTrack;
   const clipsToRemove = existingTrack ? existingTrack.clips.map((c) => c.id) : [];
-  const placements: Array<{ start: number; duration: number; content: string }> = [];
-  let cursor = 0;
-  for (const line of script.lines) {
-    const content = line.text.trim();
-    if (!content) continue;
-    if (line.startUs !== undefined) {
-      const duration = line.durationUs ?? estimateLineDuration(content);
-      placements.push({ start: line.startUs, duration, content });
-      cursor = line.startUs + duration;
-    } else {
-      const duration = estimateLineDuration(content);
-      placements.push({ start: cursor, duration, content });
-      cursor += duration;
-    }
-  }
+  const placements = planScriptPlacements(script);
   let clipCount = 0;
   session.transaction((tx) => {
     if (createNeeded) tx.createTrack({ sequenceId, trackId, kind: 'text', name: 'Script' });

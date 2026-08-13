@@ -89,6 +89,20 @@ report.transcribeRows = await window.locator('.transcribe-row').count();
 report.transcribeEnabled = report.transcribeRows > 0 ? !(await window.locator('.transcribe-row .button-secondary').first().isDisabled()) : null;
 report.transcribeLabel = report.transcribeRows > 0 ? await window.locator('.transcribe-row .button-secondary').first().textContent() : null;
 
+// Script-first editing: generate REAL speech for Ava's first line; the
+// audio lands at the line's planned position and the line gains a real
+// start time, so text and speech share one timing plan.
+await window.locator('.rail-button[title="Script"]').click();
+await window.waitForTimeout(300);
+report.scriptSpeechEnabled = !(await window.locator('.script-line-speech').first().isDisabled());
+await window.locator('.script-line-speech').first().click();
+await window.waitForFunction(() => document.querySelector('.script-line-speech')?.textContent?.includes('✓'), null, { timeout: 180000 });
+report.scriptSpeechAfter = await window.locator('.script-line-speech').first().textContent();
+report.scriptLineStartAfter = await window.locator('.script-line-time').first().inputValue();
+await window.locator('.rail-button[title="Media"]').click();
+await window.waitForTimeout(300);
+report.assetCountAfterScriptSpeech = await window.locator('.asset-item').count();
+
 mkdirSync('.research/screenshots', { recursive: true });
 await window.screenshot({ path: '.research/screenshots/desktop-studio.png' });
 report.errors = errors;
@@ -115,6 +129,10 @@ if (!(report.previewAudioSrc ?? '').startsWith('ovm-media://')) throw new Error(
 if ((report.previewAudioState?.readyState ?? 0) < 1) throw new Error('preview audio did not load metadata: ' + JSON.stringify(report.previewAudioState));
 if (!((report.previewAudioState?.duration ?? 0) > 0)) throw new Error('preview audio has no duration: ' + JSON.stringify(report.previewAudioState));
 if (report.transcribeRows !== 2) throw new Error('expected two transcribe rows (imported wav + generated voiceover), got ' + report.transcribeRows);
+if (report.scriptSpeechEnabled !== true) throw new Error('script speech affordance not live');
+if (!(report.scriptSpeechAfter ?? '').includes('✓')) throw new Error('script speech did not complete: ' + report.scriptSpeechAfter);
+if (!(report.scriptLineStartAfter ?? '')) throw new Error('line did not gain a real start time');
+if (report.assetCountAfterScriptSpeech !== 7) throw new Error('script speech asset missing from the media panel: ' + report.assetCountAfterScriptSpeech);
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');
 if (errors.length > 0) throw new Error('page errors: ' + errors.join(' | '));
 console.log('DESKTOP WINDOW OK');

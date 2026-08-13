@@ -169,9 +169,12 @@ packages. The marketing site (`apps/site`, Astro) is live at
 assets, custom domain; real Studio screenshots, honest status copy);
 deploy with `pnpm site:deploy`, verify with `pnpm site:check`.
 Scripts are durable project data (ordered speech lines linked to
-characters, six typed operations); `syncTextClipsFromScript` places
-lines on a Script text track, and the Studio Script panel edits,
-seeks and syncs them. `apps/desktop` is the Electron shell over the
+characters, six typed operations); `planScriptPlacements` is the
+single timing plan - `syncTextClipsFromScript` places text clips
+from it, and desktop speech generation places REAL TTS audio from
+it (each line's spoken duration becomes its authoritative timing).
+The Studio Script panel edits, seeks, syncs and speaks lines (the
+latter live in the desktop app, honestly disabled in the browser). `apps/desktop` is the Electron shell over the
 SAME Studio build: sandboxed renderer, narrow typed CJS preload
 (`window.ovm`: capabilities/openProject/saveProject/runDoctor/import/
 render/generate), real SQLite persistence + device probing + REAL

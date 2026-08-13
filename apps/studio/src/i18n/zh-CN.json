@@ -158,5 +158,10 @@
   "script.delete": "删除脚本",
   "script.removeLine": "删除台词",
   "script.addLine": "新台词文本",
-  "script.add": "添加"
+  "script.add": "添加",
+  "script.generate": "生成语音",
+  "script.generate.disabled": "语音生成需在桌面应用中运行",
+  "script.generate.disabled.character": "请先将该台词关联到具有 TTS 声音的角色",
+  "script.generating": "正在生成...",
+  "script.generated": "语音已放到时间线"
 }

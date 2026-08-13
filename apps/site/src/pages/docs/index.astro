@@ -29,6 +29,7 @@ import Base from '../../layouts/Base.astro';
           <div class="card"><h3>Rendering</h3><p>Render plans from the Video IR to FFmpeg with probed encoders (NVENC and friends, hardware-to-software fallback), cancellation, classified errors. Runs locally - the browser Studio never pretends to render.</p></div>
           <div class="card"><h3>Model runtime</h3><p>Capability-first registry with honest trust states, a content-addressed resumable downloader, a language-neutral runner protocol with uv-isolated runtimes, and generation jobs that land results in projects with full provenance.</p></div>
           <div class="card"><h3>Transcripts + characters</h3><p>Durable editable transcripts (seek, correct, sync captions) and a Character Studio with voices, consent records and performance defaults - all typed, undoable operations.</p></div>
+          <div class="card"><h3>Script-first editing</h3><p>Durable scripts with ordered speech lines; one placement plan drives both text clips and generated speech, and a line's real spoken duration becomes its timing.</p></div>
           <div class="card"><h3>Agent editing</h3><p>EditPlan/EditScript proposals compiled to typed operations, previewed on scratch copies, applied as one undoable agent transaction. No eval.</p></div>
           <div class="card"><h3>MCP + CLI</h3><p>An MCP server (spec 2025-06-18, stdio) with semantic tools over the same operation layer, and the <code>ovm</code> CLI: doctor, models, render, mcp.</p></div>
           <div class="card"><h3>Desktop app</h3><p>An Electron shell over the SAME Studio with SQLite project folders, device probing, local rendering, and real local AI generation (TTS voiceover, ASR transcription) through a narrow sandboxed bridge - results stay fully editable with provenance.</p></div>
@@ -50,7 +51,7 @@ import Base from '../../layouts/Base.astro';
         <h2>What's being built</h2>
         <ul style="color: var(--ink-soft); font-size: 15px; line-height: 2">
           <li>Lip-sync and avatar runner integrations (LatentSync / MuseTalk)</li>
-          <li>Script-first speech generation and an LLM planner behind the proposal contract</li>
+          <li>An LLM planner behind the proposal contract</li>
           <li>Model / Device / Job Centers, desktop model install and packaging</li>
           <li>Long-project performance and reliability hardening</li>
         </ul>

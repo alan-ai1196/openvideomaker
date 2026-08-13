@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 19). This file is the single living status source; it
+Updated: 2026-08-14 (round 20). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -202,6 +202,20 @@ describes the repository truth and is updated whenever that truth changes.
   and `localRender: true` now REAL. Verified: the smoke test renders a
   1s mp4 end to end inside Electron (probed duration 1.0s) and
   Playwright confirms the dialog's Render flow with zero errors.
+- **Script-first speech generation**: the core `planScriptPlacements`
+  helper is now the single source of truth for where script lines land
+  (timed lines use their own timing, untimed lines follow sequentially
+  with a deterministic estimate) - both the text-clip sync and desktop
+  speech generation place through it, so text and audio can never
+  disagree on timing. Each script line has a live 'Generate speech'
+  affordance in the desktop app (same TTS path as the Character
+  Studio): the audio lands at the line's planned position as an insert
+  edit, and the line's real spoken duration becomes its authoritative
+  start/duration, so re-syncing text clips follows the speech.
+  Browser mode stays honestly disabled. Verified: 3 new core tests for
+  the placement plan, and the Playwright Electron check clicks the
+  real Generate speech button (Kokoro TTS runs inside the desktop app,
+  the line gains a start time, the asset appears in the Media panel).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -209,8 +223,7 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. More verified runner integrations (lip-sync/avatars next:
    LatentSync/MuseTalk).
-2. LLM-driven planner behind the agent proposal contract;
-   script-to-speech generation (desktop, line by line).
+2. LLM-driven planner behind the agent proposal contract.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

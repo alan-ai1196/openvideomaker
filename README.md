@@ -27,6 +27,20 @@ stays a normal, editable part of your project instead of a dead-end file.
 - **Studio** (`apps/studio`) — the React editor: graphite dark/light
   design system, editable timeline (move, trim, zoom), inspector,
   undo/redo, shortcuts, English + Simplified Chinese.
+- **Media pipeline** (`@openvideomaker/media`) — ffprobe probing,
+  thumbnails, waveform peaks for the desktop/server side.
+- **Rendering** (`@openvideomaker/render`) — render plans from the Video
+  IR, probed encoders with hardware-to-software fallback, RenderJobs,
+  `ovm-render` CLI.
+- **Model registry + store** (`@openvideomaker/registry`,
+  `@openvideomaker/downloader`) — capability-first model catalog with
+  honest trust states, and content-addressed, resumable, verified
+  downloads.
+- **Runner protocol** (`@openvideomaker/runners`) — language-neutral
+  NDJSON runners in uv-isolated runtimes; first verified integration:
+  Kokoro TTS.
+- **Device graph** (`@openvideomaker/devices`) — probed hardware facts
+  (CPU/GPU/encoders/runtimes) via the `ovm-doctor` CLI.
 
 ## Quick start (developers)
 

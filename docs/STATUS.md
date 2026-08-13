@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-13 (round 6). This file is the single living status source; it
+Updated: 2026-08-13 (round 7). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -58,6 +58,14 @@ describes the repository truth and is updated whenever that truth changes.
   (describe/prepare/execute/progress/cancel/health/dispose), crash-safe
   RunnerHost with timeouts and bounded logs, uv-isolated runtimes with
   content-keyed manifests (6 tests incl. crash isolation).
+- `@openvideomaker/devices` - the probed device graph: OS/CPU/memory,
+  NVIDIA GPUs via nvidia-smi (name/VRAM/driver/CUDA), ffmpeg version
+  and probed encoders (reusing render's detection), toolchain runtimes
+  (node/ffmpeg/ffprobe/uv/python with a `py` fallback), derived
+  capabilities, and the `ovm-doctor` CLI (`--json` / `--strict`).
+  Absence is data, never an error; hardware is probed, never assumed
+  (8 tests, verified on this machine: RTX 3090 24GB, CUDA 13.3,
+  NVENC encoders, uv + Python detected).
 - **First real verified integration**: `runners/kokoro-tts` - Kokoro-82M
   weights fetched through the artifact store, model loaded in an isolated
   uv runtime, TTS executed through the runner protocol, 3.3s 24kHz WAV
@@ -68,11 +76,10 @@ describes the repository truth and is updated whenever that truth changes.
 
 ## Next (in planned order)
 
-1. Device graph + hardware detection (shared `ovm doctor` logic).
-2. More verified runner integrations (ASR next) + generation jobs in the Studio.
-3. Characters/avatars; transcript & media intelligence; agent editing.
-4. MCP server, SDK, CLI (`ovm`).
-5. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
+1. More verified runner integrations (ASR next) + generation jobs in the Studio.
+2. Characters/avatars; transcript & media intelligence; agent editing.
+3. MCP server, SDK, CLI (`ovm`).
+4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.
 
 ## Known environment notes

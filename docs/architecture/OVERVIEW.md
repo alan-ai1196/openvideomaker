@@ -62,6 +62,12 @@ packages/runners  Language-neutral NDJSON runner protocol over stdio,
                   crash-safe host, uv-isolated Python runtimes. Adapters
                   in runners/<name>; first verified: runners/kokoro-tts.
                   Depends on: zod.
+
+packages/devices  Probed device graph: OS/CPU/memory, GPUs via
+                  nvidia-smi, ffmpeg encoders (reusing render), toolchain
+                  runtimes; ovm-doctor CLI. Absence is data, never an
+                  error. Feeds the future Device Center.
+                  Depends on: render, media, zod.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

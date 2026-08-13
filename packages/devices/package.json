@@ -1,0 +1,31 @@
+{
+  "name": "@openvideomaker/devices",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Runtime device graph: probed OS/CPU/GPU/encoders/runtimes, shared by ovm-doctor and the Studio Device Center.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "ovm-doctor": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../scripts/vitest.mjs run",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@openvideomaker/render": "workspace:*",
+    "@openvideomaker/media": "workspace:*",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

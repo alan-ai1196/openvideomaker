@@ -123,5 +123,10 @@ and entries without verified file manifests refuse to install.
 host and uv-isolated runtimes under OVM-managed directories; adapters are
 first-party code in `runners/<name>/` and the first verified integration
 is `runners/kokoro-tts` (registry entry `verified` with dated evidence).
-Trust states change ONLY with real execution evidence. Next: the device
-graph, then more verified integrations. See `docs/STATUS.md`.
+Trust states change ONLY with real execution evidence.
+`@openvideomaker/devices` is the probed device graph (OS/CPU/memory,
+NVIDIA GPUs via nvidia-smi, ffmpeg version + probed encoders, toolchain
+runtimes) with the `ovm-doctor` CLI (`--json`/`--strict`); hardware is
+probed, never assumed, and absence is data - it feeds the future Device
+Center. Next: more verified runner integrations (ASR), then generation
+jobs in the Studio. See `docs/STATUS.md`.

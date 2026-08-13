@@ -7,6 +7,7 @@ import { Button } from './controls';
 import { ModelCenter } from './ModelCenter';
 import { CaptionsIcon, FilmIcon, GridIcon, PersonIcon, SparkIcon, TranscriptIcon, TypeIcon, UploadIcon, WaveIcon } from './icons';
 import { TranscriptPanel } from './TranscriptPanel';
+import { CharacterPanel } from './CharacterPanel';
 import type { MessageKey } from '../i18n/strings';
 
 type PanelId = 'media' | 'text' | 'captions' | 'transcript' | 'audio' | 'avatars' | 'ai' | 'templates';
@@ -118,6 +119,8 @@ export function LeftPanel() {
           </>
         ) : active === 'transcript' ? (
           <TranscriptPanel />
+        ) : active === 'avatars' ? (
+          <CharacterPanel />
         ) : active === 'ai' ? (
           <ModelCenter />
         ) : (

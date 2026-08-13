@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 11). This file is the single living status source; it
+Updated: 2026-08-14 (round 12). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -117,6 +117,16 @@ describes the repository truth and is updated whenever that truth changes.
   test extended). Studio Transcript panel: click a segment to seek,
   correct text inline, sync captions; the welcome project ships a demo
   transcript. Playwright-verified (seek/edit/sync, no page errors).
+- **Character Studio**: the Avatars tab is a real panel over the
+  existing character IR - create/reuse characters with identity
+  (name/description), voice (provider chosen from the registry's
+  verified `audio.tts` models + voice id + consent record), performance
+  defaults (realism/gesture/head-motion/emotion) and advanced
+  capability/model preferences. Every edit is a typed, undoable
+  operation; `CharacterPatch` now deep-merges defaults to match the
+  apply semantics; the welcome project ships a demo character (Ava).
+  Voiceover generation is honestly disabled in browser mode.
+  Playwright-verified (create/rename/voice/consent/slider/delete/undo).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -124,8 +134,8 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. More verified runner integrations (lip-sync/avatars next:
    LatentSync/MuseTalk).
-2. Characters/avatars UX (Character Studio panel on the existing IR);
-   agent editing (EditPlan/EditScript).
+2. Agent editing (EditPlan/EditScript over the operation layer);
+   script-first editing (Script view linked to characters/voices).
 3. MCP server, SDK, CLI (`ovm`).
 4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.

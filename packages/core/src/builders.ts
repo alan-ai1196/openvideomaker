@@ -2,6 +2,7 @@ import {
   DEFAULT_CLIP_AUDIO,
   DEFAULT_TRANSFORM,
   newAssetId,
+  newCharacterId,
   newClipId,
   newId,
   type Asset,
@@ -9,6 +10,8 @@ import {
   type AssetSource,
   type CaptionClip,
   type CaptionSegment,
+  type Character,
+  type CharacterDefaults,
   type ClipAudio,
   type ColorClip,
   type Crop,
@@ -22,6 +25,7 @@ import {
   type TextStyle,
   type TrackId,
   type Transition,
+  type VoiceConfig,
 } from '@openvideomaker/schema';
 
 /** Convenience builders producing schema-valid entity drafts with fresh ids. */
@@ -235,6 +239,28 @@ export function generatedAsset(draft: GeneratedAssetDraft): Asset {
       },
     },
     importedAt: now,
+  };
+}
+
+export interface CharacterDraft {
+  id?: Character['id'];
+  name: string;
+  description?: string;
+  avatar?: Partial<Character['avatar']>;
+  voice: VoiceConfig;
+  defaults?: Partial<CharacterDefaults>;
+}
+
+/** A schema-valid character draft with fresh ids and sane defaults. */
+export function characterDraft(draft: CharacterDraft): Character {
+  return {
+    id: draft.id ?? newCharacterId(),
+    name: draft.name,
+    description: draft.description,
+    avatar: { referenceImageAssetIds: [], ...(draft.avatar ?? {}) },
+    voice: draft.voice,
+    defaults: { realism: 0.6, gesture: 0.3, headMotion: 0.3, ...(draft.defaults ?? {}) },
+    createdAt: new Date().toISOString(),
   };
 }
 

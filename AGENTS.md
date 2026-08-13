@@ -146,6 +146,10 @@ shows Generate honestly disabled in browser mode. Transcripts are
 durable project data (segments linked one-to-one to assets, typed ops,
 invariants, history, ASR provenance); caption clips derive from them
 via the core command `syncCaptionsFromTranscript`, and the Studio
-Transcript panel seeks/edits/syncs them. Next: lip-sync/avatar runner
-integrations, then characters/avatars UX and agent editing. See
-`docs/STATUS.md`.
+Transcript panel seeks/edits/syncs them. The Character Studio (Avatars
+tab) manages persistent characters over the character IR - identity,
+voice (registry-verified TTS providers + consent records), performance
+defaults, advanced preferences - all typed, undoable operations, with
+voiceover generation honestly disabled in browser mode. Next:
+lip-sync/avatar runner integrations, then agent editing (EditPlan/
+EditScript) and script-first editing. See `docs/STATUS.md`.

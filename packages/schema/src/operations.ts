@@ -25,7 +25,7 @@ import {
 import { AssetSchema, AssetSourceSchema, MediaInfoSchema } from './media.js';
 import { MarkerSchema } from './sequence.js';
 import { TrackKindSchema } from './track.js';
-import { CharacterSchema, ProjectSettingsSchema, VoiceConfigSchema } from './project.js';
+import { CharacterDefaultsSchema, CharacterSchema, ProjectSettingsSchema, VoiceConfigSchema } from './project.js';
 import { TranscriptSchema, TranscriptSegmentSchema } from './transcript.js';
 
 /**
@@ -291,7 +291,9 @@ export type AssetReplaceParams = z.infer<typeof AssetReplaceParamsSchema>;
 export const CharacterCreateParamsSchema = z.object({ character: CharacterSchema });
 export type CharacterCreateParams = z.infer<typeof CharacterCreateParamsSchema>;
 
-export const CharacterPatchSchema = CharacterSchema.omit({ id: true, createdAt: true }).partial();
+export const CharacterPatchSchema = CharacterSchema.omit({ id: true, createdAt: true }).partial().extend({
+  defaults: CharacterDefaultsSchema.partial().optional(),
+});
 export type CharacterPatch = z.infer<typeof CharacterPatchSchema>;
 
 export const CharacterUpdateParamsSchema = z.object({

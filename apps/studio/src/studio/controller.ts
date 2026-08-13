@@ -1,5 +1,5 @@
-import { importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
-import { newTrackId, type AssetId, type ClipId, type SegmentId, type TranscriptId } from '@openvideomaker/schema';
+import { characterDraft, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { newCharacterId, newTrackId, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -107,6 +107,30 @@ export class StudioController {
   reportError(message: string, code = 'external'): void {
     this.#lastError = { code, message };
     this.#emit();
+  }
+
+  /** Create a persistent, reusable character (library entity). */
+  createCharacter(options?: { name?: string }): CharacterId | null {
+    const id = newCharacterId();
+    const character = characterDraft({
+      id,
+      name: options?.name ?? 'New Character',
+      voice: { provider: 'system.tts', consent: { hasConsent: true } },
+    });
+    const result = this.mutate((tx) => tx.createCharacter({ character }));
+    return result.ok ? character.id : null;
+  }
+
+  updateCharacter(characterId: CharacterId, patch: CharacterPatch): MutationResult {
+    return this.mutate((tx) => tx.updateCharacter({ characterId, patch }));
+  }
+
+  changeCharacterVoice(characterId: CharacterId, voice: VoiceConfig): MutationResult {
+    return this.mutate((tx) => tx.changeVoice({ characterId, voice }));
+  }
+
+  removeCharacter(characterId: CharacterId): MutationResult {
+    return this.mutate((tx) => tx.removeCharacter({ characterId }));
   }
 
   /** Correct one transcript segment - a typed, undoable project operation. */

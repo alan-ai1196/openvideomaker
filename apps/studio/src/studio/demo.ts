@@ -3,6 +3,7 @@ import {
   mediaClip,
   textClip,
   captionClip,
+  characterDraft,
   ProjectSession,
 } from '@openvideomaker/core';
 import { newSegmentId, newTranscriptId, type AssetId, type SequenceId, type TrackId } from '@openvideomaker/schema';
@@ -104,6 +105,23 @@ export function createWelcomeSession(): ProjectSession {
           { text: 'Everything stays editable', start: 0, end: 3_000_000 },
           { text: 'even after AI does its part', start: 3_000_000, end: 6_000_000 },
         ],
+      }),
+    });
+  });
+
+  // A demo character, so the Character Studio shows real content.
+  session.transaction((tx) => {
+    tx.createCharacter({
+      character: characterDraft({
+        name: 'Ava',
+        description: 'Friendly host for talking-head videos.',
+        voice: {
+          provider: 'hf/hexgrad/Kokoro-82M',
+          modelId: 'hf/hexgrad/Kokoro-82M',
+          voiceId: 'af_heart',
+          consent: { hasConsent: true, note: 'Built-in Kokoro voice profile' },
+        },
+        defaults: { realism: 0.7, gesture: 0.4, headMotion: 0.4, emotion: 'friendly' },
       }),
     });
   });

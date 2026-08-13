@@ -119,5 +119,16 @@
   "character.preferredModel": "首选模型",
   "character.delete": "删除",
   "character.generate.voiceover": "生成配音",
-  "character.generate.disabled": "配音生成需在桌面应用中运行"
+  "character.generate.disabled": "配音生成需在桌面应用中运行",
+  "panel.agent": "智能体",
+  "agent.hint": "编辑智能体（大模型）将在桌面应用中运行。这里的建议来自内置的确定性规划器对当前项目的分析——与智能体编辑将使用的提案引擎相同。您可以预览、应用（可撤销）或拒绝每条建议。",
+  "agent.suggest": "提出编辑建议",
+  "agent.empty": "点击上方按钮，分析当前项目。",
+  "agent.proposed": "待审阅",
+  "agent.applied": "已应用（可撤销）",
+  "agent.preview": "预览",
+  "agent.apply": "应用",
+  "agent.reject": "拒绝",
+  "agent.preview.operations": "操作",
+  "agent.preview.violations": "一致性检查"
 }

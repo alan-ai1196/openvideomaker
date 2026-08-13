@@ -1,0 +1,28 @@
+{
+  "name": "@openvideomaker/agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent editing: EditPlan/EditScript over the typed operation layer - plans, declarative scripts (no eval), previews and proposals.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../scripts/vitest.mjs run",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@openvideomaker/core": "workspace:*",
+    "@openvideomaker/schema": "workspace:*",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

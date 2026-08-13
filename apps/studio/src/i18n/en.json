@@ -119,5 +119,16 @@
   "character.preferredModel": "Preferred model",
   "character.delete": "Delete",
   "character.generate.voiceover": "Generate voiceover",
-  "character.generate.disabled": "Voice generation runs in the desktop app"
+  "character.generate.disabled": "Voice generation runs in the desktop app",
+  "panel.agent": "Agent",
+  "agent.hint": "The editing agent (LLM) will run in the desktop app. These suggestions come from the built-in deterministic planner over your project - the same proposal engine agent edits will use. Preview, apply (undoable) or reject each one.",
+  "agent.suggest": "Suggest edits",
+  "agent.empty": "Click suggest to analyze the current project.",
+  "agent.proposed": "Proposed",
+  "agent.applied": "Applied (undo available)",
+  "agent.preview": "Preview",
+  "agent.apply": "Apply",
+  "agent.reject": "Reject",
+  "agent.preview.operations": "Operations",
+  "agent.preview.violations": "Invariant checks"
 }

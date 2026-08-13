@@ -41,6 +41,9 @@ importers:
       '@fontsource-variable/inter':
         specifier: ^5.3.0
         version: 5.3.0
+      '@openvideomaker/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@openvideomaker/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -72,6 +75,25 @@ importers:
       vite:
         specifier: ^8.2.1
         version: 8.2.1(@types/node@24.13.3)
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))
+
+  packages/agent:
+    dependencies:
+      '@openvideomaker/core':
+        specifier: workspace:*
+        version: link:../core
+      '@openvideomaker/schema':
+        specifier: workspace:*
+        version: link:../schema
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
       vitest:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))

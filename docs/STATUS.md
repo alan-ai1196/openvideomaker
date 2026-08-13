@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 12). This file is the single living status source; it
+Updated: 2026-08-14 (round 13). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -127,6 +127,17 @@ describes the repository truth and is updated whenever that truth changes.
   apply semantics; the welcome project ships a demo character (Ava).
   Voiceover generation is honestly disabled in browser mode.
   Playwright-verified (create/rename/voice/consent/slider/delete/undo).
+- `@openvideomaker/agent` - agent editing foundation: EditPlan (goal,
+  evidence, constraints) and EditScript (a RESTRICTED declarative
+  program over the editing domain - track.create, clip insert/remove/
+  move/trim, text/caption inserts, `$variable` bindings - never eval).
+  `compileEditScript` emits the standard typed operations; previews run
+  on a scratch copy and report invariant violations; proposals apply as
+  one undoable transaction with actor 'agent'. The Studio Agent panel
+  (honest: the LLM planner is future work) drives the real pipeline
+  with a deterministic planner that re-inspects the project -
+  Playwright-verified end to end (propose, preview, apply, re-plan,
+  caption track via variable binding). 5 agent tests.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -134,8 +145,8 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. More verified runner integrations (lip-sync/avatars next:
    LatentSync/MuseTalk).
-2. Agent editing (EditPlan/EditScript over the operation layer);
-   script-first editing (Script view linked to characters/voices).
+2. Script-first editing (Script view linked to characters/voices);
+   LLM-driven planner behind the agent proposal contract.
 3. MCP server, SDK, CLI (`ovm`).
 4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.

@@ -107,6 +107,13 @@ export const TypeIcon = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+export const AgentIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M3 3.5h10v6H6.5L3 12.5v-9z" />
+    <path d="M9.5 1.5l.4 1.2 1.2.4-1.2.4-.4 1.2-.4-1.2-1.2-.4 1.2-.4z" />
+  </Icon>
+);
+
 export const TranscriptIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}>
     <path d="M2.5 3.5h11M2.5 7h11M2.5 10.5h6" />

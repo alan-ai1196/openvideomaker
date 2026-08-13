@@ -76,6 +76,12 @@ packages/jobs     Generation jobs: capability requests run through
                   land in projects via core ops with full provenance.
                   Depends on: registry, downloader, runners, core,
                   media, schema, zod.
+
+packages/agent    Agent editing: EditPlan/EditScript (restricted
+                  declarative steps with $variable bindings, never
+                  eval) compile to the standard typed operations;
+                  scratch-copy previews; reviewable proposals.
+                  Depends on: schema, core, zod.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

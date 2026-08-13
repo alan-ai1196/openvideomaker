@@ -1,4 +1,5 @@
 import { characterDraft, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { newCharacterId, newTrackId, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
@@ -107,6 +108,19 @@ export class StudioController {
   reportError(message: string, code = 'external'): void {
     this.#lastError = { code, message };
     this.#emit();
+  }
+
+  /** Apply a reviewed agent proposal; the edit lands as one undoable transaction. */
+  applyAgentProposal(proposal: EditProposal): MutationResult {
+    const result = applyProposal(this.#session, proposal);
+    if (!result.ok) {
+      this.#lastError = { code: 'agent', message: result.errors.join('; ') };
+      this.#emit();
+      return { ok: false, code: 'agent', message: result.errors.join('; ') };
+    }
+    this.#lastError = null;
+    this.#emit();
+    return { ok: true };
   }
 
   /** Create a persistent, reusable character (library entity). */

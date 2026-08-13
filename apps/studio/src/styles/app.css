@@ -1606,3 +1606,103 @@ button.asset-item:hover {
   font-size: 11px;
 }
 
+
+/* Agent panel */
+.agent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agent-hint {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.agent-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-raised);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agent-card.applied {
+  border-color: var(--accent);
+}
+
+.agent-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agent-goal {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.agent-state {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.agent-card.applied .agent-state {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.agent-changes {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agent-outcome {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.agent-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.agent-actions .button {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+.agent-preview {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-preview p {
+  margin: 0;
+}
+
+.agent-errors {
+  color: var(--danger, #e07a6d);
+}
+

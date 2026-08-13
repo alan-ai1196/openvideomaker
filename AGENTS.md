@@ -150,6 +150,12 @@ Transcript panel seeks/edits/syncs them. The Character Studio (Avatars
 tab) manages persistent characters over the character IR - identity,
 voice (registry-verified TTS providers + consent records), performance
 defaults, advanced preferences - all typed, undoable operations, with
-voiceover generation honestly disabled in browser mode. Next:
-lip-sync/avatar runner integrations, then agent editing (EditPlan/
-EditScript) and script-first editing. See `docs/STATUS.md`.
+voiceover generation honestly disabled in browser mode.
+`@openvideomaker/agent` is the agent editing foundation: EditPlan +
+EditScript (restricted declarative steps with $variable bindings, never
+eval) compile to the standard typed operations; previews run on scratch
+copies; proposals apply as one undoable agent transaction. The Studio
+Agent panel honestly runs the deterministic planner today (the LLM
+planner is future work). Next: lip-sync/avatar runner integrations,
+then script-first editing and the LLM planner behind the same
+proposal contract. See `docs/STATUS.md`.

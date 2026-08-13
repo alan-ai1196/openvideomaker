@@ -19,10 +19,11 @@ metadata (zod) under `packages/registry/src/data`. Each entry records:
   license (id/name/url/note), artifact sources (HF + ModelScope + http
   mirrors, explicitly equivalent), limitations, and an evidence sentence.
 - **Trust states** describe evidence: core / verified / community /
-  experimental / unverified. Every current entry is `unverified` -
-  metadata was checked against the hub APIs at research time, but no
-  runner has executed any model yet. That is the honest truth and stays
-  so until the runner slice verifies each integration.
+  experimental / unverified. Entries start `unverified` (metadata
+  checked against the hub APIs at research time) and flip to `verified`
+  only with real execution evidence; currently verified: Kokoro TTS
+  (`hf/hexgrad/Kokoro-82M`) and Whisper Large v3
+  (`hf/openai/whisper-large-v3`), both with dated evidence sentences.
 - `docs/models.md` is GENERATED from the registry and drift-checked in
   tests; there is no second manual list.
 
@@ -43,6 +44,16 @@ revision with a manifest. Downloads are resumable (Range), cancellable,
 progress-reporting, disk-space-checked, and integrity-verified whenever
 the registry provides a sha256. Entries without a verified file manifest
 refuse to install loudly - guessing is how supply chains break.
+
+Hash sourcing for HF manifests: the tree API `oid` for non-LFS files is
+a git blob id, not a content hash - never seed it. LFS files expose
+their content sha256 under `lfs.oid`; small files are measured directly
+from an official download before they are pinned. Registry entries
+record only measured content hashes. Because
+the store is a flat hash-named CAS, adapters materialize the canonical
+layout they need from the file refs they receive (kokoro copies the
+voice to `voice.pt`; whisper assembles the five CTranslate2 files into a
+model directory) - the store layout never leaks into runners.
 
 ## Security boundary
 
@@ -66,5 +77,6 @@ for all binary media. `RunnerHost` owns correlation, timeouts, bounded
 logs and crash isolation - a dead runner fails only its pending job.
 Python runtimes are uv-managed under an OpenVideoMaker-owned directory
 from pinned manifests, never the global Python. Adapters live in
-`runners/<name>/` and are first-party code; the first verified one is
-`runners/kokoro-tts`.
+`runners/<name>/` and are first-party code; verified integrations are
+`runners/kokoro-tts` (TTS) and `runners/whisper-asr` (transcription with
+timed segments + SRT captions), each with a re-runnable `verify.mjs`.

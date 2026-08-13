@@ -24,15 +24,15 @@ a runner slice verifies it.
 
 ### Whisper Large v3
 
-- **Id:** `hf/openai/whisper-large-v3` - **Trust:** unverified
+- **Id:** `hf/openai/whisper-large-v3` - **Trust:** verified
 - **Upstream:** [openai/whisper](https://github.com/openai/whisper)
 - **License:** Apache License 2.0 (https://huggingface.co/openai/whisper-large-v3/blob/main/LICENSE)
 - **Capabilities:** audio.asr
-- **Runner:** local-python (whisper / faster-whisper adapters)
-- **Hardware:** cuda/expected, cpu/expected, mlx/untested, rocm/untested
-- **Memory:** Large ASR model; smaller whisper variants exist for weak hardware.
+- **Runner:** local-python (faster-whisper adapter (runners/whisper-asr) over the Systran CTranslate2 weights)
+- **Hardware:** cuda/tested, cpu/expected, mlx/untested, rocm/untested
+- **Memory:** Large ASR model (~2.9 GB fp16 weights); smaller whisper variants exist for weak hardware.
 - **Limitations:** Transcription of noisy or overlapping speech degrades; no speaker diarization built in.
-- **Evidence:** Registry metadata (id, license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker.
+- **Evidence:** Executed 2026-08-14: the official CTranslate2 weights fetched through the OpenVideoMaker artifact store (model.bin pinned from the HF LFS oid; small files measured from the official download), loaded in an isolated uv runtime (faster-whisper 1.2.1, CUDA float16 on an RTX 3090), and 'audio.asr' executed through the runner protocol on Kokoro-synthesized speech - transcribed 'Make videos with AI and keep everything editable.' with 8/8 word overlap, producing timed segments and SRT captions.
 
 ### Paraformer (Chinese)
 

@@ -42,9 +42,14 @@ export type ModelSource = z.infer<typeof ModelSourceSchema>;
 
 export const ModelFileSchema = z.object({
   path: z.string().min(1),
-  /** Authoritative integrity data when known (LFS files expose sha256). */
+  /** Content sha256 - the authoritative integrity pin. */
   sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
-  /** Git-stored files expose sha1 (40 hex) via the hub tree API. */
+  /**
+   * Content sha1 (40 hex) for sources that expose one. NOTE: the HF
+   * tree API `oid` is a git blob id for non-LFS files (NOT the content
+   * sha1), so never seed it here - measure content hashes instead.
+   * HF LFS files expose their real content sha256 under `lfs.oid`.
+   */
   sha1: z.string().regex(/^[a-f0-9]{40}$/).optional(),
   sizeBytes: z.number().int().nonnegative().optional(),
   required: z.boolean().default(true),

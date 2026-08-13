@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-13 (round 7). This file is the single living status source; it
+Updated: 2026-08-14 (round 8). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -71,15 +71,29 @@ describes the repository truth and is updated whenever that truth changes.
   uv runtime, TTS executed through the runner protocol, 3.3s 24kHz WAV
   confirmed with ffprobe. Registry entry marked `verified` with measured
   sha256s and dated evidence.
+- **Second verified integration**: `runners/whisper-asr` - Whisper Large
+  v3 via faster-whisper: the official CTranslate2 weights (2.9GB model.bin
+  pinned from the HF LFS oid) fetched through the artifact store, an
+  isolated uv runtime carrying the `nvidia-cublas-cu12` wheel for
+  toolkit-free CUDA (DLL dirs registered by the adapter), and `audio.asr`
+  through the runner protocol on Kokoro-synthesized speech: 8/8 word
+  overlap on CUDA float16 (RTX 3090), timed transcript + SRT captions.
+  Registry entry `hf/openai/whisper-large-v3` marked `verified`; the
+  TTS -> ASR loop runs end to end.
+- `@openvideomaker/downloader` hardening: store hashing now streams (the
+  first >2GiB artifact - whisper's weights - exposed the readFileSync
+  buffer limit), with a regression test for large-file adoption.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. More verified runner integrations (ASR next) + generation jobs in the Studio.
-2. Characters/avatars; transcript & media intelligence; agent editing.
-3. MCP server, SDK, CLI (`ovm`).
-4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
+1. Generation jobs in the Studio (verified TTS/ASR wired through the runner
+   protocol in desktop contexts; browser mode stays honest).
+2. More verified runner integrations (lip-sync/avatars next).
+3. Characters/avatars; transcript & media intelligence; agent editing.
+4. MCP server, SDK, CLI (`ovm`).
+5. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.
 
 ## Known environment notes

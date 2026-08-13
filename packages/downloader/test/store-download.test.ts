@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { createReadStream, existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { closeSync, createReadStream, existsSync, mkdtempSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, writeSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -178,3 +178,28 @@ describe('ModelStore + installModel', () => {
     expect(ModelStore.safePath('sub/dir/model.safetensors')).toBe('sub/dir/model.safetensors');
   });
 });
+
+describe('large file adoption', () => {
+  it('adopts a file larger than 2 GiB without buffering it', async () => {
+    const store = new ModelStore(join(dir, 'store-large'));
+    const target = 2 * 1024 * 1024 * 1024 + 1024 * 1024; // 2 GiB + 1 MiB
+    const large = join(dir, 'large.bin');
+    const chunk = Buffer.alloc(16 * 1024 * 1024, 0);
+    const expected = createHash('sha256');
+    const fd = openSync(large, 'w');
+    let written = 0;
+    while (written < target) {
+      const n = Math.min(chunk.length, target - written);
+      writeSync(fd, chunk, 0, n);
+      expected.update(chunk.subarray(0, n));
+      written += n;
+    }
+    closeSync(fd);
+    const result = await store.adopt(large, undefined);
+    expect(result.sizeBytes).toBe(target);
+    expect(result.sha256).toBe(expected.digest('hex'));
+    expect(existsSync(join(store.dir, 'files', result.sha256.slice(0, 2), result.sha256))).toBe(true);
+    rmSync(large, { force: true });
+  }, 120_000);
+});
+

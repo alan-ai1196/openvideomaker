@@ -1,10 +1,17 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, statSync, statfsSync, writeFileSync, rmSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, renameSync, statSync, statfsSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { DownloadError, type ModelManifest } from './types.js';
 
-function sha256Of(file: string): string {
-  return createHash('sha256').update(readFileSync(file)).digest('hex');
+/** Stream a file through a hash: model weights exceed Node's buffer limit. */
+function hashFile(file: string, algorithm: 'sha256' | 'sha1'): Promise<string> {
+  return new Promise((resolvePromise, reject) => {
+    const hash = createHash(algorithm);
+    const stream = createReadStream(file);
+    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolvePromise(hash.digest('hex')));
+  });
 }
 
 function casPath(storeDir: string, sha256: string): string {
@@ -69,14 +76,14 @@ export class ModelStore {
   }
 
   /** Adopt a downloaded file into the CAS (dedupes by content hash). */
-  adopt(tempFile: string, expectedSha256: string | undefined, expectedSha1?: string): { sha256: string; sizeBytes: number } {
-    const actual = sha256Of(tempFile);
+  async adopt(tempFile: string, expectedSha256: string | undefined, expectedSha1?: string): Promise<{ sha256: string; sizeBytes: number }> {
+    const actual = await hashFile(tempFile, 'sha256');
     if (expectedSha256 && actual !== expectedSha256) {
       rmSync(tempFile, { force: true });
       throw new DownloadError('download.integrity', 'integrity check failed: expected sha256 ' + expectedSha256.slice(0, 12) + '..., got ' + actual.slice(0, 12) + '...');
     }
     if (expectedSha1 && !expectedSha256) {
-      const actualSha1 = createHash('sha1').update(readFileSync(tempFile)).digest('hex');
+      const actualSha1 = await hashFile(tempFile, 'sha1');
       if (actualSha1 !== expectedSha1) {
         rmSync(tempFile, { force: true });
         throw new DownloadError('download.integrity', 'integrity check failed: expected sha1 ' + expectedSha1.slice(0, 12) + '..., got ' + actualSha1.slice(0, 12) + '...');

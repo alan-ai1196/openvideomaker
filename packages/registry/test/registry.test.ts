@@ -17,9 +17,9 @@ describe('registry data', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('declares trust states honestly: one verified entry, the rest unverified', () => {
+  it('declares trust states honestly: only entries with real execution evidence are verified', () => {
     const verified = registry.entries.filter((e) => e.verification.trust === 'verified');
-    expect(verified.map((e) => e.id)).toEqual(['hf/hexgrad/Kokoro-82M']);
+    expect(verified.map((e) => e.id)).toEqual(['hf/hexgrad/Kokoro-82M', 'hf/openai/whisper-large-v3']);
     for (const entry of verified) {
       expect(entry.verification.verifiedAt).toBeTruthy();
       expect(entry.verification.evidence).toMatch(/Executed/);

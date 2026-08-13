@@ -128,5 +128,9 @@ Trust states change ONLY with real execution evidence.
 NVIDIA GPUs via nvidia-smi, ffmpeg version + probed encoders, toolchain
 runtimes) with the `ovm-doctor` CLI (`--json`/`--strict`); hardware is
 probed, never assumed, and absence is data - it feeds the future Device
-Center. Next: more verified runner integrations (ASR), then generation
-jobs in the Studio. See `docs/STATUS.md`.
+Center. `runners/whisper-asr` is the second verified integration (Whisper
+Large v3 via faster-whisper: CTranslate2 weights through the artifact
+store, the nvidia-cublas-cu12 wheel registered by the adapter so CUDA
+needs no system toolkit, 8/8 word overlap on the TTS -> ASR loop on an
+RTX 3090); the downloader store streams hashes so >2GiB artifacts work.
+Next: generation jobs in the Studio. See `docs/STATUS.md`.

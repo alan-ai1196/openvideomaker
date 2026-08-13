@@ -66,7 +66,7 @@ export async function installModel(store: ModelStore, entry: ModelEntry, options
               job.emit('progress');
             },
           });
-          const { sha256, sizeBytes } = store.adopt(dest, file.sha256, file.sha1);
+          const { sha256, sizeBytes } = await store.adopt(dest, file.sha256, file.sha1);
           adopted.push({ path: safe, sha256, sizeBytes });
           succeeded = true;
           break;

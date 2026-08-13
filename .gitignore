@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+build/
+out/
+.turbo/
+*.tsbuildinfo
+
+# tests
+coverage/
+
+# research caches (never commit upstream clones)
+.research/
+
+# environments / runtimes
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pixi/
+uv.lock
+
+# logs & OS junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# local env / secrets
+.env
+.env.*
+!.env.example
+
+# editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# product runtime artifacts (never commit user projects/media)
+project.ovm/
+.ovm/
+ovm-cache/

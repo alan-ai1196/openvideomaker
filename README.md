@@ -51,6 +51,8 @@ stays a normal, editable part of your project instead of a dead-end file.
   proposals compiled to the same typed operations as manual edits.
 - **Script-first editing** — durable scripts (speech lines linked to
   characters) that place onto the timeline in one reviewable step.
+- **Desktop shell** (`apps/desktop`) — Electron around the same Studio
+  with local project persistence (SQLite folders) and device probing.
 - **MCP + CLI** (`@openvideomaker/mcp`, `@openvideomaker/cli`) — a
   semantic agent tool surface over the operation layer and the `ovm`
   command (doctor / models / render / mcp).

@@ -1,0 +1,25 @@
+{
+  "name": "@openvideomaker/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenVideoMaker Desktop: Electron shell around the SAME Studio UI with local persistence, device probing and a narrow preload bridge.",
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"fs.copyFileSync('src/preload.cjs','dist/preload.cjs')\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "electron .",
+    "smoke": "electron . --smoke",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@openvideomaker/core": "workspace:*",
+    "@openvideomaker/schema": "workspace:*",
+    "@openvideomaker/persistence": "workspace:*",
+    "@openvideomaker/devices": "workspace:*"
+  },
+  "devDependencies": {
+    "electron": "43.4.0",
+    "typescript": "~7.0.2"
+  }
+}

@@ -38,6 +38,11 @@ apps/site         The public marketing + docs site (Astro, static)
                   deployed to openvideomaker.heartboat.me as a
                   Cloudflare Workers static-assets project.
 
+apps/desktop      Electron shell over the SAME Studio build: sandboxed
+                  renderer, narrow typed CJS preload (window.ovm),
+                  SQLite project persistence + device probing in the
+                  main process.
+
 apps/studio       The primary React editor: design tokens, shell layout
                   (top bar, media/asset panels, preview stage, inspector,
                   timeline), real editing interactions driven through the

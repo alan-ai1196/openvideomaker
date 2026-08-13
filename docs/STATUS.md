@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 16). This file is the single living status source; it
+Updated: 2026-08-14 (round 17). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -163,6 +163,16 @@ describes the repository truth and is updated whenever that truth changes.
   Script panel: write, edit, link characters, set times, seek and
   place - the welcome project ships a demo script. 4 core tests +
   Playwright-verified (edit/seek/place, no page errors).
+- **Electron desktop shell** (`apps/desktop`): one window around the
+  SAME Studio build (relative asset base; file:// loading verified),
+  sandboxed renderer (contextIsolation, no nodeIntegration) with a
+  narrow CJS preload exposing a typed `window.ovm` bridge
+  (capabilities, openProject, saveProject, runDoctor). Real today:
+  SQLite project folders via the persistence package + device probing;
+  localRender/localGeneration stay honestly false until their IPC
+  paths exist. Verified: headless smoke (persistence round trip +
+  doctor inside Electron) and Playwright's Electron driver against the
+  real window (Studio renders, bridge live, zero errors).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -172,9 +182,10 @@ describes the repository truth and is updated whenever that truth changes.
    LatentSync/MuseTalk).
 2. LLM-driven planner behind the agent proposal contract;
    script-to-speech generation (desktop).
-3. Model/Device/Job Centers; Electron packaging (desktop core adds
-   persistence/model install/generation tools to the MCP surface);
-   long-project performance hardening.
+3. Desktop slices: render + generation IPC (flip localRender/
+   localGeneration honestly), model install, local MCP; Model/
+   Device/Job Centers; installer packaging; long-project
+   performance hardening.
 
 ## Known environment notes
 

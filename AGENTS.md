@@ -171,6 +171,10 @@ deploy with `pnpm site:deploy`, verify with `pnpm site:check`.
 Scripts are durable project data (ordered speech lines linked to
 characters, six typed operations); `syncTextClipsFromScript` places
 lines on a Script text track, and the Studio Script panel edits,
-seeks and syncs them. Next: lip-sync/avatar runner integrations,
-then the LLM planner behind the proposal contract. See
-`docs/STATUS.md`.
+seeks and syncs them. `apps/desktop` is the Electron shell over the
+SAME Studio build: sandboxed renderer, narrow typed CJS preload
+(`window.ovm`: capabilities/openProject/saveProject/runDoctor), real
+SQLite persistence + device probing today; localRender/
+localGeneration stay honestly false until their IPC paths exist.
+Next: lip-sync/avatar runner integrations, then the LLM planner
+behind the proposal contract. See `docs/STATUS.md`.

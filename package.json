@@ -18,7 +18,10 @@
     "site:dev": "pnpm --filter @openvideomaker/site dev",
     "site:build": "pnpm --filter @openvideomaker/site build",
     "site:check": "node scripts/site-check.mjs",
-    "site:deploy": "pnpm --filter @openvideomaker/site build && wrangler deploy --config apps/site/wrangler.jsonc"
+    "site:deploy": "pnpm --filter @openvideomaker/site build && wrangler deploy --config apps/site/wrangler.jsonc",
+    "desktop:dev": "pnpm --filter @openvideomaker/desktop dev",
+    "desktop:smoke": "pnpm --filter @openvideomaker/desktop smoke",
+    "desktop:check": "node scripts/desktop-check.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

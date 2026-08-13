@@ -1,6 +1,7 @@
 import { characterDraft, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
-import { newCharacterId, newLineId, newScriptId, newTrackId, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type LineId, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
+import { newCharacterId, newLineId, newScriptId, newTrackId, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
+import { getDesktopBridge } from './desktop';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -93,8 +94,56 @@ export class StudioController {
    * generation through the local jobs service (desktop app); it never
    * pretends to run FFmpeg or models inside the page.
    */
-  get capabilities(): { localRender: boolean; localGeneration: boolean } {
-    return { localRender: false, localGeneration: false };
+  get capabilities(): { localRender: boolean; localGeneration: boolean; localPersistence: boolean } {
+    const bridge = getDesktopBridge();
+    return {
+      localRender: bridge?.staticCapabilities.localRender ?? false,
+      localGeneration: bridge?.staticCapabilities.localGeneration ?? false,
+      localPersistence: bridge?.staticCapabilities.localPersistence ?? false,
+    };
+  }
+
+  /** Replace the whole session with a loaded project (desktop open, or a file import). */
+  loadProject(project: Project, log: ProjectLog): MutationResult {
+    try {
+      this.#session = ProjectSession.open(project, log);
+      this.#selectedClipId = null;
+      this.#playheadUs = 0;
+      this.#playing = false;
+      this.#mediaCache = new MediaCache();
+      this.#lastError = null;
+      this.#emit();
+      return { ok: true };
+    } catch (err) {
+      const e = err as OvmError;
+      this.#lastError = { code: e.code ?? 'unknown', message: e.message ?? String(err) };
+      this.#emit();
+      return { ok: false, code: e.code, message: e.message };
+    }
+  }
+
+  async openProjectFromDesktop(): Promise<MutationResult> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
+    try {
+      const loaded = await bridge.openProject();
+      if (!loaded) return { ok: false, code: 'cancelled', message: 'open cancelled' };
+      return this.loadProject(loaded.project, loaded.log);
+    } catch (err) {
+      return { ok: false, code: 'desktop', message: (err as Error).message };
+    }
+  }
+
+  async saveProjectToDesktop(): Promise<MutationResult> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
+    try {
+      const result = await bridge.saveProject(this.#session.project as Project, this.#session.exportLog());
+      if (!result.ok) return { ok: false, code: 'desktop', message: result.reason ?? 'save failed' };
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, code: 'desktop', message: (err as Error).message };
+    }
   }
 
   clearError(): void {

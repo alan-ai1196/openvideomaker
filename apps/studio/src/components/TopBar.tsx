@@ -31,7 +31,13 @@ export function TopBar() {
     setEditingName(false);
   };
 
+  const localPersistence = controller.capabilities.localPersistence;
+
   const saveFile = () => {
+    if (localPersistence) {
+      void controller.saveProjectToDesktop();
+      return;
+    }
     const blob = new Blob([controller.exportProject()], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -41,7 +47,11 @@ export function TopBar() {
     URL.revokeObjectURL(url);
   };
 
-  const openFile = async (file: File) => {
+  const openFile = async (file?: File) => {
+    if (localPersistence || !file) {
+      void controller.openProjectFromDesktop();
+      return;
+    }
     try {
       const text = await file.text();
       const data = JSON.parse(text) as { project?: unknown; log?: unknown };
@@ -110,18 +120,20 @@ export function TopBar() {
         <IconButton icon={<RedoIcon />} label={t('topbar.redo')} disabled={!controller.canRedo} onClick={() => controller.redo()} />
         <span className="topbar-sep" />
         <IconButton icon={<DownloadIcon />} label={t('topbar.save')} onClick={saveFile} />
-        <IconButton icon={<UploadIcon />} label={t('topbar.open')} onClick={() => fileInputRef.current?.click()} />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json,application/json"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void openFile(file);
-            e.target.value = '';
-          }}
-        />
+        <IconButton icon={<UploadIcon />} label={t('topbar.open')} onClick={() => void openFile(localPersistence ? undefined : undefined)} />
+        {!localPersistence ? (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void openFile(file);
+              e.target.value = '';
+            }}
+          />
+        ) : null}
         <IconButton icon={<KeyboardIcon />} label={t('topbar.shortcuts')} onClick={() => setShowShortcuts(true)} />
         <select
           className="language-select"

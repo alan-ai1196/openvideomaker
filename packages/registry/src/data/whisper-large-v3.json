@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/openai/whisper-large-v3",
+  "displayName": "Whisper Large v3",
+  "category": "speech",
+  "description": "General-purpose speech recognition from OpenAI; strong multilingual transcription.",
+  "upstream": {
+    "project": "openai/whisper",
+    "url": "https://github.com/openai/whisper",
+    "licenseSpdx": "MIT"
+  },
+  "capabilities": [
+    "audio.asr"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "whisper / faster-whisper adapters"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "expected"
+    },
+    {
+      "platform": "mlx",
+      "status": "untested"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Large ASR model; smaller whisper variants exist for weak hardware."
+  },
+  "precision": [
+    "fp16",
+    "fp32"
+  ],
+  "license": {
+    "id": "Apache-2.0",
+    "name": "Apache License 2.0",
+    "url": "https://huggingface.co/openai/whisper-large-v3/blob/main/LICENSE"
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "openai/whisper-large-v3"
+    }
+  ],
+  "limitations": [
+    "Transcription of noisy or overlapping speech degrades; no speaker diarization built in."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "openai/whisper-large-v3"
+    }
+  }
+}

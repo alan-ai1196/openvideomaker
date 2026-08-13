@@ -47,6 +47,16 @@ packages/render   Authoritative final rendering: render plans from the
                   Video IR, probed encoders with hardware fallback,
                   RenderJobs (progress/cancel/logs), ovm-render CLI.
                   Depends on: schema, core, media.
+
+packages/registry Machine-validated model registry: capability catalog,
+                  trust states, HF/ModelScope/mirror sources; generated
+                  model docs. Depends on: zod.
+
+packages/downloader
+                  Content-addressed model artifact store: dual-hub
+                  providers with priority profiles, resumable verified
+                  downloads, revision manifests.
+                  Depends on: registry.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

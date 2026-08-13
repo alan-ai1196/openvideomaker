@@ -1,0 +1,78 @@
+import { useMemo, useState } from 'react';
+import { Registry, MODEL_ENTRIES, CATEGORY_LABELS, type ModelEntry } from '@openvideomaker/registry';
+import { useI18n } from '../i18n/context';
+import type { MessageKey } from '../i18n/strings';
+
+const registry = Registry.fromData(MODEL_ENTRIES);
+
+export const MODEL_CENTER_ERRORS = registry.errors;
+
+/**
+ * Model Center: capability-first browsing. Cards show what creators need
+ * (what it does, trust, license) and hide framework details behind the
+ * 'evidence' line. Install runs in the desktop app; the browser Studio
+ * says so honestly instead of faking it.
+ */
+export function ModelCenter() {
+  const { t } = useI18n();
+  const [category, setCategory] = useState<ModelEntry['category'] | 'all'>('all');
+  const entries = useMemo(
+    () => (category === 'all' ? registry.entries : registry.search({ category })),
+    [category],
+  );
+
+  return (
+    <div className="model-center">
+      <div className="model-categories">
+        <button type="button" className={'model-category' + (category === 'all' ? ' selected' : '')} onClick={() => setCategory('all')}>
+          {t('modelcenter.all')} ({registry.entries.length})
+        </button>
+        {(Object.keys(CATEGORY_LABELS) as Array<ModelEntry['category']>).map((id) => (
+          <button key={id} type="button" className={'model-category' + (category === id ? ' selected' : '')} onClick={() => setCategory(id)}>
+            {CATEGORY_LABELS[id]} ({registry.search({ category: id }).length})
+          </button>
+        ))}
+      </div>
+      {entries.length === 0 ? (
+        <div className="empty-panel">
+          <p>{t('modelcenter.empty')}</p>
+        </div>
+      ) : (
+        <div className="model-cards">
+          {entries.map((entry) => (
+            <ModelCard key={entry.id} entry={entry} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModelCard({ entry }: { entry: ModelEntry }) {
+  const { t } = useI18n();
+  return (
+    <article className="model-card">
+      <div className="model-card-head">
+        <span className="model-card-name">{entry.displayName}</span>
+        <span className={'trust-badge trust-' + entry.verification.trust}>{entry.verification.trust}</span>
+      </div>
+      <p className="model-card-desc">{entry.description}</p>
+      <div className="model-card-meta">
+        <span className="model-chip">{t('modelcenter.capabilities')}: {entry.capabilities.join(', ')}</span>
+        <span className="model-chip">{t('modelcenter.hardware')}: {entry.hardware.map((h) => h.platform + '/' + h.status).join(', ')}</span>
+        <span className="model-chip">
+          {t('modelcenter.license')}: {entry.license.name}
+          {entry.license.note ? ' - ' + entry.license.note : ''}
+        </span>
+      </div>
+      <div className="model-card-actions">
+        <button type="button" className="button button-primary" disabled title={t('modelcenter.install.disabled')}>
+          {t('modelcenter.install')}
+        </button>
+        <span className="model-card-evidence" title={entry.verification.evidence}>
+          {entry.verification.evidence}
+        </span>
+      </div>
+    </article>
+  );
+}

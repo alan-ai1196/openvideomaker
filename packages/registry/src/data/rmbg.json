@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/briaai/RMBG-2.0",
+  "displayName": "RMBG-2.0",
+  "category": "enhancement",
+  "description": "Background removal for images and product shots from BRIA AI.",
+  "upstream": {
+    "project": "briaai/RMBG-2.0",
+    "url": "https://huggingface.co/briaai/RMBG-2.0"
+  },
+  "capabilities": [
+    "media.background_remove"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "transformers adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "expected"
+    },
+    {
+      "platform": "mlx",
+      "status": "untested"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Runs on CPU; GPU faster."
+  },
+  "precision": [
+    "fp32"
+  ],
+  "license": {
+    "id": "bria-rmbg-2.0",
+    "name": "BRIA RMBG-2.0 License",
+    "url": "https://huggingface.co/briaai/RMBG-2.0",
+    "note": "Custom source-available license; commercial use may require a BRIA agreement."
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "briaai/RMBG-2.0"
+    }
+  ],
+  "limitations": [
+    "Tuned for subjects like people, products and animals; artistic backgrounds vary."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, custom license) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "briaai/RMBG-2.0"
+    }
+  }
+}

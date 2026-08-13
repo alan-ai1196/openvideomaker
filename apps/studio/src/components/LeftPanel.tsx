@@ -4,6 +4,7 @@ import type { AssetKind } from '@openvideomaker/schema';
 import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import { Button } from './controls';
+import { ModelCenter } from './ModelCenter';
 import { CaptionsIcon, FilmIcon, GridIcon, PersonIcon, SparkIcon, TypeIcon, UploadIcon, WaveIcon } from './icons';
 import type { MessageKey } from '../i18n/strings';
 
@@ -113,6 +114,8 @@ export function LeftPanel() {
               </ul>
             )}
           </>
+        ) : active === 'ai' ? (
+          <ModelCenter />
         ) : (
           <EmptyPanel text={t('panel.empty.generic')} hint={t('panel.empty.hint')} />
         )}

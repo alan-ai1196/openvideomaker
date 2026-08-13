@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/bytedance/latentsync-1.5",
+  "displayName": "LatentSync 1.5",
+  "category": "lip-sync",
+  "description": "Latent diffusion lip synchronization from ByteDance; aligns mouth motion to speech.",
+  "upstream": {
+    "project": "bytedance/LatentSync",
+    "url": "https://github.com/bytedance/LatentSync"
+  },
+  "capabilities": [
+    "avatar.lip_sync"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "latentsync adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "unavailable"
+    },
+    {
+      "platform": "mlx",
+      "status": "unavailable"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "GPU required; exact VRAM depends on resolution and frames."
+  },
+  "precision": [
+    "fp16",
+    "bf16"
+  ],
+  "license": {
+    "id": "openrail++",
+    "name": "OpenRAIL++-M",
+    "url": "https://huggingface.co/bytedance/latentsync-1.5",
+    "note": "OpenRAIL licenses carry behavioral use restrictions; review before commercial use."
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "bytedance/latentsync-1.5"
+    }
+  ],
+  "limitations": [
+    "Needs a cropped, frontal face; quality depends on source identity preservation."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, OpenRAIL++ license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "bytedance/latentsync-1.5"
+    }
+  }
+}

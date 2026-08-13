@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-13 (round 4). This file is the single living status source; it
+Updated: 2026-08-13 (round 5). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -43,16 +43,27 @@ describes the repository truth and is updated whenever that truth changes.
 - Studio Export dialog: presets (1080p/vertical/square/source), quality,
   honest browser-mode capability note + exact local render command,
   project download. Playwright-validated.
-- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0007, UX
+- `@openvideomaker/registry` — machine-validated model registry:
+  capability catalog, 9 factual seed entries (ASR/TTS/lip-sync/video/
+  image/enhancement; licenses and hub ids verified against the HF and
+  ModelScope APIs), honest unverified trust states, generated
+  `docs/models.md` with a drift check (10 tests).
+- `@openvideomaker/downloader` — content-addressed model store (sha256
+  dedup), dual-hub + mirror providers with priority profiles, resumable,
+  cancellable, integrity-verified downloads, manifest-pinned revisions
+  (12 tests against a real local HTTP server).
+- Studio Model Center: category browsing, trust badges, license notes,
+  evidence lines, honest browser-mode install state; Playwright-validated.
+- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0008, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. Model registry + providers (HF/ModelScope/mirror) + download store.
-3. Runner protocol + isolation; representative real AI integrations.
-4. Characters/avatars; transcript & media intelligence; agent editing.
-5. MCP server, SDK, CLI (`ovm`).
-6. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
+1. Runner protocol + isolation; representative real AI integrations.
+2. Device graph + hardware detection.
+3. Characters/avatars; transcript & media intelligence; agent editing.
+4. MCP server, SDK, CLI (`ovm`).
+5. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.
 
 ## Known environment notes

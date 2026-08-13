@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/Wan-AI/Wan2.2-T2V-A14B",
+  "displayName": "Wan 2.2 (14B)",
+  "category": "video-generation",
+  "description": "Large open text-to-video model from Wan AI; high-quality output on capable hardware.",
+  "upstream": {
+    "project": "Wan-AI/Wan2.2",
+    "url": "https://github.com/Wan-Video/Wan2.2"
+  },
+  "capabilities": [
+    "video.text_to_video"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "wan adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "unavailable"
+    },
+    {
+      "platform": "mlx",
+      "status": "untested"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Very large model; expects a high-VRAM GPU. Smaller Wan variants exist."
+  },
+  "precision": [
+    "bf16"
+  ],
+  "license": {
+    "id": "Apache-2.0",
+    "name": "Apache License 2.0",
+    "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B"
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "Wan-AI/Wan2.2-T2V-A14B"
+    }
+  ],
+  "limitations": [
+    "Heavy compute; long generation times without a strong GPU."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, Apache-2.0 license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "Wan-AI/Wan2.2-T2V-A14B"
+    }
+  }
+}

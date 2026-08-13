@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/black-forest-labs/FLUX.1-schnell",
+  "displayName": "FLUX.1 schnell",
+  "category": "images",
+  "description": "Fast open image generation model from Black Forest Labs.",
+  "upstream": {
+    "project": "black-forest-labs/flux",
+    "url": "https://github.com/black-forest-labs/flux"
+  },
+  "capabilities": [
+    "image.generate"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "diffusers adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "untested"
+    },
+    {
+      "platform": "mlx",
+      "status": "untested"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Consumer GPU required for practical use."
+  },
+  "precision": [
+    "bf16"
+  ],
+  "license": {
+    "id": "Apache-2.0",
+    "name": "Apache License 2.0",
+    "url": "https://huggingface.co/black-forest-labs/FLUX.1-schnell"
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "black-forest-labs/FLUX.1-schnell"
+    },
+    {
+      "kind": "modelscope",
+      "modelId": "AI-ModelScope/FLUX.1-schnell"
+    }
+  ],
+  "limitations": [
+    "Schnell trades fidelity for speed; the dev variant is higher quality."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, Apache-2.0 license) and the ModelScope mirror checked against both hub APIs on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "black-forest-labs/FLUX.1-schnell"
+    }
+  }
+}

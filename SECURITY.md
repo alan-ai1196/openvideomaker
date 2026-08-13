@@ -18,6 +18,14 @@ code, third-party endpoints, and project files.
   never executes arbitrary code from a downloaded model repository by
   default; any remote-code mechanism requires explicit trust and
   preferably isolation.
+- The artifact store (`@openvideomaker/downloader`) is safe-but-dumb by
+  design: content-addressed storage, sanitized relative paths (no
+  traversal, no absolute paths), no archive extraction, no code execution.
+  Installs require a registry-provided file manifest; entries without one
+  refuse to install.
+- Mirrors are explicit configuration (HF_ENDPOINT, registry http sources);
+  redirects are limited to http(s) and credentials are never embedded in
+  URLs or logged.
 - Runners are first-party adapters, verified third-party adapters, or
   explicitly trusted user runtimes (isolated environments/containers).
 

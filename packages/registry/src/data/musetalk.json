@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/TMElyralab/MuseTalk",
+  "displayName": "MuseTalk",
+  "category": "lip-sync",
+  "description": "Real-time lip-sync model from Tencent Music Entertainment Lyra Lab.",
+  "upstream": {
+    "project": "TMElyralab/MuseTalk",
+    "url": "https://github.com/TMElyralab/MuseTalk"
+  },
+  "capabilities": [
+    "avatar.lip_sync"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "musetalk adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "unavailable"
+    },
+    {
+      "platform": "mlx",
+      "status": "unavailable"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "GPU required; community reports vary by resolution."
+  },
+  "precision": [
+    "fp16"
+  ],
+  "license": {
+    "id": "creativeml-openrail-m",
+    "name": "CreativeML OpenRAIL-M",
+    "url": "https://huggingface.co/TMElyralab/MuseTalk",
+    "note": "OpenRAIL licenses carry behavioral use restrictions; review before commercial use."
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "TMElyralab/MuseTalk"
+    }
+  ],
+  "limitations": [
+    "Best with frontal faces; visual quality varies with pose and lighting."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, license) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "TMElyralab/MuseTalk"
+    }
+  }
+}

@@ -81,5 +81,12 @@
   "export.browser.title": "Rendering runs on your computer",
   "export.browser.hint": "This browser preview cannot run FFmpeg. Download the project and render it with the local renderer:",
   "export.download": "Download project",
-  "export.cancel": "Cancel"
+  "export.cancel": "Cancel",
+  "modelcenter.all": "All",
+  "modelcenter.empty": "No models match this category",
+  "modelcenter.capabilities": "Capabilities",
+  "modelcenter.hardware": "Hardware",
+  "modelcenter.license": "License",
+  "modelcenter.install": "Install",
+  "modelcenter.install.disabled": "Model installation runs in the desktop app"
 }

@@ -113,5 +113,9 @@ durable project state. Final rendering lives in `@openvideomaker/render`
 (render plans from the Video IR, probed encoders with hardware-to-software
 fallback, RenderJobs, `ovm-render` CLI); the browser Studio must NEVER
 pretend to run FFmpeg - its Export dialog prepares the project and shows
-where rendering runs. Next: model registry, providers and the download
-store. See `docs/STATUS.md`.
+where rendering runs. `@openvideomaker/registry` is the single source of
+model truth (capability-first, trust states, generated `docs/models.md`);
+`@openvideomaker/downloader` stores artifacts content-addressed with
+resumable verified downloads - downloads NEVER execute downloaded code,
+and entries without verified file manifests refuse to install. Next:
+runner protocol + isolation, then the device graph. See `docs/STATUS.md`.

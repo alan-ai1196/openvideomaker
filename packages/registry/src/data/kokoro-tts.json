@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/hexgrad/Kokoro-82M",
+  "displayName": "Kokoro TTS",
+  "category": "speech",
+  "description": "Compact open TTS model (82M params) with natural multi-voice output; runs comfortably on CPU.",
+  "upstream": {
+    "project": "hexgrad/kokoro",
+    "url": "https://github.com/hexgrad/kokoro"
+  },
+  "capabilities": [
+    "audio.tts"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "kokoro adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "expected"
+    },
+    {
+      "platform": "mlx",
+      "status": "untested"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Small model; upstream reports real-time synthesis on CPU."
+  },
+  "precision": [
+    "fp32",
+    "bf16"
+  ],
+  "license": {
+    "id": "Apache-2.0",
+    "name": "Apache License 2.0",
+    "url": "https://huggingface.co/hexgrad/Kokoro-82M"
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "hexgrad/Kokoro-82M"
+    }
+  ],
+  "limitations": [
+    "English and a small set of additional languages; no voice cloning out of the box."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, license, 11M+ downloads) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "hexgrad/Kokoro-82M"
+    }
+  }
+}

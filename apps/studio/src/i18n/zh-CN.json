@@ -81,5 +81,12 @@
   "export.browser.title": "渲染在本机运行",
   "export.browser.hint": "此浏览器预览无法运行 FFmpeg。请下载项目并使用本地渲染器进行渲染：",
   "export.download": "下载项目",
-  "export.cancel": "取消"
+  "export.cancel": "取消",
+  "modelcenter.all": "全部",
+  "modelcenter.empty": "没有符合此分类的模型",
+  "modelcenter.capabilities": "能力",
+  "modelcenter.hardware": "硬件",
+  "modelcenter.license": "许可证",
+  "modelcenter.install": "安装",
+  "modelcenter.install.disabled": "模型安装需在桌面应用中完成"
 }

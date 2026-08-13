@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
+  "displayName": "Paraformer (Chinese)",
+  "category": "speech",
+  "description": "FunASR Paraformer large model for Mandarin speech recognition, first-class on ModelScope.",
+  "upstream": {
+    "project": "FunASR",
+    "url": "https://github.com/modelscope/FunASR"
+  },
+  "capabilities": [
+    "audio.asr"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "funasr adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "expected"
+    },
+    {
+      "platform": "mlx",
+      "status": "unavailable"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Runs on CPU as well as GPU."
+  },
+  "license": {
+    "id": "Apache-2.0",
+    "name": "Apache License 2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "sources": [
+    {
+      "kind": "modelscope",
+      "modelId": "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
+    }
+  ],
+  "limitations": [
+    "Mandarin-focused; mixed-language audio is approximate."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, availability, Apache-2.0 license) checked against the ModelScope API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "modelscope-repo",
+      "id": "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
+    }
+  }
+}

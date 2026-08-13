@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "hf/Lightricks/LTX-Video",
+  "displayName": "LTX-Video",
+  "category": "video-generation",
+  "description": "Compact (2B) real-time-capable video generation model from Lightricks.",
+  "upstream": {
+    "project": "Lightricks/LTX-Video",
+    "url": "https://github.com/Lightricks/LTX-Video"
+  },
+  "capabilities": [
+    "video.text_to_video"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "ltx-video adapter"
+  },
+  "hardware": [
+    {
+      "platform": "cuda",
+      "status": "expected"
+    },
+    {
+      "platform": "cpu",
+      "status": "unavailable"
+    },
+    {
+      "platform": "mlx",
+      "status": "untested"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Designed to run on consumer GPUs."
+  },
+  "precision": [
+    "bf16"
+  ],
+  "license": {
+    "id": "ltx-community",
+    "name": "LTX-Video Community License",
+    "url": "https://huggingface.co/Lightricks/LTX-Video",
+    "note": "Custom community license; review before commercial use."
+  },
+  "sources": [
+    {
+      "kind": "hf",
+      "repo": "Lightricks/LTX-Video"
+    }
+  ],
+  "limitations": [
+    "Short clips; complex scenes and text rendering can be imperfect."
+  ],
+  "verification": {
+    "trust": "unverified",
+    "evidence": "Registry metadata (id, custom community license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "hf-repo",
+      "id": "Lightricks/LTX-Video"
+    }
+  }
+}

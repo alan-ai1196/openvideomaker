@@ -4,6 +4,7 @@ import { StudioController } from '../studio/controller';
 import { useStudio, useStudioReplace } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import { Button, IconButton, Kbd } from './controls';
+import { ExportDialog } from './ExportDialog';
 import { DownloadIcon, KeyboardIcon, MoonIcon, PauseIcon, PlayIcon, RedoIcon, SkipStartIcon, SunIcon, UndoIcon, UploadIcon } from './icons';
 import { formatTimecode } from '../timeline/math';
 import { useTheme } from '../theme';
@@ -16,6 +17,7 @@ export function TopBar() {
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const project = controller.project;
@@ -131,12 +133,13 @@ export function TopBar() {
           <option value="zh-CN">简体中文</option>
         </select>
         <IconButton icon={theme === 'dark' ? <SunIcon /> : <MoonIcon />} label={t('topbar.theme')} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
-        <Button variant="primary" label={t('topbar.export')} disabled title={t('topbar.export.disabled')}>
+        <Button variant="primary" label={t('topbar.export')} onClick={() => setShowExport(true)}>
           {t('topbar.export')}
         </Button>
       </div>
 
       {showShortcuts ? <ShortcutsPopover onClose={() => setShowShortcuts(false)} /> : null}
+      {showExport ? <ExportDialog onClose={() => setShowExport(false)} /> : null}
     </header>
   );
 }

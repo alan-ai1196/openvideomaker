@@ -86,6 +86,15 @@ export class StudioController {
     return this.#mediaCache;
   }
 
+  /**
+   * What this runtime can actually do. The browser Studio renders through
+   * the local renderer (desktop app or ovm-render CLI); it never pretends
+   * to run FFmpeg inside the page.
+   */
+  get capabilities(): { localRender: boolean } {
+    return { localRender: false };
+  }
+
   clearError(): void {
     if (this.#lastError) {
       this.#lastError = null;

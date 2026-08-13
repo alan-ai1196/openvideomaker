@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-13 (round 3). This file is the single living status source; it
+Updated: 2026-08-13 (round 4). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -35,13 +35,20 @@ describes the repository truth and is updated whenever that truth changes.
   clip thumbnails + waveforms, split-at-playhead (S), ripple delete (Del),
   lift (Shift+Del). Core insert-edit/ripple/split commands with tests.
   Playwright-validated end to end.
-- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0006, UX
+- `@openvideomaker/render` — authoritative final rendering: Video IR →
+  render plan → FFmpeg. Probed encoders (software + NVENC/AMF/QSV/Video-
+  Toolbox) with automatic hardware→software fallback, RenderJobs with
+  progress/cancel/classified errors, `ovm-render` CLI, real E2E render
+  verified with ffprobe (9 tests).
+- Studio Export dialog: presets (1080p/vertical/square/source), quality,
+  honest browser-mode capability note + exact local render command,
+  project download. Playwright-validated.
+- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0007, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. Export slice: render plan → FFmpeg, encoder detection, jobs.
-2. Model registry + providers (HF/ModelScope/mirror) + download store.
+1. Model registry + providers (HF/ModelScope/mirror) + download store.
 3. Runner protocol + isolation; representative real AI integrations.
 4. Characters/avatars; transcript & media intelligence; agent editing.
 5. MCP server, SDK, CLI (`ovm`).

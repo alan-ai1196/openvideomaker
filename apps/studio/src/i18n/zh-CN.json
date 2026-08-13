@@ -67,5 +67,19 @@
   "project.untitled": "未命名项目",
   "welcome.project": "欢迎项目",
   "project.rename": "重命名项目",
-  "playhead.time": "时间"
+  "playhead.time": "时间",
+  "export.title": "导出",
+  "export.preset": "格式",
+  "export.preset.1080p": "1080p 横屏",
+  "export.preset.vertical": "竖屏短视频",
+  "export.preset.square": "方形",
+  "export.preset.source": "原始",
+  "export.quality": "质量",
+  "export.quality.draft": "草稿",
+  "export.quality.balanced": "均衡",
+  "export.quality.high": "高",
+  "export.browser.title": "渲染在本机运行",
+  "export.browser.hint": "此浏览器预览无法运行 FFmpeg。请下载项目并使用本地渲染器进行渲染：",
+  "export.download": "下载项目",
+  "export.cancel": "取消"
 }

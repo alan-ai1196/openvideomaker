@@ -67,5 +67,19 @@
   "inspector.split": "Split at playhead",
   "shortcuts.split": "Split selected clip at playhead",
   "shortcuts.rippleDelete": "Ripple delete selected clip",
-  "shortcuts.lift": "Remove selected clip (keep gap)"
+  "shortcuts.lift": "Remove selected clip (keep gap)",
+  "export.title": "Export",
+  "export.preset": "Format",
+  "export.preset.1080p": "1080p Landscape",
+  "export.preset.vertical": "Vertical Short",
+  "export.preset.square": "Square",
+  "export.preset.source": "Source",
+  "export.quality": "Quality",
+  "export.quality.draft": "Draft",
+  "export.quality.balanced": "Balanced",
+  "export.quality.high": "High",
+  "export.browser.title": "Rendering runs on your computer",
+  "export.browser.hint": "This browser preview cannot run FFmpeg. Download the project and render it with the local renderer:",
+  "export.download": "Download project",
+  "export.cancel": "Cancel"
 }

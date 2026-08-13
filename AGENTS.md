@@ -109,5 +109,9 @@ media import + preview playback, insert edits, split/ripple delete; see
 Studio must mutate projects ONLY through `controller.mutate` -> core ops,
 and must never mirror project state in a second store. Media presentation
 caches (thumbnails, waveforms, object URLs) are session-scoped and never
-durable project state. Next: export, registry and runner protocol. See
-`docs/STATUS.md`.
+durable project state. Final rendering lives in `@openvideomaker/render`
+(render plans from the Video IR, probed encoders with hardware-to-software
+fallback, RenderJobs, `ovm-render` CLI); the browser Studio must NEVER
+pretend to run FFmpeg - its Export dialog prepares the project and shows
+where rendering runs. Next: model registry, providers and the download
+store. See `docs/STATUS.md`.

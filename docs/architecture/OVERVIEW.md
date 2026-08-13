@@ -42,6 +42,11 @@ packages/media    Node media indexing (desktop/server): ffprobe probing,
                   ffmpeg thumbnails and waveforms. The Studio has
                   browser-native equivalents behind the same schemas.
                   Depends on: schema.
+
+packages/render   Authoritative final rendering: render plans from the
+                  Video IR, probed encoders with hardware fallback,
+                  RenderJobs (progress/cancel/logs), ovm-render CLI.
+                  Depends on: schema, core, media.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

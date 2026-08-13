@@ -8,9 +8,18 @@ importers:
 
   .:
     devDependencies:
+      '@openvideomaker/downloader':
+        specifier: workspace:*
+        version: link:packages/downloader
+      '@openvideomaker/media':
+        specifier: workspace:*
+        version: link:packages/media
       '@openvideomaker/registry':
         specifier: workspace:*
         version: link:packages/registry
+      '@openvideomaker/runners':
+        specifier: workspace:*
+        version: link:packages/runners
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
@@ -152,6 +161,19 @@ importers:
       '@openvideomaker/schema':
         specifier: workspace:*
         version: link:../schema
+    devDependencies:
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))
+
+  packages/runners:
+    dependencies:
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       typescript:
         specifier: ~7.0.2

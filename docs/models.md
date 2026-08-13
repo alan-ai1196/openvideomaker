@@ -12,15 +12,15 @@ a runner slice verifies it.
 
 ### Kokoro TTS
 
-- **Id:** `hf/hexgrad/Kokoro-82M` - **Trust:** unverified
+- **Id:** `hf/hexgrad/Kokoro-82M` - **Trust:** verified
 - **Upstream:** [hexgrad/kokoro](https://github.com/hexgrad/kokoro)
 - **License:** Apache License 2.0 (https://huggingface.co/hexgrad/Kokoro-82M)
 - **Capabilities:** audio.tts
-- **Runner:** local-python (kokoro adapter)
-- **Hardware:** cuda/expected, cpu/expected, mlx/untested, rocm/untested
+- **Runner:** local-python (kokoro adapter (runners/kokoro-tts))
+- **Hardware:** cuda/expected, cpu/tested, mlx/untested, rocm/untested
 - **Memory:** Small model; upstream reports real-time synthesis on CPU.
 - **Limitations:** English and a small set of additional languages; no voice cloning out of the box.
-- **Evidence:** Registry metadata (id, license, 11M+ downloads) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker.
+- **Evidence:** Executed 2026-08-13: weights fetched through the OpenVideoMaker artifact store (sha256s computed from the official Hugging Face download), model loaded in an isolated uv runtime (kokoro 0.9.4, CPU), and 'audio.tts' ran through the runner protocol - produced a 3.3s 24kHz WAV probed with ffprobe. sha256s above are the measured content hashes.
 
 ### Whisper Large v3
 

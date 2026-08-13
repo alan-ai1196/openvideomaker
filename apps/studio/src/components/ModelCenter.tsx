@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Registry, MODEL_ENTRIES, CATEGORY_LABELS, type ModelEntry } from '@openvideomaker/registry';
+import { Registry, CATEGORY_LABELS, type ModelEntry } from '@openvideomaker/registry';
+import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
 import { useI18n } from '../i18n/context';
 import type { MessageKey } from '../i18n/strings';
 

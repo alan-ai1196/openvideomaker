@@ -69,11 +69,18 @@ export class ModelStore {
   }
 
   /** Adopt a downloaded file into the CAS (dedupes by content hash). */
-  adopt(tempFile: string, expectedSha256: string | undefined): { sha256: string; sizeBytes: number } {
+  adopt(tempFile: string, expectedSha256: string | undefined, expectedSha1?: string): { sha256: string; sizeBytes: number } {
     const actual = sha256Of(tempFile);
     if (expectedSha256 && actual !== expectedSha256) {
       rmSync(tempFile, { force: true });
-      throw new DownloadError('download.integrity', 'integrity check failed: expected ' + expectedSha256.slice(0, 12) + '..., got ' + actual.slice(0, 12) + '...');
+      throw new DownloadError('download.integrity', 'integrity check failed: expected sha256 ' + expectedSha256.slice(0, 12) + '..., got ' + actual.slice(0, 12) + '...');
+    }
+    if (expectedSha1 && !expectedSha256) {
+      const actualSha1 = createHash('sha1').update(readFileSync(tempFile)).digest('hex');
+      if (actualSha1 !== expectedSha1) {
+        rmSync(tempFile, { force: true });
+        throw new DownloadError('download.integrity', 'integrity check failed: expected sha1 ' + expectedSha1.slice(0, 12) + '..., got ' + actualSha1.slice(0, 12) + '...');
+      }
     }
     const dest = casPath(this.dir, actual);
     const sizeBytes = statSync(tempFile).size;

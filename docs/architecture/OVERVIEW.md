@@ -57,6 +57,11 @@ packages/downloader
                   providers with priority profiles, resumable verified
                   downloads, revision manifests.
                   Depends on: registry.
+
+packages/runners  Language-neutral NDJSON runner protocol over stdio,
+                  crash-safe host, uv-isolated Python runtimes. Adapters
+                  in runners/<name>; first verified: runners/kokoro-tts.
+                  Depends on: zod.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-13 (round 5). This file is the single living status source; it
+Updated: 2026-08-13 (round 6). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -54,13 +54,22 @@ describes the repository truth and is updated whenever that truth changes.
   (12 tests against a real local HTTP server).
 - Studio Model Center: category browsing, trust badges, license notes,
   evidence lines, honest browser-mode install state; Playwright-validated.
-- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0008, UX
+- `@openvideomaker/runners` — language-neutral NDJSON runner protocol
+  (describe/prepare/execute/progress/cancel/health/dispose), crash-safe
+  RunnerHost with timeouts and bounded logs, uv-isolated runtimes with
+  content-keyed manifests (6 tests incl. crash isolation).
+- **First real verified integration**: `runners/kokoro-tts` - Kokoro-82M
+  weights fetched through the artifact store, model loaded in an isolated
+  uv runtime, TTS executed through the runner protocol, 3.3s 24kHz WAV
+  confirmed with ffprobe. Registry entry marked `verified` with measured
+  sha256s and dated evidence.
+- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. Runner protocol + isolation; representative real AI integrations.
-2. Device graph + hardware detection.
+1. Device graph + hardware detection (shared `ovm doctor` logic).
+2. More verified runner integrations (ASR next) + generation jobs in the Studio.
 3. Characters/avatars; transcript & media intelligence; agent editing.
 4. MCP server, SDK, CLI (`ovm`).
 5. Model/Device/Job Centers; website (Astro + Cloudflare); Electron

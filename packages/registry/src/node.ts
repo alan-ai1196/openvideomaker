@@ -4,7 +4,7 @@ import { Registry } from './client.js';
 
 /** Load and validate every JSON file in a data directory (Node side). */
 export function loadRegistryFromDir(dir: string): Registry {
-  const files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
+  const files = readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 'index.json').sort();
   const data = files.map((file) => JSON.parse(readFileSync(join(dir, file), 'utf8')));
   return Registry.fromData(data);
 }

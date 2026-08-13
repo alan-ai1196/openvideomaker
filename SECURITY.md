@@ -28,6 +28,11 @@ code, third-party endpoints, and project files.
   URLs or logged.
 - Runners are first-party adapters, verified third-party adapters, or
   explicitly trusted user runtimes (isolated environments/containers).
+- The runner process boundary IS a security boundary: adapters receive
+  explicit file paths over the NDJSON protocol and get a scrubbed
+  environment (PATH + temp only) - never ambient filesystem or network
+  access. Runtimes live in OpenVideoMaker-managed uv environments, never
+  the global Python.
 
 ### Process/wire boundaries
 

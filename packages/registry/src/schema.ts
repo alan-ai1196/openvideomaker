@@ -42,8 +42,10 @@ export type ModelSource = z.infer<typeof ModelSourceSchema>;
 
 export const ModelFileSchema = z.object({
   path: z.string().min(1),
-  /** Authoritative integrity data when known; sha256 enables verification. */
+  /** Authoritative integrity data when known (LFS files expose sha256). */
   sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  /** Git-stored files expose sha1 (40 hex) via the hub tree API. */
+  sha1: z.string().regex(/^[a-f0-9]{40}$/).optional(),
   sizeBytes: z.number().int().nonnegative().optional(),
   required: z.boolean().default(true),
 });

@@ -57,3 +57,14 @@ separate concern (first-party adapters, isolated runtimes) - see
 Studio's AI panel browses by category with capability summaries, trust
 badges, license notes and evidence lines. Install buttons exist but are
 honestly disabled in browser mode: installation runs in the desktop app.
+## Runner protocol and isolation
+
+`@openvideomaker/runners` defines a language-neutral NDJSON protocol over
+stdio: describe / prepare / execute / progress / cancel / health /
+dispose, with correlated ids, zod-validated messages, and file references
+for all binary media. `RunnerHost` owns correlation, timeouts, bounded
+logs and crash isolation - a dead runner fails only its pending job.
+Python runtimes are uv-managed under an OpenVideoMaker-owned directory
+from pinned manifests, never the global Python. Adapters live in
+`runners/<name>/` and are first-party code; the first verified one is
+`runners/kokoro-tts`.

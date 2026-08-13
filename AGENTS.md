@@ -117,5 +117,11 @@ where rendering runs. `@openvideomaker/registry` is the single source of
 model truth (capability-first, trust states, generated `docs/models.md`);
 `@openvideomaker/downloader` stores artifacts content-addressed with
 resumable verified downloads - downloads NEVER execute downloaded code,
-and entries without verified file manifests refuse to install. Next:
-runner protocol + isolation, then the device graph. See `docs/STATUS.md`.
+and entries without verified file manifests refuse to install.
+`@openvideomaker/runners` is the language-neutral NDJSON runner protocol
+(describe/prepare/execute/progress/cancel/health/dispose) with a crash-safe
+host and uv-isolated runtimes under OVM-managed directories; adapters are
+first-party code in `runners/<name>/` and the first verified integration
+is `runners/kokoro-tts` (registry entry `verified` with dated evidence).
+Trust states change ONLY with real execution evidence. Next: the device
+graph, then more verified integrations. See `docs/STATUS.md`.

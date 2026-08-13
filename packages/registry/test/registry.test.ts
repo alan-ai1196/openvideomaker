@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { CATEGORY_LABELS, CAPABILITIES, Registry } from '@openvideomaker/registry';
-import { MODEL_ENTRIES } from '@openvideomaker/registry';
 import { generateModelDocs, loadRegistryFromDir } from '@openvideomaker/registry/node';
 import { resolve } from 'node:path';
 
 describe('registry data', () => {
-  const registry = Registry.fromData(MODEL_ENTRIES);
+  const registry = loadRegistryFromDir(resolve('src/data'));
 
   it('loads every bundled entry without errors', () => {
     expect(registry.errors).toEqual([]);
@@ -18,8 +17,14 @@ describe('registry data', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('declares every trust state honestly as unverified for now', () => {
-    for (const entry of registry.entries) {
+  it('declares trust states honestly: one verified entry, the rest unverified', () => {
+    const verified = registry.entries.filter((e) => e.verification.trust === 'verified');
+    expect(verified.map((e) => e.id)).toEqual(['hf/hexgrad/Kokoro-82M']);
+    for (const entry of verified) {
+      expect(entry.verification.verifiedAt).toBeTruthy();
+      expect(entry.verification.evidence).toMatch(/Executed/);
+    }
+    for (const entry of registry.entries.filter((e) => e.verification.trust !== 'verified')) {
       expect(entry.verification.trust).toBe('unverified');
     }
   });
@@ -45,10 +50,11 @@ describe('registry data', () => {
     }
   });
 
-  it('loads the same entries from disk', () => {
-    const fromDisk = loadRegistryFromDir(resolve('src/data'));
-    expect(fromDisk.errors).toEqual([]);
-    expect(fromDisk.entries).toHaveLength(9);
+  it('loads the combined index.json with the same entries', () => {
+    const combined = JSON.parse(readFileSync(resolve('src/data/index.json'), 'utf8'));
+    const fromIndex = Registry.fromData(combined);
+    expect(fromIndex.errors).toEqual([]);
+    expect(fromIndex.entries).toHaveLength(9);
   });
 
   it('rejects malformed entries loudly', () => {

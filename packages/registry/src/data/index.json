@@ -1,0 +1,632 @@
+[
+  {
+    "schemaVersion": 1,
+    "id": "hf/black-forest-labs/FLUX.1-schnell",
+    "displayName": "FLUX.1 schnell",
+    "category": "images",
+    "description": "Fast open image generation model from Black Forest Labs.",
+    "upstream": {
+      "project": "black-forest-labs/flux",
+      "url": "https://github.com/black-forest-labs/flux"
+    },
+    "capabilities": [
+      "image.generate"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "diffusers adapter"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "untested"
+      },
+      {
+        "platform": "mlx",
+        "status": "untested"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Consumer GPU required for practical use."
+    },
+    "precision": [
+      "bf16"
+    ],
+    "license": {
+      "id": "Apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://huggingface.co/black-forest-labs/FLUX.1-schnell"
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "black-forest-labs/FLUX.1-schnell"
+      },
+      {
+        "kind": "modelscope",
+        "modelId": "AI-ModelScope/FLUX.1-schnell"
+      }
+    ],
+    "limitations": [
+      "Schnell trades fidelity for speed; the dev variant is higher quality."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, Apache-2.0 license) and the ModelScope mirror checked against both hub APIs on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "black-forest-labs/FLUX.1-schnell"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "hf/hexgrad/Kokoro-82M",
+    "displayName": "Kokoro TTS",
+    "category": "speech",
+    "description": "Compact open TTS model (82M params) with natural multi-voice output; runs comfortably on CPU.",
+    "upstream": {
+      "project": "hexgrad/kokoro",
+      "url": "https://github.com/hexgrad/kokoro"
+    },
+    "capabilities": [
+      "audio.tts"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "kokoro adapter (runners/kokoro-tts)"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "tested"
+      },
+      {
+        "platform": "mlx",
+        "status": "untested"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Small model; upstream reports real-time synthesis on CPU."
+    },
+    "precision": [
+      "fp32",
+      "bf16"
+    ],
+    "license": {
+      "id": "Apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://huggingface.co/hexgrad/Kokoro-82M"
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "hexgrad/Kokoro-82M"
+      }
+    ],
+    "limitations": [
+      "English and a small set of additional languages; no voice cloning out of the box."
+    ],
+    "verification": {
+      "trust": "verified",
+      "evidence": "Executed 2026-08-13: weights fetched through the OpenVideoMaker artifact store (sha256s computed from the official Hugging Face download), model loaded in an isolated uv runtime (kokoro 0.9.4, CPU), and 'audio.tts' ran through the runner protocol - produced a 3.3s 24kHz WAV probed with ffprobe. sha256s above are the measured content hashes.",
+      "verifiedAt": "2026-08-13"
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "hexgrad/Kokoro-82M"
+      }
+    },
+    "files": [
+      {
+        "path": "config.json",
+        "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+        "sizeBytes": 2351
+      },
+      {
+        "path": "kokoro-v1_0.pth",
+        "sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4",
+        "sizeBytes": 327212226
+      },
+      {
+        "path": "voices/af_heart.pt",
+        "sha256": "0ab5709b8ffab19bfd849cd11d98f75b60af7733253ad0d67b12382a102cb4ff",
+        "sizeBytes": 523425
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "id": "hf/bytedance/latentsync-1.5",
+    "displayName": "LatentSync 1.5",
+    "category": "lip-sync",
+    "description": "Latent diffusion lip synchronization from ByteDance; aligns mouth motion to speech.",
+    "upstream": {
+      "project": "bytedance/LatentSync",
+      "url": "https://github.com/bytedance/LatentSync"
+    },
+    "capabilities": [
+      "avatar.lip_sync"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "latentsync adapter"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "unavailable"
+      },
+      {
+        "platform": "mlx",
+        "status": "unavailable"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "GPU required; exact VRAM depends on resolution and frames."
+    },
+    "precision": [
+      "fp16",
+      "bf16"
+    ],
+    "license": {
+      "id": "openrail++",
+      "name": "OpenRAIL++-M",
+      "url": "https://huggingface.co/bytedance/latentsync-1.5",
+      "note": "OpenRAIL licenses carry behavioral use restrictions; review before commercial use."
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "bytedance/latentsync-1.5"
+      }
+    ],
+    "limitations": [
+      "Needs a cropped, frontal face; quality depends on source identity preservation."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, OpenRAIL++ license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "bytedance/latentsync-1.5"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "hf/Lightricks/LTX-Video",
+    "displayName": "LTX-Video",
+    "category": "video-generation",
+    "description": "Compact (2B) real-time-capable video generation model from Lightricks.",
+    "upstream": {
+      "project": "Lightricks/LTX-Video",
+      "url": "https://github.com/Lightricks/LTX-Video"
+    },
+    "capabilities": [
+      "video.text_to_video"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "ltx-video adapter"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "unavailable"
+      },
+      {
+        "platform": "mlx",
+        "status": "untested"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Designed to run on consumer GPUs."
+    },
+    "precision": [
+      "bf16"
+    ],
+    "license": {
+      "id": "ltx-community",
+      "name": "LTX-Video Community License",
+      "url": "https://huggingface.co/Lightricks/LTX-Video",
+      "note": "Custom community license; review before commercial use."
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "Lightricks/LTX-Video"
+      }
+    ],
+    "limitations": [
+      "Short clips; complex scenes and text rendering can be imperfect."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, custom community license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "Lightricks/LTX-Video"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "hf/TMElyralab/MuseTalk",
+    "displayName": "MuseTalk",
+    "category": "lip-sync",
+    "description": "Real-time lip-sync model from Tencent Music Entertainment Lyra Lab.",
+    "upstream": {
+      "project": "TMElyralab/MuseTalk",
+      "url": "https://github.com/TMElyralab/MuseTalk"
+    },
+    "capabilities": [
+      "avatar.lip_sync"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "musetalk adapter"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "unavailable"
+      },
+      {
+        "platform": "mlx",
+        "status": "unavailable"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "GPU required; community reports vary by resolution."
+    },
+    "precision": [
+      "fp16"
+    ],
+    "license": {
+      "id": "creativeml-openrail-m",
+      "name": "CreativeML OpenRAIL-M",
+      "url": "https://huggingface.co/TMElyralab/MuseTalk",
+      "note": "OpenRAIL licenses carry behavioral use restrictions; review before commercial use."
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "TMElyralab/MuseTalk"
+      }
+    ],
+    "limitations": [
+      "Best with frontal faces; visual quality varies with pose and lighting."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, license) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "TMElyralab/MuseTalk"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
+    "displayName": "Paraformer (Chinese)",
+    "category": "speech",
+    "description": "FunASR Paraformer large model for Mandarin speech recognition, first-class on ModelScope.",
+    "upstream": {
+      "project": "FunASR",
+      "url": "https://github.com/modelscope/FunASR"
+    },
+    "capabilities": [
+      "audio.asr"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "funasr adapter"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "expected"
+      },
+      {
+        "platform": "mlx",
+        "status": "unavailable"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Runs on CPU as well as GPU."
+    },
+    "license": {
+      "id": "Apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    "sources": [
+      {
+        "kind": "modelscope",
+        "modelId": "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
+      }
+    ],
+    "limitations": [
+      "Mandarin-focused; mixed-language audio is approximate."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, availability, Apache-2.0 license) checked against the ModelScope API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "modelscope-repo",
+        "id": "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "hf/briaai/RMBG-2.0",
+    "displayName": "RMBG-2.0",
+    "category": "enhancement",
+    "description": "Background removal for images and product shots from BRIA AI.",
+    "upstream": {
+      "project": "briaai/RMBG-2.0",
+      "url": "https://huggingface.co/briaai/RMBG-2.0"
+    },
+    "capabilities": [
+      "media.background_remove"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "transformers adapter"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "expected"
+      },
+      {
+        "platform": "mlx",
+        "status": "untested"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Runs on CPU; GPU faster."
+    },
+    "precision": [
+      "fp32"
+    ],
+    "license": {
+      "id": "bria-rmbg-2.0",
+      "name": "BRIA RMBG-2.0 License",
+      "url": "https://huggingface.co/briaai/RMBG-2.0",
+      "note": "Custom source-available license; commercial use may require a BRIA agreement."
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "briaai/RMBG-2.0"
+      }
+    ],
+    "limitations": [
+      "Tuned for subjects like people, products and animals; artistic backgrounds vary."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, custom license) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "briaai/RMBG-2.0"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "hf/Wan-AI/Wan2.2-T2V-A14B",
+    "displayName": "Wan 2.2 (14B)",
+    "category": "video-generation",
+    "description": "Large open text-to-video model from Wan AI; high-quality output on capable hardware.",
+    "upstream": {
+      "project": "Wan-AI/Wan2.2",
+      "url": "https://github.com/Wan-Video/Wan2.2"
+    },
+    "capabilities": [
+      "video.text_to_video"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "wan adapter"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "unavailable"
+      },
+      {
+        "platform": "mlx",
+        "status": "untested"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Very large model; expects a high-VRAM GPU. Smaller Wan variants exist."
+    },
+    "precision": [
+      "bf16"
+    ],
+    "license": {
+      "id": "Apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B"
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "Wan-AI/Wan2.2-T2V-A14B"
+      }
+    ],
+    "limitations": [
+      "Heavy compute; long generation times without a strong GPU."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, Apache-2.0 license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "Wan-AI/Wan2.2-T2V-A14B"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "hf/openai/whisper-large-v3",
+    "displayName": "Whisper Large v3",
+    "category": "speech",
+    "description": "General-purpose speech recognition from OpenAI; strong multilingual transcription.",
+    "upstream": {
+      "project": "openai/whisper",
+      "url": "https://github.com/openai/whisper",
+      "licenseSpdx": "MIT"
+    },
+    "capabilities": [
+      "audio.asr"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "whisper / faster-whisper adapters"
+    },
+    "hardware": [
+      {
+        "platform": "cuda",
+        "status": "expected"
+      },
+      {
+        "platform": "cpu",
+        "status": "expected"
+      },
+      {
+        "platform": "mlx",
+        "status": "untested"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Large ASR model; smaller whisper variants exist for weak hardware."
+    },
+    "precision": [
+      "fp16",
+      "fp32"
+    ],
+    "license": {
+      "id": "Apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://huggingface.co/openai/whisper-large-v3/blob/main/LICENSE"
+    },
+    "sources": [
+      {
+        "kind": "hf",
+        "repo": "openai/whisper-large-v3"
+      }
+    ],
+    "limitations": [
+      "Transcription of noisy or overlapping speech degrades; no speaker diarization built in."
+    ],
+    "verification": {
+      "trust": "unverified",
+      "evidence": "Registry metadata (id, license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "hf-repo",
+        "id": "openai/whisper-large-v3"
+      }
+    }
+  }
+]

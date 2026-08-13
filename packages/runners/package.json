@@ -1,19 +1,14 @@
 {
-  "name": "@openvideomaker/registry",
+  "name": "@openvideomaker/runners",
   "version": "0.1.0",
   "private": true,
-  "description": "Model registry: machine-validated model metadata, capability catalog, trust states.",
+  "description": "Language-neutral runner protocol, crash-safe host, and isolated uv-managed Python runtimes.",
   "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./node": {
-      "types": "./dist/node.d.ts",
-      "import": "./dist/node.js"
-    },
-    "./data.json": "./src/data/index.json"
+    }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

@@ -121,6 +121,37 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))
 
+  packages/jobs:
+    dependencies:
+      '@openvideomaker/core':
+        specifier: workspace:*
+        version: link:../core
+      '@openvideomaker/downloader':
+        specifier: workspace:*
+        version: link:../downloader
+      '@openvideomaker/media':
+        specifier: workspace:*
+        version: link:../media
+      '@openvideomaker/registry':
+        specifier: workspace:*
+        version: link:../registry
+      '@openvideomaker/runners':
+        specifier: workspace:*
+        version: link:../runners
+      '@openvideomaker/schema':
+        specifier: workspace:*
+        version: link:../schema
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))
+
   packages/media:
     dependencies:
       '@openvideomaker/schema':

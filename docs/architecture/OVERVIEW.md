@@ -68,6 +68,13 @@ packages/devices  Probed device graph: OS/CPU/memory, GPUs via
                   runtimes; ovm-doctor CLI. Absence is data, never an
                   error. Feeds the future Device Center.
                   Depends on: render, media, zod.
+
+packages/jobs     Generation jobs: capability requests run through
+                  registry + artifact store + uv runtime + runner
+                  protocol (data-driven runner.json manifests), then
+                  land in projects via core ops with full provenance.
+                  Depends on: registry, downloader, runners, core,
+                  media, schema, zod.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

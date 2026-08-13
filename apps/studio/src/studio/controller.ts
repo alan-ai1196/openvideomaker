@@ -88,11 +88,12 @@ export class StudioController {
 
   /**
    * What this runtime can actually do. The browser Studio renders through
-   * the local renderer (desktop app or ovm-render CLI); it never pretends
-   * to run FFmpeg inside the page.
+   * the local renderer (desktop app or ovm-render CLI) and runs AI
+   * generation through the local jobs service (desktop app); it never
+   * pretends to run FFmpeg or models inside the page.
    */
-  get capabilities(): { localRender: boolean } {
-    return { localRender: false };
+  get capabilities(): { localRender: boolean; localGeneration: boolean } {
+    return { localRender: false, localGeneration: false };
   }
 
   clearError(): void {

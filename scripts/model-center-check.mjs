@@ -19,6 +19,8 @@ report.cardCountAll = await page.locator('.model-card').count();
 report.categoryChips = await page.locator('.model-category').allTextContents();
 report.trustBadges = await page.locator('.trust-badge').allTextContents();
 report.installDisabled = await page.locator('.model-card .button-primary').first().isDisabled();
+report.generateDisabled = await page.locator('.model-card .button-secondary').first().isDisabled();
+report.generateLabels = await page.locator('.model-card .button-secondary').allTextContents();
 
 // Filter to Lip Sync category
 await page.locator('.model-category', { hasText: 'Lip Sync' }).click();

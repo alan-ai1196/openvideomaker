@@ -117,7 +117,21 @@ describe('downloadFile', () => {
   }, 15_000);
 
   it('fails loudly for HTTP errors', async () => {
-    await expect(downloadFile({ url: baseUrl + '/missing.bin', dest: join(dir, 'x.bin') })).rejects.toThrow(/HTTP 404/);
+    // undici can transiently fail a request right after an aborted
+    // connection is recycled (see the resume test above), so retry a
+    // few times but keep the strict 404 assertion.
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await downloadFile({ url: baseUrl + '/missing.bin', dest: join(dir, 'x.bin') });
+        throw new Error('expected the download to fail');
+      } catch (err) {
+        lastError = err as Error;
+        if (lastError.message.includes('HTTP 404')) break;
+        await new Promise((r) => setTimeout(r, 300));
+      }
+    }
+    expect(lastError?.message).toContain('HTTP 404');
   });
 });
 

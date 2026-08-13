@@ -8,6 +8,8 @@ export interface InstallOptions {
   profile?: SourceProfile;
   revision?: string;
   onProgress?: (job: DownloadJob) => void;
+  /** External cancellation: aborts the in-flight download like cancel(). */
+  signal?: AbortSignal;
 }
 
 /**
@@ -35,6 +37,14 @@ export async function installModel(store: ModelStore, entry: ModelEntry, options
   const sources = orderSources(entry.sources, profile);
   const controller = new AbortController();
   job.attach(controller);
+  const onAbort = (): void => {
+    controller.abort();
+    if (job.state === 'downloading') {
+      job.state = 'cancelled';
+      job.emit('cancelled');
+    }
+  };
+  options.signal?.addEventListener('abort', onAbort, { once: true });
   job.state = 'downloading';
   job.stage = 'downloading';
   job.emit('downloading');
@@ -64,6 +74,7 @@ export async function installModel(store: ModelStore, entry: ModelEntry, options
             onProgress: (progress) => {
               job.bytes = progress.bytes;
               job.emit('progress');
+              options.onProgress?.(job);
             },
           });
           const { sha256, sizeBytes } = await store.adopt(dest, file.sha256, file.sha1);
@@ -89,12 +100,14 @@ export async function installModel(store: ModelStore, entry: ModelEntry, options
   if (stateOf() === 'cancelled') {
     store.cleanPartials(entry.id);
     job.attach(null);
+    options.signal?.removeEventListener('abort', onAbort);
     job.emit('cancelled');
     return job;
   }
   store.writeManifest(entry.id, revision, adopted);
   job.state = 'completed';
   job.attach(null);
+  options.signal?.removeEventListener('abort', onAbort);
   job.emit('completed');
   return job;
 }

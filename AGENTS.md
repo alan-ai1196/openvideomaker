@@ -133,4 +133,11 @@ Large v3 via faster-whisper: CTranslate2 weights through the artifact
 store, the nvidia-cublas-cu12 wheel registered by the adapter so CUDA
 needs no system toolkit, 8/8 word overlap on the TTS -> ASR loop on an
 RTX 3090); the downloader store streams hashes so >2GiB artifacts work.
-Next: generation jobs in the Studio. See `docs/STATUS.md`.
+`@openvideomaker/jobs` runs capability requests through registry +
+artifact store + uv runtime + runner protocol (data-driven
+`runners/<name>/runner.json` manifests) and lands every result in
+projects through core ops with full GenerationProvenance - verified for
+real (TTS voiceover asset, ASR caption clips + subtitles in a saved
+project). The Studio Model Center shows Generate honestly disabled in
+browser mode. Next: more verified runner integrations (lip-sync), then
+characters/avatars. See `docs/STATUS.md`.

@@ -80,3 +80,6 @@ from pinned manifests, never the global Python. Adapters live in
 `runners/<name>/` and are first-party code; verified integrations are
 `runners/kokoro-tts` (TTS) and `runners/whisper-asr` (transcription with
 timed segments + SRT captions), each with a re-runnable `verify.mjs`.
+On top sits `@openvideomaker/jobs`: generation runs resolve adapters
+from `runners/<name>/runner.json` manifests and land outputs in projects
+through the operation layer with full provenance (see ADR-0011).

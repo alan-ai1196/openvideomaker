@@ -41,6 +41,9 @@ stays a normal, editable part of your project instead of a dead-end file.
   Kokoro TTS.
 - **Device graph** (`@openvideomaker/devices`) — probed hardware facts
   (CPU/GPU/encoders/runtimes) via the `ovm-doctor` CLI.
+- **Generation jobs** (`@openvideomaker/jobs`) — capability requests
+  run through the registry, artifact store and isolated runners, then
+  land in projects as editable assets with full provenance.
 
 ## Quick start (developers)
 

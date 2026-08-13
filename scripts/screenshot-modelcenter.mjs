@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+import { mkdirSync } from 'node:fs';
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+await page.goto('http://localhost:5183/', { waitUntil: 'networkidle' });
+await page.waitForSelector('.studio', { timeout: 15000 });
+await page.locator('.rail-button[title="AI"]').click();
+await page.waitForTimeout(600);
+mkdirSync('.research/screenshots', { recursive: true });
+await page.screenshot({ path: '.research/screenshots/modelcenter-generate.png' });
+await browser.close();
+console.log('screenshot saved');

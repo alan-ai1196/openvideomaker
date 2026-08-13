@@ -183,6 +183,15 @@
   color: var(--text-secondary);
 }
 
+.button-secondary {
+  border: 1px solid var(--border);
+  background: transparent;
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
 .button-danger {
   color: var(--danger);
   border: 1px solid var(--border);

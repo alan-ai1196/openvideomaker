@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Registry, CATEGORY_LABELS, type ModelEntry } from '@openvideomaker/registry';
 import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
 import { useI18n } from '../i18n/context';
+import { useStudio } from '../studio/context';
 import type { MessageKey } from '../i18n/strings';
 
 const registry = Registry.fromData(MODEL_ENTRIES);
@@ -51,6 +52,7 @@ export function ModelCenter() {
 
 function ModelCard({ entry }: { entry: ModelEntry }) {
   const { t } = useI18n();
+  const { capabilities } = useStudio();
   return (
     <article className="model-card">
       <div className="model-card-head">
@@ -69,6 +71,14 @@ function ModelCard({ entry }: { entry: ModelEntry }) {
       <div className="model-card-actions">
         <button type="button" className="button button-primary" disabled title={t('modelcenter.install.disabled')}>
           {t('modelcenter.install')}
+        </button>
+        <button
+          type="button"
+          className="button button-secondary"
+          disabled={!capabilities.localGeneration}
+          title={t(entry.verification.trust === 'verified' ? 'modelcenter.generate.disabled' : 'modelcenter.generate.disabled.unverified')}
+        >
+          {t('modelcenter.generate')}
         </button>
         <span className="model-card-evidence" title={entry.verification.evidence}>
           {entry.verification.evidence}

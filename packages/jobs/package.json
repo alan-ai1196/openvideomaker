@@ -1,0 +1,32 @@
+{
+  "name": "@openvideomaker/jobs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generation jobs: run registry models through verified runners and land results in projects with provenance.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../scripts/vitest.mjs run",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@openvideomaker/core": "workspace:*",
+    "@openvideomaker/schema": "workspace:*",
+    "@openvideomaker/media": "workspace:*",
+    "@openvideomaker/registry": "workspace:*",
+    "@openvideomaker/downloader": "workspace:*",
+    "@openvideomaker/runners": "workspace:*",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

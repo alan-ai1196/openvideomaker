@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "name": "whisper-asr",
+  "version": "0.1.0",
+  "capabilities": [
+    "audio.asr"
+  ],
+  "models": [
+    "hf/openai/whisper-large-v3"
+  ],
+  "pythonVersion": "3.12",
+  "entry": "runner.py",
+  "modelFiles": {
+    "model": "model.bin",
+    "config": "config.json",
+    "tokenizer": "tokenizer.json",
+    "preprocessor": "preprocessor_config.json",
+    "vocabulary": "vocabulary.json"
+  }
+}

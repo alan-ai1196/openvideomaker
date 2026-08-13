@@ -88,5 +88,8 @@
   "modelcenter.hardware": "Hardware",
   "modelcenter.license": "License",
   "modelcenter.install": "Install",
-  "modelcenter.install.disabled": "Model installation runs in the desktop app"
+  "modelcenter.install.disabled": "Model installation runs in the desktop app",
+  "modelcenter.generate": "Generate",
+  "modelcenter.generate.disabled": "Generation runs in the desktop app with installed models",
+  "modelcenter.generate.disabled.unverified": "Generation unlocks after this model is verified and installed"
 }

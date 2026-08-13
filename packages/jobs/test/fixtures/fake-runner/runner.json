@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "fake-runner",
+  "version": "0.1.0",
+  "capabilities": [
+    "audio.tts"
+  ],
+  "models": [
+    "http/test/model"
+  ],
+  "pythonVersion": "3.12",
+  "entry": "runner.py",
+  "modelFiles": {
+    "model": "model.bin"
+  }
+}

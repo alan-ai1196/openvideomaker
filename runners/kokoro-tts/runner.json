@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "kokoro-tts",
+  "version": "0.1.0",
+  "capabilities": [
+    "audio.tts"
+  ],
+  "models": [
+    "hf/hexgrad/Kokoro-82M"
+  ],
+  "pythonVersion": "3.12",
+  "entry": "runner.py",
+  "modelFiles": {
+    "config": "config.json",
+    "model": "kokoro-v1_0.pth"
+  }
+}

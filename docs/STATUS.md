@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 8). This file is the single living status source; it
+Updated: 2026-08-14 (round 9). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -82,18 +82,30 @@ describes the repository truth and is updated whenever that truth changes.
   TTS -> ASR loop runs end to end.
 - `@openvideomaker/downloader` hardening: store hashing now streams (the
   first >2GiB artifact - whisper's weights - exposed the readFileSync
-  buffer limit), with a regression test for large-file adoption.
+  buffer limit), with a regression test for large-file adoption;
+  `installModel` reports progress and accepts an abort signal.
+- `@openvideomaker/jobs` - generation jobs end to end: capability
+  requests resolve adapters data-driven from `runners/<name>/runner.json`
+  manifests, install through the artifact store, run in uv-isolated
+  runtimes over the runner protocol, and land in projects ONLY through
+  core ops with full provenance (`attachGeneratedMedia` /
+  `attachGeneratedFile` / `attachTranscriptCaptions`). Uniform job
+  shape (state/progress/logs/cancel) with RenderJob/DownloadJob.
+  Verified for real: Kokoro TTS -> voiceover asset, Whisper ASR (CUDA)
+  -> caption clips + subtitle asset, all provenance recorded in the
+  saved project (6 tests + re-runnable `packages/jobs/verify.mjs`).
+- Studio Model Center: honest Generate affordance - disabled in browser
+  mode (`capabilities.localGeneration === false`) with an explanation
+  that generation runs in the desktop app; Playwright-verified.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. Generation jobs in the Studio (verified TTS/ASR wired through the runner
-   protocol in desktop contexts; browser mode stays honest).
-2. More verified runner integrations (lip-sync/avatars next).
-3. Characters/avatars; transcript & media intelligence; agent editing.
-4. MCP server, SDK, CLI (`ovm`).
-5. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
+1. More verified runner integrations (lip-sync/avatars next).
+2. Characters/avatars; transcript & media intelligence; agent editing.
+3. MCP server, SDK, CLI (`ovm`).
+4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.
 
 ## Known environment notes

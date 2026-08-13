@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 17). This file is the single living status source; it
+Updated: 2026-08-14 (round 18). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -173,6 +173,13 @@ describes the repository truth and is updated whenever that truth changes.
   paths exist. Verified: headless smoke (persistence round trip +
   doctor inside Electron) and Playwright's Electron driver against the
   real window (Studio renders, bridge live, zero errors).
+- **Desktop render slice**: real local rendering through the bridge -
+  `import-media` (native picker + ffprobe) and `render` (save dialog,
+  render plan + ffmpeg with progress events) in the main process, the
+  Export dialog's honest Render button with progress + output path,
+  and `localRender: true` now REAL. Verified: the smoke test renders a
+  1s mp4 end to end inside Electron (probed duration 1.0s) and
+  Playwright confirms the dialog's Render flow with zero errors.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -182,10 +189,9 @@ describes the repository truth and is updated whenever that truth changes.
    LatentSync/MuseTalk).
 2. LLM-driven planner behind the agent proposal contract;
    script-to-speech generation (desktop).
-3. Desktop slices: render + generation IPC (flip localRender/
-   localGeneration honestly), model install, local MCP; Model/
-   Device/Job Centers; installer packaging; long-project
-   performance hardening.
+3. Desktop slices: generation IPC (flip localGeneration honestly),
+   model install, local MCP; Model/Device/Job Centers; installer
+   packaging; long-project performance hardening.
 
 ## Known environment notes
 

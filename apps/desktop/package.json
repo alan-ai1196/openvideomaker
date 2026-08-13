@@ -16,7 +16,9 @@
     "@openvideomaker/core": "workspace:*",
     "@openvideomaker/schema": "workspace:*",
     "@openvideomaker/persistence": "workspace:*",
-    "@openvideomaker/devices": "workspace:*"
+    "@openvideomaker/devices": "workspace:*",
+    "@openvideomaker/media": "workspace:*",
+    "@openvideomaker/render": "workspace:*"
   },
   "devDependencies": {
     "electron": "43.4.0",

@@ -35,10 +35,24 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
   const presets = exportPresets(project.settings.width, project.settings.height);
   const [presetId, setPresetId] = useState<ExportPreset['id']>('1080p');
   const [quality, setQuality] = useState<'draft' | 'balanced' | 'high'>('balanced');
+  const [renderState, setRenderState] = useState<{ state: string; progress: number } | null>(null);
+  const [renderedPath, setRenderedPath] = useState<string | null>(null);
+  const localRender = controller.capabilities.localRender;
   const preset = presets.find((p) => p.id === presetId) ?? presets[0]!;
   const fileName = (project.name || 'project').replace(/[^\w-]+/g, '_');
 
   const command = 'ovm-render ' + fileName + '.ovm.json -o ' + fileName + '.mp4 --preset ' + preset.id + ' --quality ' + quality;
+
+  const renderLocal = async (): Promise<void> => {
+    setRenderedPath(null);
+    setRenderState({ state: 'preparing', progress: 0 });
+    const result = await controller.renderDesktop(
+      { width: preset.width, height: preset.height, quality },
+      (progress) => setRenderState({ state: progress.state, progress: progress.progress }),
+    );
+    if (result.ok && result.outputPath) setRenderedPath(result.outputPath);
+    setRenderState(null);
+  };
 
   const downloadProject = () => {
     const blob = new Blob([controller.exportProject()], { type: 'application/json' });
@@ -79,19 +93,34 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
           ))}
         </div>
 
-        {!controller.capabilities.localRender ? (
+        {localRender ? (
+          <div className="export-note">
+            <strong>{renderState ? t('export.rendering') : t('export.render.local')}</strong>
+            {renderState ? (
+              <div className="export-progress">
+                <div className="export-progress-bar" style={{ width: Math.round(renderState.progress * 100) + '%' }} />
+              </div>
+            ) : null}
+            {renderedPath ? <p>{t('export.rendered')}: <code>{renderedPath}</code></p> : null}
+          </div>
+        ) : (
           <div className="export-note">
             <strong>{t('export.browser.title')}</strong>
             <p>{t('export.browser.hint')}</p>
             <code className="export-command">{command}</code>
           </div>
-        ) : null}
+        )}
 
         <div className="export-actions">
           <Button label={t('export.cancel')} onClick={onClose}>
             {t('export.cancel')}
           </Button>
-          <Button variant="primary" label={t('export.download')} onClick={downloadProject}>
+          {localRender ? (
+            <Button variant="primary" label={t('export.render')} disabled={renderState !== null} onClick={() => void renderLocal()}>
+              {t('export.render')}
+            </Button>
+          ) : null}
+          <Button variant={localRender ? 'ghost' : 'primary'} label={t('export.download')} onClick={downloadProject}>
             {t('export.download')}
           </Button>
         </div>

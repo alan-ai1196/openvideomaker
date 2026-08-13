@@ -84,7 +84,15 @@ export function LeftPanel() {
         <h2 className="panel-heading">{t(TABS.find((tab) => tab.id === active)!.key)}</h2>
         {active === 'media' ? (
           <>
-            <Button variant="primary" icon={<UploadIcon />} label={t('panel.import')} onClick={() => fileInputRef.current?.click()}>
+            <Button
+              variant="primary"
+              icon={<UploadIcon />}
+              label={t('panel.import')}
+              onClick={() => {
+                if (controller.capabilities.localPersistence) void controller.importDesktopMedia();
+                else fileInputRef.current?.click();
+              }}
+            >
               {t('panel.import')}
             </Button>
             <input

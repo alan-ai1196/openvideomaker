@@ -1847,3 +1847,18 @@ button.asset-item:hover {
   padding: 4px 6px;
 }
 
+
+.export-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.export-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--dur-fast) var(--ease);
+}
+

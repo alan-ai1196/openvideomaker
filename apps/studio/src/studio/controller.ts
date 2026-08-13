@@ -1,6 +1,7 @@
 import { characterDraft, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import type { MediaInfo } from '@openvideomaker/schema';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
-import { newCharacterId, newLineId, newScriptId, newTrackId, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
+import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
 import { getDesktopBridge } from './desktop';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
@@ -131,6 +132,61 @@ export class StudioController {
       return this.loadProject(loaded.project, loaded.log);
     } catch (err) {
       return { ok: false, code: 'desktop', message: (err as Error).message };
+    }
+  }
+
+  /** Import media with real file paths through the desktop bridge (probed locally). */
+  async importDesktopMedia(): Promise<MutationResult> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
+    try {
+      const items = await bridge.importMedia();
+      if (items.length === 0) return { ok: false, code: 'cancelled', message: 'import cancelled' };
+      for (const item of items) {
+        const asset = importedAsset({ kind: mediaKind(item.media), name: item.name, path: item.path, media: item.media });
+        const result = this.mutate((tx) => tx.importAsset({ asset }));
+        if (!result.ok) return result;
+      }
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, code: 'desktop', message: (err as Error).message };
+    }
+  }
+
+  /** Render the current project locally (desktop): real ffmpeg through the bridge. */
+  async renderDesktop(
+    options: { width: number; height: number; quality: 'draft' | 'balanced' | 'high' },
+    onProgress?: (progress: { state: string; progress: number }) => void,
+  ): Promise<MutationResult & { outputPath?: string }> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
+    const unsubscribe = bridge.onRenderProgress((progress) => onProgress?.(progress));
+    try {
+      const project = this.#session.project as Project;
+      const assetPaths: Record<string, string> = {};
+      for (const [id, asset] of Object.entries(project.assets)) {
+        if (asset.source.kind === 'file') assetPaths[id] = asset.source.path;
+      }
+      const result = await bridge.renderProject({
+        project,
+        assetPaths,
+        options: {
+          width: options.width,
+          height: options.height,
+          fps: project.settings.fps ?? { num: 30, den: 1 },
+          sampleRate: project.settings.sampleRate ?? 48000,
+          quality: options.quality,
+          encoderPreference: 'auto',
+        },
+      });
+      if (result.state === 'completed') return { ok: true, outputPath: result.outputPath };
+      if (result.state === 'cancelled') return { ok: false, code: 'cancelled', message: 'render cancelled' };
+      this.reportError(result.error ?? 'render failed', 'render');
+      return { ok: false, code: 'render', message: result.error ?? 'render failed' };
+    } catch (err) {
+      return { ok: false, code: 'desktop', message: (err as Error).message };
+    } finally {
+      unsubscribe();
     }
   }
 
@@ -453,4 +509,9 @@ export class StudioController {
     this.#version += 1;
     for (const listener of this.#listeners) listener();
   }
+}/** Map a probed media result to the asset kind the project stores. */
+function mediaKind(media: MediaInfo): Asset['kind'] {
+  if (media.hasVideo) return 'video';
+  if (media.hasAudio) return 'audio';
+  return 'image';
 }

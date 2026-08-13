@@ -174,7 +174,9 @@ lines on a Script text track, and the Studio Script panel edits,
 seeks and syncs them. `apps/desktop` is the Electron shell over the
 SAME Studio build: sandboxed renderer, narrow typed CJS preload
 (`window.ovm`: capabilities/openProject/saveProject/runDoctor), real
-SQLite persistence + device probing today; localRender/
-localGeneration stay honestly false until their IPC paths exist.
+SQLite persistence + device probing + REAL local rendering today
+(import-media with native paths and a render IPC with progress; the
+Export dialog's Render button is live, `localRender: true`);
+localGeneration stays honestly false until its IPC path exists.
 Next: lip-sync/avatar runner integrations, then the LLM planner
 behind the proposal contract. See `docs/STATUS.md`.

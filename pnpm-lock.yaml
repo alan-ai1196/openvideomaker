@@ -44,9 +44,15 @@ importers:
       '@openvideomaker/devices':
         specifier: workspace:*
         version: link:../../packages/devices
+      '@openvideomaker/media':
+        specifier: workspace:*
+        version: link:../../packages/media
       '@openvideomaker/persistence':
         specifier: workspace:*
         version: link:../../packages/persistence
+      '@openvideomaker/render':
+        specifier: workspace:*
+        version: link:../../packages/render
       '@openvideomaker/schema':
         specifier: workspace:*
         version: link:../../packages/schema

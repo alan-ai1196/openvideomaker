@@ -1,0 +1,154 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="OpenVideoMaker - Make videos with AI. Keep everything editable."
+  description="OpenVideoMaker is an open-source video creation application where every AI result stays a normal, editable part of your project."
+>
+  <header class="site">
+    <div class="wrap site-nav">
+      <a class="brand" href="/">OpenVideoMaker</a>
+      <nav>
+        <a href="#product">Editor</a>
+        <a href="#models">AI models</a>
+        <a href="#developers">For developers</a>
+        <a href="/docs/">Docs</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <section class="hero">
+        <h1>Make videos with AI.<br />Keep everything editable.</h1>
+        <p class="lead">
+          OpenVideoMaker is an open-source video creation application for creators, developers and
+          agents. AI helps you write, caption, dub and perform - and every result lands on your
+          timeline as a normal, editable clip. Nothing is a dead end.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="#product">See the editor</a>
+          <a class="button secondary" href="/docs/">Development docs</a>
+        </div>
+        <div class="status-note">Pre-alpha: the editor is under active development. This site shows what exists today, honestly.</div>
+        <div class="hero-visual">
+          <img src="/images/studio.png" alt="OpenVideoMaker Studio: dark timeline editor with preview, inspector and media panel" width="1600" height="900" loading="eager" />
+        </div>
+      </section>
+    </div>
+
+    <section id="product" class="alt">
+      <div class="wrap">
+        <span class="tag">The editor</span>
+        <h2>A real timeline first. AI second.</h2>
+        <p class="sub">
+          A credible creator-grade workspace - media import, multi-track editing, insert edits,
+          split, ripple delete, text, captions, undo everywhere. AI appears inside the workflow,
+          not inside a chat window.
+        </p>
+        <div class="grid">
+          <div class="card"><h3>Editable timeline</h3><p>Move, trim, split and ripple-edit clips with snapping, zoom and keyboard shortcuts - every change is a typed, undoable operation.</p></div>
+          <div class="card"><h3>Transcripts that belong to you</h3><p>Time-aligned transcripts live in the project: click a line to jump, correct the text, sync captions with one click.</p></div>
+          <div class="card"><h3>Characters you reuse</h3><p>Create a character once - identity, voice and performance style - and use it across scenes. Voice consent is recorded, not assumed.</p></div>
+          <div class="card"><h3>Agent proposals you review</h3><p>The editing agent proposes changes with a preview of the exact operations. Apply as one undoable step, or reject.</p></div>
+        </div>
+        <div class="split" style="margin-top: 40px">
+          <div>
+            <h3 style="margin-top: 0">Captions from real transcripts</h3>
+            <p style="color: var(--ink-soft)">
+              Speech recognition produces a durable transcript - not an anonymous file. Seek by
+              clicking a segment, fix a word inline, and sync captions to the timeline.
+            </p>
+          </div>
+          <img src="/images/transcript.png" alt="OpenVideoMaker transcript panel with editable segments" width="800" height="500" loading="lazy" />
+        </div>
+        <div class="split" style="margin-top: 40px">
+          <img src="/images/characters.png" alt="OpenVideoMaker Character Studio panel" width="800" height="500" loading="lazy" />
+          <div>
+            <h3 style="margin-top: 0">The Character Studio</h3>
+            <p style="color: var(--ink-soft)">
+              Persistent characters with voices chosen from verified local models, performance
+              defaults and a consent record. Voiceover generation runs in the desktop app.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="models">
+      <div class="wrap">
+        <span class="tag">AI models</span>
+        <h2>Local AI, verified honestly</h2>
+        <p class="sub">
+          Models run locally in isolated runtimes - your media never leaves the machine. Trust
+          states describe real evidence: three integrations are verified end to end today; the
+          rest are catalogued but honestly marked unverified until they are exercised.
+        </p>
+        <div>
+          <span class="pill verified">Kokoro TTS - verified</span>
+          <span class="pill verified">Whisper Large v3 - verified (CUDA)</span>
+          <span class="pill verified">Paraformer (Mandarin ASR) - verified</span>
+          <span class="pill">FLUX.1 schnell</span>
+          <span class="pill">LatentSync</span>
+          <span class="pill">MuseTalk</span>
+          <span class="pill">LTX-Video</span>
+          <span class="pill">Wan2.2</span>
+          <span class="pill">RMBG-2.0</span>
+        </div>
+        <div class="grid" style="margin-top: 32px">
+          <div class="card"><h3>Isolated runtimes</h3><p>Every model runs in its own uv-managed Python environment - never your global Python, never a shared venv.</p></div>
+          <div class="card"><h3>Content-addressed artifacts</h3><p>Weights are downloaded with resume, integrity checks and revision pinning. Downloading never executes code.</p></div>
+          <div class="card"><h3>Provenance on everything</h3><p>Every generated asset records capability, model, revision, settings and inputs - projects stay readable after a model is uninstalled.</p></div>
+          <div class="card"><h3>Heterogeneous hardware</h3><p>NVIDIA GPUs, Apple Silicon, ROCm and remote workers are first-class targets. Projects are hardware-independent.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="developers" class="alt">
+      <div class="wrap">
+        <span class="tag">For developers and agents</span>
+        <h2>One project model. Every interface.</h2>
+        <p class="sub">
+          The Studio, the CLI, the SDK and MCP all mutate projects through the same typed
+          operation layer. An agent's edit is the same kind of history entry as yours.
+        </p>
+        <div class="split">
+          <div>
+            <h3 style="margin-top: 0">Edit scripts, not eval</h3>
+            <p style="color: var(--ink-soft)">
+              Agents batch edits as declarative EditScripts - validated data, compiled to typed
+              operations, previewed on a scratch copy, applied as one undoable transaction.
+              No code execution.
+            </p>
+            <h3>MCP server</h3>
+            <p style="color: var(--ink-soft)">
+              <code>ovm mcp</code> exposes a semantic tool surface - inspect, create, edit, model
+              search - over the same operation layer, plus <code>ovm doctor</code>,
+              <code>ovm models</code> and <code>ovm render</code>.
+            </p>
+          </div>
+          <img src="/images/agent.png" alt="OpenVideoMaker agent proposal panel" width="800" height="500" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap" style="text-align: center; padding: 24px 0">
+        <h2>Open source</h2>
+        <p class="sub" style="margin-left: auto; margin-right: auto">
+          Apache-2.0 for the project code. Model weights and runners carry their own licenses -
+          OpenVideoMaker never implies a model is commercially usable just because the editor is.
+        </p>
+        <a class="button primary" href="/docs/">Read the development docs</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap row">
+      <span>OpenVideoMaker - make videos with AI. Keep everything editable.</span>
+      <span>Pre-alpha. Docs reflect the current repository truth.</span>
+    </div>
+  </footer>
+</Base>

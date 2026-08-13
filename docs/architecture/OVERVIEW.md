@@ -34,6 +34,10 @@ packages/persistence
                   relocation-safe project folders.
                   Depends on: schema, core, better-sqlite3.
 
+apps/site         The public marketing + docs site (Astro, static)
+                  deployed to openvideomaker.heartboat.me as a
+                  Cloudflare Workers static-assets project.
+
 apps/studio       The primary React editor: design tokens, shell layout
                   (top bar, media/asset panels, preview stage, inspector,
                   timeline), real editing interactions driven through the

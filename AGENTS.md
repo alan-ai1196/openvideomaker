@@ -164,5 +164,9 @@ project:// and model:// resources; surfaces the host cannot run yet
 (install, generation, render submission) are honestly not advertised
 until the desktop core exists. `@openvideomaker/cli` provides
 `ovm doctor | models | render | mcp`, delegating to the same
-packages. Next: lip-sync/avatar runner integrations, then
-script-first editing and the LLM planner. See `docs/STATUS.md`.
+packages. The marketing site (`apps/site`, Astro) is live at
+`https://openvideomaker.heartboat.me` (Cloudflare Workers static
+assets, custom domain; real Studio screenshots, honest status copy);
+deploy with `pnpm site:deploy`, verify with `pnpm site:check`. Next:
+lip-sync/avatar runner integrations, then script-first editing and
+the LLM planner. See `docs/STATUS.md`.

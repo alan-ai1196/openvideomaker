@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 14). This file is the single living status source; it
+Updated: 2026-08-14 (round 15). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -148,6 +148,12 @@ describes the repository truth and is updated whenever that truth changes.
 - `@openvideomaker/cli` - the `ovm` CLI: doctor / models list|search|
   info / render / mcp, each delegating to the same packages the
   Studio uses (5 tests; binary runs verified).
+- **Marketing site** (`apps/site`, Astro): hero, editor/AI/developer
+  sections with REAL Studio screenshots, an honest docs page mirroring
+  the repository status, and no fake completeness - deployed to
+  `https://openvideomaker.heartboat.me` as a Cloudflare Workers
+  static-assets project (custom domain verified over HTTPS, 404 and
+  image serving confirmed). Visual + dead-link checks included.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -157,9 +163,9 @@ describes the repository truth and is updated whenever that truth changes.
    LatentSync/MuseTalk).
 2. Script-first editing (Script view linked to characters/voices);
    LLM-driven planner behind the agent proposal contract.
-3. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
-   packaging (desktop core adds persistence/model install/generation
-   tools to the MCP surface); long-project performance hardening.
+3. Model/Device/Job Centers; Electron packaging (desktop core adds
+   persistence/model install/generation tools to the MCP surface);
+   long-project performance hardening.
 
 ## Known environment notes
 

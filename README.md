@@ -8,10 +8,13 @@ timeline with AI capabilities — captions, dubbing, avatars, lip sync,
 B-roll, reframing, cleanup, generative media — so that every AI result
 stays a normal, editable part of your project instead of a dead-end file.
 
-> **Status: pre-alpha.** The core project model, operation engine, SQLite
-> persistence, and a working Studio shell with a real editable timeline
-> are implemented and tested; model integrations, export and packaging
-> are being built. See `docs/STATUS.md` for the current truth.
+> **Status: pre-alpha.** The Studio (editable timeline, transcripts,
+> characters, agent proposals), three verified local AI integrations
+> (Kokoro TTS, Whisper and Paraformer ASR), generation jobs with
+> provenance, an MCP server and the `ovm` CLI are implemented and
+> tested. The public site is live at
+> [openvideomaker.heartboat.me](https://openvideomaker.heartboat.me).
+> See `docs/STATUS.md` for the current truth.
 
 ## What exists today
 

@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+import { mkdirSync } from 'node:fs';
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+await page.goto('http://localhost:4321/', { waitUntil: 'networkidle' });
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(400);
+mkdirSync('.research/screenshots', { recursive: true });
+await page.screenshot({ path: '.research/screenshots/site-home.png', fullPage: false });
+await browser.close();
+console.log('screenshot saved');

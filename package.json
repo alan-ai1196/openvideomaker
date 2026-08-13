@@ -14,7 +14,11 @@
     "typecheck": "turbo run typecheck",
     "dev": "turbo run dev",
     "clean": "turbo run clean",
-    "docs:models": "node scripts/generate-model-docs.mjs"
+    "docs:models": "node scripts/generate-model-docs.mjs",
+    "site:dev": "pnpm --filter @openvideomaker/site dev",
+    "site:build": "pnpm --filter @openvideomaker/site build",
+    "site:check": "node scripts/site-check.mjs",
+    "site:deploy": "pnpm --filter @openvideomaker/site build && wrangler deploy --config apps/site/wrangler.jsonc"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

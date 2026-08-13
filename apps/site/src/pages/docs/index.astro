@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Docs - OpenVideoMaker"
+  description="What OpenVideoMaker implements today, honestly: editor, transcripts, characters, agent editing, MCP and CLI."
+>
+  <header class="site">
+    <div class="wrap site-nav">
+      <a class="brand" href="/">OpenVideoMaker</a>
+      <nav><a href="/">Home</a></nav>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <section>
+        <span class="tag">Development docs</span>
+        <h1 style="font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.02em">What exists today</h1>
+        <p class="sub">
+          This page mirrors the repository's living status. Unreleased work is never presented
+          as implemented.
+        </p>
+
+        <div class="grid">
+          <div class="card"><h3>Studio</h3><p>A React editor: design system (dark + light), editable timeline (move/trim/split/ripple delete, snapping, zoom, shortcuts), real media import and preview, inspector, undo/redo, English + Simplified Chinese.</p></div>
+          <div class="card"><h3>Video IR + operations</h3><p>A durable, versioned project model (assets, sequences, tracks, clips, captions, characters, transcripts, provenance) mutated only through ~48 typed operations with invariant checks.</p></div>
+          <div class="card"><h3>Persistence</h3><p>SQLite project folders: snapshot + append-only operation log, incremental saves, corruption repair, relocation safety.</p></div>
+          <div class="card"><h3>Rendering</h3><p>Render plans from the Video IR to FFmpeg with probed encoders (NVENC and friends, hardware-to-software fallback), cancellation, classified errors. Runs locally - the browser Studio never pretends to render.</p></div>
+          <div class="card"><h3>Model runtime</h3><p>Capability-first registry with honest trust states, a content-addressed resumable downloader, a language-neutral runner protocol with uv-isolated runtimes, and generation jobs that land results in projects with full provenance.</p></div>
+          <div class="card"><h3>Transcripts + characters</h3><p>Durable editable transcripts (seek, correct, sync captions) and a Character Studio with voices, consent records and performance defaults - all typed, undoable operations.</p></div>
+          <div class="card"><h3>Agent editing</h3><p>EditPlan/EditScript proposals compiled to typed operations, previewed on scratch copies, applied as one undoable agent transaction. No eval.</p></div>
+          <div class="card"><h3>MCP + CLI</h3><p>An MCP server (spec 2025-06-18, stdio) with semantic tools over the same operation layer, and the <code>ovm</code> CLI: doctor, models, render, mcp.</p></div>
+        </div>
+      </section>
+
+      <section class="alt">
+        <span class="tag">Verification evidence</span>
+        <h2>Three verified integrations</h2>
+        <div class="grid">
+          <div class="card"><h3>Kokoro TTS</h3><p>Weights through the artifact store, loaded in an isolated uv runtime, TTS through the runner protocol - output confirmed with ffprobe.</p></div>
+          <div class="card"><h3>Whisper Large v3</h3><p>CTranslate2 weights, CUDA float16 on an RTX 3090 (no system CUDA toolkit - the adapter registers the cublas wheel), 8/8 word overlap transcribing Kokoro-synthesized speech.</p></div>
+          <div class="card"><h3>Paraformer (Mandarin)</h3><p>ModelScope weights, funasr on CPU, 14/14 character overlap on Windows-synthesized Mandarin speech.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <span class="tag">Next</span>
+        <h2>What's being built</h2>
+        <ul style="color: var(--ink-soft); font-size: 15px; line-height: 2">
+          <li>Lip-sync and avatar runner integrations (LatentSync / MuseTalk)</li>
+          <li>Script-first editing and an LLM planner behind the proposal contract</li>
+          <li>Model / Device / Job Centers, the Electron desktop app and packaging</li>
+          <li>Long-project performance and reliability hardening</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+  <footer class="site">
+    <div class="wrap row"><span>OpenVideoMaker docs - current repository truth.</span></div>
+  </footer>
+</Base>

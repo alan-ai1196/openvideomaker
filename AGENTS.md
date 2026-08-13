@@ -98,7 +98,8 @@ secrets. Inspect the diff before committing. No force pushes.
 ## Current state (pre-release)
 
 Foundation stage. Implemented: `@openvideomaker/schema` (durable Video IR
-and typed operation vocabulary) and `@openvideomaker/core` (operation
-engine: transactions, undo/redo, replay, concurrency, invariants). Next:
-persistence, Studio shell, preview/timeline slice, jobs/devices/render,
-registry and runner protocol. See `docs/STATUS.md`.
+and typed operation vocabulary), `@openvideomaker/core` (operation
+engine: transactions, undo/redo, replay, concurrency, invariants) and
+`@openvideomaker/persistence` (SQLite project store). Next: Studio shell,
+preview/timeline slice, jobs/devices/render, registry and runner
+protocol. See `docs/STATUS.md`.

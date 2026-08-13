@@ -16,21 +16,12 @@ import {
   type Transaction,
 } from '@openvideomaker/schema';
 import { applyOperation } from './apply/applyOperation.js';
+import { deepFreeze } from './freeze.js';
 import { blankProject } from './builders.js';
 import { ConflictError, InvariantError, OvmError, SchemaError } from './errors.js';
 import { TransactionScope } from './scope.js';
 import type { ApplyOptions, ApplyResult } from './types.js';
 import { collectViolations } from './validate/invariants.js';
-
-function deepFreeze<T>(value: T): T {
-  if (value !== null && typeof value === 'object') {
-    for (const key of Object.keys(value)) {
-      deepFreeze((value as Record<string, unknown>)[key]);
-    }
-    Object.freeze(value);
-  }
-  return value;
-}
 
 function totalOps(log: readonly Transaction[]): number {
   let n = 0;

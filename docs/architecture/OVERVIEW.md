@@ -26,6 +26,12 @@ packages/core     Authoritative operation engine: ProjectSession (apply,
                   transaction, undo/redo, replay), per-domain apply
                   functions, project invariants, builders, errors.
                   Depends on: @openvideomaker/schema.
+
+packages/persistence
+                  Durable project store: SQLite snapshot + append-only
+                  operation log, crash-safe saves, corruption repair,
+                  relocation-safe project folders.
+                  Depends on: schema, core, better-sqlite3.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.
@@ -34,8 +40,7 @@ stack on top of core and may never be imported by it.
 
 ## Planned surfaces (sequencing, not scope reduction)
 
-1. Persistence (SQLite-backed project store, migration framework).
-2. Studio shell + design system (React/Vite).
+1. Studio shell + design system (React/Vite).
 3. Preview/timeline vertical slice (WebCodecs/WebGPU, virtualized).
 4. Import/edit/export vertical slice (FFmpeg render plan).
 5. Jobs/devices/render system.

@@ -128,7 +128,7 @@ Trust states change ONLY with real execution evidence.
 NVIDIA GPUs via nvidia-smi, ffmpeg version + probed encoders, toolchain
 runtimes) with the `ovm-doctor` CLI (`--json`/`--strict`); hardware is
 probed, never assumed, and absence is data - it feeds the future Device
-Center. `runners/whisper-asr` is the second verified integration (Whisper
+Center. Verified runner integrations: `runners/whisper-asr` (Whisper
 Large v3 via faster-whisper: CTranslate2 weights through the artifact
 store, the nvidia-cublas-cu12 wheel registered by the adapter so CUDA
 needs no system toolkit, 8/8 word overlap on the TTS -> ASR loop on an
@@ -138,6 +138,9 @@ artifact store + uv runtime + runner protocol (data-driven
 `runners/<name>/runner.json` manifests) and lands every result in
 projects through core ops with full GenerationProvenance - verified for
 real (TTS voiceover asset, ASR caption clips + subtitles in a saved
-project). The Studio Model Center shows Generate honestly disabled in
-browser mode. Next: more verified runner integrations (lip-sync), then
-characters/avatars. See `docs/STATUS.md`.
+project). `runners/paraformer-asr` is the third (FunASR Paraformer
+Mandarin ASR: ModelScope weights through the artifact store, 14/14
+character overlap on Windows-SAPI-synthesized speech; the adapter keeps
+funasr's stdout away from the protocol stream). The Studio Model Center
+shows Generate honestly disabled in browser mode. Next: lip-sync/avatar
+runner integrations, then characters/avatars. See `docs/STATUS.md`.

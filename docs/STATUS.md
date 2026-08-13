@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 9). This file is the single living status source; it
+Updated: 2026-08-14 (round 10). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -80,6 +80,15 @@ describes the repository truth and is updated whenever that truth changes.
   overlap on CUDA float16 (RTX 3090), timed transcript + SRT captions.
   Registry entry `hf/openai/whisper-large-v3` marked `verified`; the
   TTS -> ASR loop runs end to end.
+- **Third verified integration**: `runners/paraformer-asr` - FunASR
+  Paraformer-large (Mandarin ASR): 840MB weights fetched through the
+  artifact store from ModelScope, an isolated uv runtime (funasr 1.4.1
+  + torch, CPU), and `audio.asr` through the runner protocol on
+  Windows-SAPI-synthesized Mandarin speech (Huihui voice): 14/14
+  character overlap, transcript + SRT captions. Registry entry
+  `ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch`
+  marked `verified`; the adapter keeps funasr's stdout away from the
+  protocol stream.
 - `@openvideomaker/downloader` hardening: store hashing now streams (the
   first >2GiB artifact - whisper's weights - exposed the readFileSync
   buffer limit), with a regression test for large-file adoption;
@@ -102,7 +111,8 @@ describes the repository truth and is updated whenever that truth changes.
 
 ## Next (in planned order)
 
-1. More verified runner integrations (lip-sync/avatars next).
+1. More verified runner integrations (lip-sync/avatars next:
+   LatentSync/MuseTalk).
 2. Characters/avatars; transcript & media intelligence; agent editing.
 3. MCP server, SDK, CLI (`ovm`).
 4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron

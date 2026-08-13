@@ -22,8 +22,10 @@ metadata (zod) under `packages/registry/src/data`. Each entry records:
   experimental / unverified. Entries start `unverified` (metadata
   checked against the hub APIs at research time) and flip to `verified`
   only with real execution evidence; currently verified: Kokoro TTS
-  (`hf/hexgrad/Kokoro-82M`) and Whisper Large v3
-  (`hf/openai/whisper-large-v3`), both with dated evidence sentences.
+  (`hf/hexgrad/Kokoro-82M`), Whisper Large v3
+  (`hf/openai/whisper-large-v3`) and Paraformer Mandarin ASR
+  (`ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch`),
+  all with dated evidence sentences.
 - `docs/models.md` is GENERATED from the registry and drift-checked in
   tests; there is no second manual list.
 
@@ -78,8 +80,9 @@ logs and crash isolation - a dead runner fails only its pending job.
 Python runtimes are uv-managed under an OpenVideoMaker-owned directory
 from pinned manifests, never the global Python. Adapters live in
 `runners/<name>/` and are first-party code; verified integrations are
-`runners/kokoro-tts` (TTS) and `runners/whisper-asr` (transcription with
-timed segments + SRT captions), each with a re-runnable `verify.mjs`.
+`runners/kokoro-tts` (TTS), `runners/whisper-asr` (transcription with
+timed segments + SRT captions) and `runners/paraformer-asr` (Mandarin
+ASR), each with a re-runnable `verify.mjs`.
 On top sits `@openvideomaker/jobs`: generation runs resolve adapters
 from `runners/<name>/runner.json` manifests and land outputs in projects
 through the operation layer with full provenance (see ADR-0011).

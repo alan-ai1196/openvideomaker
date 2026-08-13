@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "name": "paraformer-asr",
+  "version": "0.1.0",
+  "capabilities": [
+    "audio.asr"
+  ],
+  "models": [
+    "ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
+  ],
+  "pythonVersion": "3.12",
+  "entry": "runner.py",
+  "modelFiles": {
+    "model": "model.pt",
+    "config": "config.yaml",
+    "am_mvn": "am.mvn",
+    "seg_dict": "seg_dict",
+    "tokens": "tokens.json",
+    "configuration": "configuration.json"
+  }
+}

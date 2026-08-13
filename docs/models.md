@@ -36,15 +36,15 @@ a runner slice verifies it.
 
 ### Paraformer (Chinese)
 
-- **Id:** `ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch` - **Trust:** unverified
+- **Id:** `ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch` - **Trust:** verified
 - **Upstream:** [FunASR](https://github.com/modelscope/FunASR)
 - **License:** Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 - **Capabilities:** audio.asr
-- **Runner:** local-python (funasr adapter)
-- **Hardware:** cuda/expected, cpu/expected, mlx/unavailable, rocm/untested
-- **Memory:** Runs on CPU as well as GPU.
-- **Limitations:** Mandarin-focused; mixed-language audio is approximate.
-- **Evidence:** Registry metadata (id, availability, Apache-2.0 license) checked against the ModelScope API on 2026-08-13; inference not yet exercised by OpenVideoMaker.
+- **Runner:** local-python (funasr adapter (runners/paraformer-asr), local model directory)
+- **Hardware:** cuda/expected, cpu/tested, mlx/unavailable, rocm/untested
+- **Memory:** Runs on CPU as well as GPU (~840 MB fp32 weights).
+- **Limitations:** Mandarin-focused; mixed-language audio is approximate. No segment-level timestamps out of the box - the adapter emits one caption span per utterance.
+- **Evidence:** Executed 2026-08-14: weights fetched through the OpenVideoMaker artifact store from ModelScope (sha256s are measured content hashes), the model loaded in an isolated uv runtime (funasr 1.4.1 + torch, CPU), and 'audio.asr' executed through the runner protocol on Windows-SAPI-synthesized Mandarin speech (Huihui voice) - transcribed the known sentence with 14/14 character overlap, producing a transcript and SRT captions.
 
 ## Lip Sync (2)
 

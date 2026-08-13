@@ -376,7 +376,7 @@
     ],
     "runner": {
       "kind": "local-python",
-      "notes": "funasr adapter"
+      "notes": "funasr adapter (runners/paraformer-asr), local model directory"
     },
     "hardware": [
       {
@@ -385,7 +385,7 @@
       },
       {
         "platform": "cpu",
-        "status": "expected"
+        "status": "tested"
       },
       {
         "platform": "mlx",
@@ -397,8 +397,11 @@
       }
     ],
     "memory": {
-      "note": "Runs on CPU as well as GPU."
+      "note": "Runs on CPU as well as GPU (~840 MB fp32 weights)."
     },
+    "precision": [
+      "fp32"
+    ],
     "license": {
       "id": "Apache-2.0",
       "name": "Apache License 2.0",
@@ -407,15 +410,49 @@
     "sources": [
       {
         "kind": "modelscope",
-        "modelId": "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
+        "modelId": "iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
+        "revision": "master"
+      }
+    ],
+    "files": [
+      {
+        "path": "am.mvn",
+        "sha256": "29b3c740a2c0cfc6b308126d31d7f265fa2be74f3bb095cd2f143ea970896ae5",
+        "sizeBytes": 11203
+      },
+      {
+        "path": "config.yaml",
+        "sha256": "bfd424b9f61846aac63591e96fe24d66b35f4643bddcb4b9bb759db8f987ab79",
+        "sizeBytes": 2509
+      },
+      {
+        "path": "configuration.json",
+        "sha256": "b7d2917954fc547e43ad61486a5248596738cf5909907eade11e71c56f446f34",
+        "sizeBytes": 472
+      },
+      {
+        "path": "model.pt",
+        "sha256": "5bba782a5e9196166233b9ab12ba04cadff9ef9212b4ff6153ed9290ff679025",
+        "sizeBytes": 880502012
+      },
+      {
+        "path": "seg_dict",
+        "sha256": "59a2ef803a3f1648ad03a2e1480db1c1ee0c0d7dc4ef4dbd16cea33944329022",
+        "sizeBytes": 8287834
+      },
+      {
+        "path": "tokens.json",
+        "sha256": "2b20c2b12572d682afff84ce1c8d560f67b8b32a4c1f21567411d141ed352127",
+        "sizeBytes": 93676
       }
     ],
     "limitations": [
-      "Mandarin-focused; mixed-language audio is approximate."
+      "Mandarin-focused; mixed-language audio is approximate. No segment-level timestamps out of the box - the adapter emits one caption span per utterance."
     ],
     "verification": {
-      "trust": "unverified",
-      "evidence": "Registry metadata (id, availability, Apache-2.0 license) checked against the ModelScope API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+      "trust": "verified",
+      "evidence": "Executed 2026-08-14: weights fetched through the OpenVideoMaker artifact store from ModelScope (sha256s are measured content hashes), the model loaded in an isolated uv runtime (funasr 1.4.1 + torch, CPU), and 'audio.asr' executed through the runner protocol on Windows-SAPI-synthesized Mandarin speech (Huihui voice) - transcribed the known sentence with 14/14 character overlap, producing a transcript and SRT captions.",
+      "verifiedAt": "2026-08-14"
     },
     "updatePolicy": {
       "kind": "registry-pr",

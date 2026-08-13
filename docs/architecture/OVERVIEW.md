@@ -37,6 +37,11 @@ apps/studio       The primary React editor: design tokens, shell layout
                   (top bar, media/asset panels, preview stage, inspector,
                   timeline), real editing interactions driven through the
                   core operation layer. Depends on: schema, core.
+
+packages/media    Node media indexing (desktop/server): ffprobe probing,
+                  ffmpeg thumbnails and waveforms. The Studio has
+                  browser-native equivalents behind the same schemas.
+                  Depends on: schema.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

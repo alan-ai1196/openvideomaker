@@ -59,5 +59,13 @@
   "project.untitled": "Untitled Project",
   "welcome.project": "Welcome Project",
   "project.rename": "Rename project",
-  "playhead.time": "Time"
+  "playhead.time": "Time",
+  "panel.import": "Import media",
+  "panel.drop.hint": "Or drag files anywhere into this panel",
+  "panel.add.to.timeline": "Add to timeline at the playhead",
+  "preview.hint.import": "Import media to see it here",
+  "inspector.split": "Split at playhead",
+  "shortcuts.split": "Split selected clip at playhead",
+  "shortcuts.rippleDelete": "Ripple delete selected clip",
+  "shortcuts.lift": "Remove selected clip (keep gap)"
 }

@@ -1,5 +1,7 @@
-import { ProjectSession, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
-import type { ClipId } from '@openvideomaker/schema';
+import { importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { newTrackId, type AssetId, type ClipId } from '@openvideomaker/schema';
+import { probeBrowserFile } from '../media/browserProbe';
+import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
 
 export interface MutationResult {
@@ -25,6 +27,7 @@ export class StudioController {
   #lastTick = 0;
   #zoomPxPerSec = 48;
   #lastError: { code: string; message: string } | null = null;
+  #mediaCache = new MediaCache();
 
   private constructor(session: ProjectSession) {
     this.#session = session;
@@ -76,6 +79,11 @@ export class StudioController {
 
   get lastError(): { code: string; message: string } | null {
     return this.#lastError;
+  }
+
+  /** Runtime presentation cache: object URLs, thumbnails, waveforms. */
+  get mediaCache(): MediaCache {
+    return this.#mediaCache;
   }
 
   clearError(): void {
@@ -198,6 +206,86 @@ export class StudioController {
       this.#emit();
       return { ok: false, code: e.code, message: e.message };
     }
+  }
+
+  /** Probe a dropped/picked file and import it as an asset. */
+  async importMediaFile(file: File): Promise<MutationResult> {
+    try {
+      const { media, kind } = await probeBrowserFile(file);
+      const asset = importedAsset({
+        kind,
+        name: file.name,
+        path: 'browser://' + file.name,
+        source: { kind: 'cas', ref: 'browser:' + file.size + ':' + file.lastModified },
+        media,
+      });
+      const result = this.mutate((tx) => tx.importAsset({ asset }));
+      if (result.ok) {
+        this.#mediaCache.registerFile(asset.id, file, { hasVideo: media.hasVideo, hasAudio: media.hasAudio, durationUs: media.durationUs });
+      }
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.reportError(message, 'media.import');
+      return { ok: false, code: 'media.import', message };
+    }
+  }
+
+  /** Place an asset on a compatible track at the playhead (creating the track if needed). */
+  addAssetToTimeline(assetId: AssetId): MutationResult {
+    const project = this.project;
+    const asset = project.assets[assetId];
+    if (!asset) return { ok: false, code: 'op.not-found', message: 'asset not found' };
+    const sequence = this.activeSequence();
+    if (!sequence) return { ok: false, code: 'op.not-found', message: 'no active sequence' };
+    const isAudio = asset.kind === 'audio' || Boolean(asset.media?.hasAudio && !asset.media?.hasVideo);
+    const trackKind = isAudio ? 'audio' : 'video';
+    const existing = sequence.tracks.find((track) => track.kind === trackKind);
+    const sequenceId = sequence.id;
+    const durationUs = asset.kind === 'image'
+      ? 3_000_000
+      : Math.max(1_000_000, asset.media?.durationUs ?? 5_000_000);
+    let track = existing;
+    if (!track) {
+      const newId = newTrackId();
+      const created = this.mutate((tx) => tx.createTrack({ sequenceId, trackId: newId, kind: trackKind }));
+      if (!created.ok) return created;
+      track = this.activeSequence()?.tracks.find((t) => t.id === newId);
+    }
+    if (!track) return { ok: false, code: 'op.not-found', message: 'track missing' };
+    const clip = mediaClip({ trackId: track.id, assetId, start: this.playheadUs, duration: durationUs });
+    const ok = insertClipAt(this.#session, sequenceId, track.id, clip);
+    this.#emit();
+    return ok ? { ok: true } : { ok: false, code: 'op.validation', message: 'could not place clip on the timeline' };
+  }
+
+  /** Split the selected clip at the playhead; keeps the right half selected. */
+  splitSelectedAtPlayhead(): boolean {
+    const clipId = this.#selectedClipId;
+    if (!clipId) return false;
+    const sequence = this.activeSequence();
+    if (!sequence) return false;
+    const rightId = splitClipAt(this.#session, sequence.id, clipId, this.#playheadUs);
+    if (rightId) {
+      this.#selectedClipId = rightId;
+      this.#emit();
+      return true;
+    }
+    return false;
+  }
+
+  /** Ripple-delete the selected clip and clear the selection. */
+  rippleDeleteSelected(): boolean {
+    const clipId = this.#selectedClipId;
+    if (!clipId) return false;
+    const sequence = this.activeSequence();
+    if (!sequence) return false;
+    if (rippleDeleteClip(this.#session, sequence.id, clipId)) {
+      this.#selectedClipId = null;
+      this.#emit();
+      return true;
+    }
+    return false;
   }
 
   exportProject(): string {

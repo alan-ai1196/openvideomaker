@@ -53,10 +53,21 @@ function Studio() {
         const clipId = controller.selectedClipId;
         if (!clipId) return;
         e.preventDefault();
-        const sequenceId = controller.activeSequence()?.id;
-        if (sequenceId) {
-          controller.mutate((tx) => tx.removeClip({ sequenceId, clipId }));
-          controller.selectClip(null);
+        if (e.shiftKey) {
+          const sequenceId = controller.activeSequence()?.id;
+          if (sequenceId) {
+            controller.mutate((tx) => tx.removeClip({ sequenceId, clipId }));
+            controller.selectClip(null);
+          }
+        } else {
+          controller.rippleDeleteSelected();
+        }
+        return;
+      }
+      if (e.key === 's' || e.key === 'S') {
+        if (controller.selectedClipId) {
+          e.preventDefault();
+          controller.splitSelectedAtPlayhead();
         }
         return;
       }

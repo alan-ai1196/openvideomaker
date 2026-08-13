@@ -14,6 +14,45 @@ type DragState =
   | { type: 'move'; clipId: ClipId; trackId: TrackId; grabOffsetUs: number; previewStartUs: number; moved: boolean }
   | { type: 'trim'; clipId: ClipId; trackId: TrackId; edge: 'in' | 'out'; previewStartUs: number; previewDurationUs: number; moved: boolean };
 
+function ClipVisuals({ controller, clip }: { controller: ReturnType<typeof useStudio>; clip: Extract<Clip, { kind: 'media' }> }) {
+  const cached = controller.mediaCache.get(clip.assetId);
+  const thumbs = cached.thumbnails;
+  const peaks = cached.peaks;
+  return (
+    <>
+      {thumbs && thumbs.length > 0 ? (
+        <span className="clip-filmstrip" aria-hidden="true">
+          {thumbs.map((src, index) => (
+            <img key={index} src={src} alt="" draggable={false} />
+          ))}
+        </span>
+      ) : null}
+      {peaks && peaks.length > 0 ? <ClipWaveform peaks={peaks} /> : null}
+    </>
+  );
+}
+
+function ClipWaveform({ peaks }: { peaks: number[] }) {
+  const width = 100;
+  const height = 100;
+  const step = width / peaks.length;
+  const points: string[] = [];
+  for (let i = 0; i < peaks.length; i += 1) {
+    const x = i * step;
+    const peak = Math.max(0.04, Math.min(1, peaks[i]!));
+    points.push((x + step / 2).toFixed(2) + ',' + (50 - peak * 42).toFixed(2));
+  }
+  const mirrored = [...points].reverse().map((p) => {
+    const parts = p.split(',');
+    return parts[0] + ',' + (100 - Number(parts[1])).toFixed(2);
+  });
+  return (
+    <svg className="clip-waveform" viewBox={'0 0 ' + width + ' ' + height} preserveAspectRatio="none" aria-hidden="true">
+      <polygon points={points.concat(mirrored).join(' ')} />
+    </svg>
+  );
+}
+
 function clipLabel(controller: ReturnType<typeof useStudio>, clip: Clip): string {
   if (clip.kind === 'media') return controller.project.assets[clip.assetId]?.name ?? 'Media';
   if (clip.kind === 'text') return clip.content;
@@ -254,6 +293,7 @@ export function Timeline() {
                       role="button"
                       aria-label={clipLabel(controller, clip)}
                     >
+                      {clip.kind === 'media' ? <ClipVisuals controller={controller} clip={clip} /> : null}
                       <span className="clip-label">{clipLabel(controller, clip)}</span>
                       {clip.kind === 'caption' ? (
                         <span className="clip-captions">

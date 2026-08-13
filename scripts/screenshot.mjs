@@ -33,12 +33,16 @@ const inspectorHasBadge = await page.locator('.clip-kind-badge').count();
 // Undo/redo buttons should be enabled after the welcome project was built
 const undoDisabled = await page.locator('button[aria-label="Undo"]').isDisabled();
 
-// Delete the selected clip via keyboard, verify count drops, then undo
+// Ripple-delete the selected clip (remove + shift = 2 ops), then undo twice
 await page.keyboard.press('Delete');
 await page.waitForTimeout(250);
 const clipCountAfter = await page.locator('.clip').count();
-await page.keyboard.press('Control+z');
-await page.waitForTimeout(250);
+// Ripple delete = remove + one move per shifted clip; undo until restored.
+for (let i = 0; i < 4; i += 1) {
+  if ((await page.locator('.clip').count()) === clipCountBefore) break;
+  await page.keyboard.press('Control+z');
+  await page.waitForTimeout(120);
+}
 const clipCountUndone = await page.locator('.clip').count();
 
 // Light theme

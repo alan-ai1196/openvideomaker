@@ -193,9 +193,11 @@ export function Inspector() {
       </label>
 
       <div className="inspector-actions">
+        <Button label={t('inspector.split')} onClick={() => controller.splitSelectedAtPlayhead()}>
+          {t('inspector.split')}
+        </Button>
         <Button variant="danger" icon={<TrashIcon />} label={t('inspector.delete')} onClick={() => {
-          controller.mutate((tx) => tx.removeClip({ sequenceId, clipId: clip.id }));
-          controller.selectClip(null);
+          controller.rippleDeleteSelected();
         }}>
           {t('inspector.delete')}
         </Button>

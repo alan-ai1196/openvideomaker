@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-13 (round 2). This file is the single living status source; it
+Updated: 2026-08-13 (round 3). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -27,19 +27,25 @@ describes the repository truth and is updated whenever that truth changes.
   editing (opacity, speed, gain, trim, text, enable, delete), undo/redo,
   keyboard shortcuts, project JSON save/open, and an honest placeholder
   preview stage. Playwright-validated (layout, interactions, contrast).
-- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0005, UX
+- `@openvideomaker/media` — Node media indexing: ffprobe probing (exact
+  rational fps, codecs, channels), ffmpeg filmstrip thumbnails, waveform
+  peaks; tested against real generated media (6 tests).
+- Studio media pipeline: browser probing, import via picker + drag-drop,
+  click-to-place with insert edits, real playback in the preview stage,
+  clip thumbnails + waveforms, split-at-playhead (S), ripple delete (Del),
+  lift (Shift+Del). Core insert-edit/ripple/split commands with tests.
+  Playwright-validated end to end.
+- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0006, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. Preview/timeline vertical slice: real media import (ffprobe),
-   thumbnails, waveforms, canvas preview playback, ripple edits.
-2. Export slice: render plan → FFmpeg, encoder detection, jobs.
-3. Model registry + providers (HF/ModelScope/mirror) + download store.
-4. Runner protocol + isolation; representative real AI integrations.
-5. Characters/avatars; transcript & media intelligence; agent editing.
-6. MCP server, SDK, CLI (`ovm`).
-7. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
+1. Export slice: render plan → FFmpeg, encoder detection, jobs.
+2. Model registry + providers (HF/ModelScope/mirror) + download store.
+3. Runner protocol + isolation; representative real AI integrations.
+4. Characters/avatars; transcript & media intelligence; agent editing.
+5. MCP server, SDK, CLI (`ovm`).
+6. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.
 
 ## Known environment notes

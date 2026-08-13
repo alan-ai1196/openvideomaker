@@ -1,9 +1,10 @@
-import { useState, type ReactElement } from 'react';
+import { useRef, useState, type DragEvent, type ReactElement } from 'react';
 import { usToSeconds } from '@openvideomaker/schema';
 import type { AssetKind } from '@openvideomaker/schema';
 import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
-import { CaptionsIcon, FilmIcon, GridIcon, PersonIcon, SparkIcon, TypeIcon, WaveIcon } from './icons';
+import { Button } from './controls';
+import { CaptionsIcon, FilmIcon, GridIcon, PersonIcon, SparkIcon, TypeIcon, UploadIcon, WaveIcon } from './icons';
 import type { MessageKey } from '../i18n/strings';
 
 type PanelId = 'media' | 'text' | 'captions' | 'audio' | 'avatars' | 'ai' | 'templates';
@@ -30,7 +31,21 @@ export function LeftPanel() {
   const controller = useStudio();
   const { t } = useI18n();
   const [active, setActive] = useState<PanelId>('media');
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const assets = Object.values(controller.project.assets);
+
+  const importFiles = (files: FileList | File[]) => {
+    for (const file of Array.from(files)) {
+      void controller.importMediaFile(file);
+    }
+  };
+
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    if (e.dataTransfer.files.length > 0) importFiles(e.dataTransfer.files);
+  };
 
   return (
     <aside className="leftpanel">
@@ -49,24 +64,55 @@ export function LeftPanel() {
           </button>
         ))}
       </nav>
-      <div className="leftpanel-content">
+      <div
+        className={'leftpanel-content' + (dragging ? ' drop-active' : '')}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+      >
         <h2 className="panel-heading">{t(TABS.find((tab) => tab.id === active)!.key)}</h2>
         {active === 'media' ? (
-          assets.length === 0 ? (
-            <EmptyPanel text={t('panel.empty.media')} />
-          ) : (
-            <ul className="asset-list">
-              {assets.map((asset) => (
-                <li className="asset-item" key={asset.id} title={asset.name}>
-                  <span className={'asset-kind asset-kind-' + asset.kind}>{KIND_LABEL[asset.kind]}</span>
-                  <span className="asset-name">{asset.name}</span>
-                  {asset.media?.durationUs !== undefined ? (
-                    <span className="asset-duration">{usToSeconds(asset.media.durationUs).toFixed(1)}s</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )
+          <>
+            <Button variant="primary" icon={<UploadIcon />} label={t('panel.import')} onClick={() => fileInputRef.current?.click()}>
+              {t('panel.import')}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*,audio/*,image/*"
+              multiple
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files) importFiles(e.target.files);
+                e.target.value = '';
+              }}
+            />
+            {assets.length === 0 ? (
+              <EmptyPanel text={t('panel.empty.media')} hint={t('panel.drop.hint')} />
+            ) : (
+              <ul className="asset-list">
+                {assets.map((asset) => (
+                  <li key={asset.id}>
+                    <button
+                      className="asset-item"
+                      type="button"
+                      title={t('panel.add.to.timeline')}
+                      onClick={() => controller.addAssetToTimeline(asset.id)}
+                    >
+                      <span className={'asset-kind asset-kind-' + asset.kind}>{KIND_LABEL[asset.kind]}</span>
+                      <span className="asset-name">{asset.name}</span>
+                      {asset.media?.durationUs !== undefined && asset.media.durationUs > 0 ? (
+                        <span className="asset-duration">{usToSeconds(asset.media.durationUs).toFixed(1)}s</span>
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         ) : (
           <EmptyPanel text={t('panel.empty.generic')} hint={t('panel.empty.hint')} />
         )}

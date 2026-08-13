@@ -90,7 +90,7 @@ export class ProjectSession {
     const projectId: ProjectId = first.params.projectId;
     const project = blankProject(projectId);
     for (const tx of log) {
-      for (const op of tx.operations) applyOperation(project, op, op.at);
+      for (const op of tx.operations) applyOperation(project, structuredClone(op) as Operation, op.at);
     }
     const violations = collectViolations(project);
     if (violations.length > 0) {
@@ -160,7 +160,10 @@ export class ProjectSession {
 
     const txId = newTransactionId();
     const draft = structuredClone(this.#project) as Project;
-    for (const op of fullOps) applyOperation(draft, op, now);
+    // Clone each op so project state never shares object identity with the
+    // log or with caller-provided data (deepFreeze would otherwise freeze
+    // objects outside the session).
+    for (const op of fullOps) applyOperation(draft, structuredClone(op) as Operation, now);
 
     const violations = collectViolations(draft);
     if (violations.length > 0) {
@@ -233,7 +236,7 @@ export class ProjectSession {
     outer: for (const tx of this.#log) {
       for (const op of tx.operations) {
         if (applied >= this.#checkpoint) break outer;
-        applyOperation(project, op, op.at);
+        applyOperation(project, structuredClone(op) as Operation, op.at);
         applied += 1;
       }
     }

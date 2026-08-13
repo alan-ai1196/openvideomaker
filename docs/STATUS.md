@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 13). This file is the single living status source; it
+Updated: 2026-08-14 (round 14). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -138,6 +138,16 @@ describes the repository truth and is updated whenever that truth changes.
   with a deterministic planner that re-inspects the project -
   Playwright-verified end to end (propose, preview, apply, re-plan,
   caption track via variable binding). 5 agent tests.
+- `@openvideomaker/mcp` - MCP server (spec 2025-06-18, JSON-RPC over
+  newline stdio): a semantic, capability-first tool set over the same
+  operation layer (project.inspect/create/dump, timeline/transcript/
+  character.inspect, character.create, edit.preview/edit.apply via
+  EditScripts, model.list/search/info) plus project:// and model://
+  resources; all boundaries zod-validated; tool failures are content
+  errors, not protocol faults (7 tests + a real stdio e2e check).
+- `@openvideomaker/cli` - the `ovm` CLI: doctor / models list|search|
+  info / render / mcp, each delegating to the same packages the
+  Studio uses (5 tests; binary runs verified).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -147,9 +157,9 @@ describes the repository truth and is updated whenever that truth changes.
    LatentSync/MuseTalk).
 2. Script-first editing (Script view linked to characters/voices);
    LLM-driven planner behind the agent proposal contract.
-3. MCP server, SDK, CLI (`ovm`).
-4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
-   packaging; long-project performance hardening.
+3. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
+   packaging (desktop core adds persistence/model install/generation
+   tools to the MCP surface); long-project performance hardening.
 
 ## Known environment notes
 

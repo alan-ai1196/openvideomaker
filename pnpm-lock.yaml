@@ -98,6 +98,31 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))
 
+  packages/cli:
+    dependencies:
+      '@openvideomaker/devices':
+        specifier: workspace:*
+        version: link:../devices
+      '@openvideomaker/mcp':
+        specifier: workspace:*
+        version: link:../mcp
+      '@openvideomaker/registry':
+        specifier: workspace:*
+        version: link:../registry
+      '@openvideomaker/render':
+        specifier: workspace:*
+        version: link:../render
+      '@openvideomaker/schema':
+        specifier: workspace:*
+        version: link:../schema
+    devDependencies:
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))
+
   packages/core:
     dependencies:
       '@openvideomaker/schema':
@@ -160,6 +185,31 @@ importers:
       '@openvideomaker/runners':
         specifier: workspace:*
         version: link:../runners
+      '@openvideomaker/schema':
+        specifier: workspace:*
+        version: link:../schema
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(vite@8.2.1(@types/node@24.13.3))
+
+  packages/mcp:
+    dependencies:
+      '@openvideomaker/agent':
+        specifier: workspace:*
+        version: link:../agent
+      '@openvideomaker/core':
+        specifier: workspace:*
+        version: link:../core
+      '@openvideomaker/registry':
+        specifier: workspace:*
+        version: link:../registry
       '@openvideomaker/schema':
         specifier: workspace:*
         version: link:../schema

@@ -82,6 +82,15 @@ packages/agent    Agent editing: EditPlan/EditScript (restricted
                   eval) compile to the standard typed operations;
                   scratch-copy previews; reviewable proposals.
                   Depends on: schema, core, zod.
+
+packages/mcp      MCP server (spec 2025-06-18, stdio): semantic,
+                  capability-first tools over the same operation
+                  layer + project:// and model:// resources.
+                  Depends on: schema, core, agent, registry, zod.
+
+packages/cli      The ovm CLI: doctor / models / render / mcp,
+                  delegating to the same packages as the Studio.
+                  Depends on: devices, registry, render, mcp.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

@@ -1,0 +1,33 @@
+{
+  "name": "@openvideomaker/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The ovm CLI: doctor, models, render, mcp - thin command surface over the same packages the Studio uses.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "ovm": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../scripts/vitest.mjs run",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@openvideomaker/devices": "workspace:*",
+    "@openvideomaker/registry": "workspace:*",
+    "@openvideomaker/render": "workspace:*",
+    "@openvideomaker/schema": "workspace:*",
+    "@openvideomaker/mcp": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

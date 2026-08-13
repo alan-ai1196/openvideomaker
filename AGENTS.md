@@ -156,6 +156,13 @@ EditScript (restricted declarative steps with $variable bindings, never
 eval) compile to the standard typed operations; previews run on scratch
 copies; proposals apply as one undoable agent transaction. The Studio
 Agent panel honestly runs the deterministic planner today (the LLM
-planner is future work). Next: lip-sync/avatar runner integrations,
-then script-first editing and the LLM planner behind the same
-proposal contract. See `docs/STATUS.md`.
+planner is future work). `@openvideomaker/mcp` exposes that contract
+to agents as an MCP server (spec 2025-06-18, stdio): semantic tools
+(project/timeline/transcript/character inspect+create, edit.preview/
+edit.apply, model search) over the SAME operation layer, with
+project:// and model:// resources; surfaces the host cannot run yet
+(install, generation, render submission) are honestly not advertised
+until the desktop core exists. `@openvideomaker/cli` provides
+`ovm doctor | models | render | mcp`, delegating to the same
+packages. Next: lip-sync/avatar runner integrations, then
+script-first editing and the LLM planner. See `docs/STATUS.md`.

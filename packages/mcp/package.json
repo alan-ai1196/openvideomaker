@@ -1,0 +1,33 @@
+{
+  "name": "@openvideomaker/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server over the typed operation layer: semantic, compact tools (inspect/create/edit/model) for agents - never a second business-logic path.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "ovm-mcp": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../scripts/vitest.mjs run",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@openvideomaker/core": "workspace:*",
+    "@openvideomaker/schema": "workspace:*",
+    "@openvideomaker/agent": "workspace:*",
+    "@openvideomaker/registry": "workspace:*",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

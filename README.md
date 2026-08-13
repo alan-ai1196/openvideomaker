@@ -44,6 +44,11 @@ stays a normal, editable part of your project instead of a dead-end file.
 - **Generation jobs** (`@openvideomaker/jobs`) — capability requests
   run through the registry, artifact store and isolated runners, then
   land in projects as editable assets with full provenance.
+- **Agent editing** (`@openvideomaker/agent`) — EditPlan/EditScript
+  proposals compiled to the same typed operations as manual edits.
+- **MCP + CLI** (`@openvideomaker/mcp`, `@openvideomaker/cli`) — a
+  semantic agent tool surface over the operation layer and the `ovm`
+  command (doctor / models / render / mcp).
 
 ## Quick start (developers)
 

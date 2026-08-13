@@ -58,9 +58,15 @@ import type {
   TrackMuteParams,
   TrackRemoveParams,
   TrackRenameParams,
+  TranscriptCreateParams,
+  TranscriptRemoveParams,
+  TranscriptSetLanguageParams,
+  TranscriptSetSegmentsParams,
+  TranscriptSetSegmentTextParams,
   TransitionSetParams,
   VoiceChangeParams,
 } from '@openvideomaker/schema';
+import type { TranscriptId } from '@openvideomaker/schema';
 
 /**
  * Collects operations for one transaction. Every method maps 1:1 to an
@@ -297,6 +303,32 @@ export class TransactionScope {
   regenerateGeneration(params: GenerationRegenerateParams): AssetId {
     this.push({ type: 'generation.regenerate', params });
     return params.newAssetId;
+  }
+
+  /** Applies 'transcript.create'. */
+  createTranscript(params: TranscriptCreateParams): TranscriptId {
+    this.push({ type: 'transcript.create', params });
+    return params.transcript.id;
+  }
+
+  /** Applies 'transcript.setSegments'. */
+  setTranscriptSegments(params: TranscriptSetSegmentsParams): void {
+    this.push({ type: 'transcript.setSegments', params });
+  }
+
+  /** Applies 'transcript.setSegmentText'. */
+  setTranscriptSegmentText(params: TranscriptSetSegmentTextParams): void {
+    this.push({ type: 'transcript.setSegmentText', params });
+  }
+
+  /** Applies 'transcript.setLanguage'. */
+  setTranscriptLanguage(params: TranscriptSetLanguageParams): void {
+    this.push({ type: 'transcript.setLanguage', params });
+  }
+
+  /** Applies 'transcript.remove'. */
+  removeTranscript(params: TranscriptRemoveParams): void {
+    this.push({ type: 'transcript.remove', params });
   }
 
   // ---- id factories (delegate to the schema's generator) ----

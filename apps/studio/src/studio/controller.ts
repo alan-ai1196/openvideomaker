@@ -1,5 +1,5 @@
-import { importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
-import { newTrackId, type AssetId, type ClipId } from '@openvideomaker/schema';
+import { importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { newTrackId, type AssetId, type ClipId, type SegmentId, type TranscriptId } from '@openvideomaker/schema';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -107,6 +107,29 @@ export class StudioController {
   reportError(message: string, code = 'external'): void {
     this.#lastError = { code, message };
     this.#emit();
+  }
+
+  /** Correct one transcript segment - a typed, undoable project operation. */
+  setTranscriptSegmentText(transcriptId: TranscriptId, segmentId: SegmentId, text: string): MutationResult {
+    return this.mutate((tx) => tx.setTranscriptSegmentText({ transcriptId, segmentId, text }));
+  }
+
+  /** Remove a transcript document and its asset linkage. */
+  removeTranscript(transcriptId: TranscriptId): MutationResult {
+    return this.mutate((tx) => tx.removeTranscript({ transcriptId }));
+  }
+
+  /** Rebuild the caption track from a transcript (idempotent, undoable). */
+  syncCaptionsFromTranscript(transcriptId: TranscriptId): void {
+    try {
+      syncCaptionsFromTranscript(this.#session, { transcriptId });
+      this.#lastError = null;
+      this.#emit();
+    } catch (err) {
+      const e = err as OvmError;
+      this.#lastError = { code: e.code ?? 'unknown', message: e.message ?? String(err) };
+      this.#emit();
+    }
   }
 
   /** Total timeline duration of the active sequence (µs). */

@@ -64,8 +64,19 @@ def execute(params):
     data_path = os.path.join(output_dir, "out.json")
     with open(data_path, "w", encoding="utf-8") as fh:
         json.dump({"echo": settings.get("echo", "")}, fh)
+    transcript_path = os.path.join(output_dir, "transcript.json")
+    transcript = {
+        "language": "en",
+        "text": "hello world",
+        "segments": [
+            {"id": 0, "startMs": 0, "endMs": 500, "text": "hello"},
+            {"id": 1, "startMs": 500, "endMs": 1000, "text": "world"},
+        ],
+    }
+    with open(transcript_path, "w", encoding="utf-8") as fh:
+        json.dump(transcript, fh)
     return (
-        {"audio": {"path": wav_path}, "json": {"path": data_path}},
+        {"audio": {"path": wav_path}, "json": {"path": data_path}, "transcript": {"path": transcript_path}},
         {"durationUs": int(seconds * 1_000_000)},
     )
 

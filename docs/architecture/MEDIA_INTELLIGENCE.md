@@ -1,0 +1,44 @@
+# Media intelligence: transcripts today, layered understanding next
+
+Status: matches current code (round 11).
+
+## What exists now: transcripts (level 1)
+
+Transcripts are durable, editable project data (`@openvideomaker/schema`):
+a time-aligned text representation linked one-to-one to a media asset,
+stored in the project itself with typed operations
+(`transcript.create/setSegments/setSegmentText/setLanguage/remove`) and
+invariant checks (linkage, ordering, ranges). ASR results, imported
+subtitles and manual corrections share the shape; the source record
+distinguishes raw model output from user corrections and carries the
+generation provenance for ASR-sourced transcripts.
+
+Integration:
+
+- Two verified ASR runners produce `transcript.json` + SRT
+  (`runners/whisper-asr` for English, `runners/paraformer-asr` for
+  Mandarin); `@openvideomaker/jobs` lands them as transcript documents
+  via `attachGeneratedTranscript`.
+- `syncCaptionsFromTranscript` (core command) rebuilds caption clips
+  from transcript segments - idempotent, one undoable transaction,
+  provenance-carrying. Studio, jobs and future MCP/CLI share it.
+- The Studio Transcript panel: seek by clicking a segment, correct
+  text inline (typed ops), sync captions. Browser mode edits
+  transcripts honestly; transcription itself runs in the desktop app.
+
+## Planned layers (honest: not implemented yet)
+
+Level 0: file metadata - probed at import (`@openvideomaker/media`).
+
+Level 1: shots, audio structure, keyframes - not implemented; the
+analyzer abstraction (capability-based, lazy, background) will own it.
+
+Level 2: scene summaries, speaker/action segments - not implemented.
+
+Level 3: entities/topics/semantic search - not implemented.
+
+Level 4: project narrative representation - not implemented; the
+agent/EditPlan layer (a later round) will consume it.
+
+Nothing here is fed to models as raw frame dumps; retrieval goes
+coarse-first, precise-second once the upper layers exist.

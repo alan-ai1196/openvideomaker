@@ -19,6 +19,13 @@ import {
 } from './clip.js';
 import { applyEffectAdd, applyEffectRemove, applyEffectUpdate, applyTransitionSet } from './effectTransition.js';
 import { applyGenerationCreate, applyGenerationRegenerate } from './generation.js';
+import {
+  applyTranscriptCreate,
+  applyTranscriptRemove,
+  applyTranscriptSetLanguage,
+  applyTranscriptSetSegments,
+  applyTranscriptSetSegmentText,
+} from './transcript.js';
 import { applyMarkerAdd, applyMarkerRemove } from './marker.js';
 import { applyProjectCreate, applyProjectRename, applyProjectSettings } from './project.js';
 import { applySequenceActivate, applySequenceCreate, applySequenceRemove, applySequenceRename } from './sequence.js';
@@ -77,6 +84,11 @@ const registry = new Map<OperationType, ApplyFn<any>>([
   ['voice.change', applyVoiceChange],
   ['generation.create', applyGenerationCreate],
   ['generation.regenerate', applyGenerationRegenerate],
+  ['transcript.create', applyTranscriptCreate],
+  ['transcript.setSegments', applyTranscriptSetSegments],
+  ['transcript.setSegmentText', applyTranscriptSetSegmentText],
+  ['transcript.setLanguage', applyTranscriptSetLanguage],
+  ['transcript.remove', applyTranscriptRemove],
 ]);
 
 /**

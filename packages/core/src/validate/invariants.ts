@@ -40,6 +40,33 @@ export function collectViolations(project: Project): Violation[] {
     }
   }
 
+  for (const [key, transcript] of Object.entries(project.transcripts)) {
+    if (key !== transcript.id) push('transcript.key-mismatch', 'transcript record key does not match transcript id', 'transcripts.' + key);
+    if (!project.assets[transcript.assetId]) {
+      push('transcript.asset-missing', 'transcript references missing asset: ' + transcript.assetId, 'transcripts.' + key);
+    }
+    if (project.assetTranscripts[transcript.assetId] !== transcript.id) {
+      push('transcript.link-missing', 'assetTranscripts does not link this transcript', 'transcripts.' + key);
+    }
+    let previousEnd = -1;
+    for (let i = 0; i < transcript.segments.length; i++) {
+      const seg = transcript.segments[i]!;
+      const segPath = 'transcripts.' + key + '.segments[' + i + ']';
+      if (seg.startUs < 0 || seg.endUs <= seg.startUs) {
+        push('transcript.segment-range', 'transcript segment empty or out of range', segPath);
+      }
+      if (seg.startUs < previousEnd) {
+        push('transcript.segment-overlap', 'transcript segments overlap or are unordered', segPath);
+      }
+      previousEnd = seg.endUs;
+    }
+  }
+  for (const [assetId, transcriptId] of Object.entries(project.assetTranscripts)) {
+    if (!project.transcripts[transcriptId]) {
+      push('transcript.link-missing', 'assetTranscripts points to a missing transcript', 'assetTranscripts.' + assetId);
+    }
+  }
+
   // Pass 1: gather every clip id project-wide (links may point anywhere).
   const seenClipIds = new Set<string>();
   const clipPaths = new Map<string, string>();

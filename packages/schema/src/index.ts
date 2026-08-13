@@ -5,6 +5,7 @@ export * from './media.js';
 export * from './clip.js';
 export * from './track.js';
 export * from './sequence.js';
+export * from './transcript.js';
 export * from './project.js';
 export * from './operations.js';
 export * from './history.js';

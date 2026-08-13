@@ -5,7 +5,7 @@ import {
   captionClip,
   ProjectSession,
 } from '@openvideomaker/core';
-import type { AssetId, SequenceId, TrackId } from '@openvideomaker/schema';
+import { newSegmentId, newTranscriptId, type AssetId, type SequenceId, type TrackId } from '@openvideomaker/schema';
 
 /**
  * Builds the first-launch welcome project through ordinary operations,
@@ -105,6 +105,27 @@ export function createWelcomeSession(): ProjectSession {
           { text: 'even after AI does its part', start: 3_000_000, end: 6_000_000 },
         ],
       }),
+    });
+  });
+
+  // A demo transcript linked to the talking-head asset, so the
+  // Transcript panel shows real editable content on first launch.
+  session.transaction((tx) => {
+    const now = new Date().toISOString();
+    tx.createTranscript({
+      transcript: {
+        id: newTranscriptId(),
+        assetId: assets.talking!,
+        language: 'en',
+        segments: [
+          { id: newSegmentId(), startUs: 0, endUs: 2_000_000, text: 'OpenVideoMaker keeps everything editable.' },
+          { id: newSegmentId(), startUs: 2_000_000, endUs: 4_500_000, text: 'AI helps you make videos, and every result stays yours to change.' },
+          { id: newSegmentId(), startUs: 4_500_000, endUs: 6_000_000, text: 'Click a line to jump the playhead there.' },
+        ],
+        source: { kind: 'manual' },
+        createdAt: now,
+        updatedAt: now,
+      },
     });
   });
 

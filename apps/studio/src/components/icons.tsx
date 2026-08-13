@@ -107,6 +107,13 @@ export const TypeIcon = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+export const TranscriptIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M2.5 3.5h11M2.5 7h11M2.5 10.5h6" />
+    <circle cx="11.5" cy="10.5" r="1.5" />
+  </Icon>
+);
+
 export const CaptionsIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}>
     <rect x="1.5" y="5" width="13" height="6" rx="1" />

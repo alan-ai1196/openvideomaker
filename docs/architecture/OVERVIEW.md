@@ -19,13 +19,14 @@ CLI ───────┘
 
 ```
 packages/schema   Video IR: durable zod schemas for projects, timelines,
-                  assets, characters, provenance, operations, history.
-                  Depends on: zod.
+                  assets, characters, transcripts, provenance,
+                  operations, history. Depends on: zod.
 
 packages/core     Authoritative operation engine: ProjectSession (apply,
                   transaction, undo/redo, replay), per-domain apply
-                  functions, project invariants, builders, errors.
-                  Depends on: @openvideomaker/schema.
+                  functions, project invariants, builders, commands
+                  (ripple/split/insert, captions-from-transcript),
+                  errors. Depends on: @openvideomaker/schema.
 
 packages/persistence
                   Durable project store: SQLite snapshot + append-only

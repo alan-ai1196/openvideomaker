@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 10). This file is the single living status source; it
+Updated: 2026-08-14 (round 11). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -106,6 +106,17 @@ describes the repository truth and is updated whenever that truth changes.
 - Studio Model Center: honest Generate affordance - disabled in browser
   mode (`capabilities.localGeneration === false`) with an explanation
   that generation runs in the desktop app; Playwright-verified.
+- **Transcripts as durable project data**: a time-aligned segment model
+  linked one-to-one to assets with typed operations (create/setSegments/
+  setSegmentText/setLanguage/remove), invariant checks and full history;
+  ASR/import/manual sources are distinguishable and ASR transcripts
+  carry generation provenance. Caption clips are DERIVED from
+  transcripts via the core command `syncCaptionsFromTranscript`
+  (idempotent, undoable) - jobs now land ASR results as transcript
+  documents + captions through that same command (6 core tests, jobs
+  test extended). Studio Transcript panel: click a segment to seek,
+  correct text inline, sync captions; the welcome project ships a demo
+  transcript. Playwright-verified (seek/edit/sync, no page errors).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -113,7 +124,8 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. More verified runner integrations (lip-sync/avatars next:
    LatentSync/MuseTalk).
-2. Characters/avatars; transcript & media intelligence; agent editing.
+2. Characters/avatars UX (Character Studio panel on the existing IR);
+   agent editing (EditPlan/EditScript).
 3. MCP server, SDK, CLI (`ovm`).
 4. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.

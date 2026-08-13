@@ -11,7 +11,7 @@ function uuid(): string {
  * logs, project files, and agent tool calls, and remain stable across
  * renames/reimports. The body is UUID v4-derived (32 hex chars).
  */
-export const ID_PREFIXES = ['proj', 'asset', 'clip', 'trk', 'seq', 'char', 'op', 'tx', 'mkr', 'fx'] as const;
+export const ID_PREFIXES = ['proj', 'asset', 'clip', 'trk', 'seq', 'char', 'op', 'tx', 'mkr', 'fx', 'trn', 'seg'] as const;
 export type IdPrefix = (typeof ID_PREFIXES)[number];
 
 function brandedId<P extends string>(prefix: P) {
@@ -51,6 +51,12 @@ export type MarkerId = z.infer<typeof MarkerIdSchema>;
 export const EffectIdSchema = brandedId('fx');
 export type EffectId = z.infer<typeof EffectIdSchema>;
 
+export const TranscriptIdSchema = brandedId('trn');
+export type TranscriptId = z.infer<typeof TranscriptIdSchema>;
+
+export const SegmentIdSchema = brandedId('seg');
+export type SegmentId = z.infer<typeof SegmentIdSchema>;
+
 /** Generate a fresh id with the given entity prefix. */
 export function newId<P extends IdPrefix>(prefix: P): `${P}_${string}` {
   return `${prefix}_${uuid()}`;
@@ -66,3 +72,5 @@ export const newOperationId = (): OperationId => newId('op') as OperationId;
 export const newTransactionId = (): TransactionId => newId('tx') as TransactionId;
 export const newMarkerId = (): MarkerId => newId('mkr') as MarkerId;
 export const newEffectId = (): EffectId => newId('fx') as EffectId;
+export const newTranscriptId = (): TranscriptId => newId('trn') as TranscriptId;
+export const newSegmentId = (): SegmentId => newId('seg') as SegmentId;

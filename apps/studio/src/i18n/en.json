@@ -91,5 +91,13 @@
   "modelcenter.install.disabled": "Model installation runs in the desktop app",
   "modelcenter.generate": "Generate",
   "modelcenter.generate.disabled": "Generation runs in the desktop app with installed models",
-  "modelcenter.generate.disabled.unverified": "Generation unlocks after this model is verified and installed"
+  "modelcenter.generate.disabled.unverified": "Generation unlocks after this model is verified and installed",
+  "panel.transcript": "Transcript",
+  "transcript.empty": "No transcripts yet",
+  "transcript.empty.hint": "Transcripts come from transcription (desktop app) or from imported projects.",
+  "transcript.syncCaptions": "Sync captions",
+  "transcript.edit.hint": "Click to edit",
+  "transcript.source.asr": "AI transcript",
+  "transcript.source.import": "Imported",
+  "transcript.source.manual": "Manual"
 }

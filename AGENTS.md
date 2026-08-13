@@ -142,5 +142,10 @@ project). `runners/paraformer-asr` is the third (FunASR Paraformer
 Mandarin ASR: ModelScope weights through the artifact store, 14/14
 character overlap on Windows-SAPI-synthesized speech; the adapter keeps
 funasr's stdout away from the protocol stream). The Studio Model Center
-shows Generate honestly disabled in browser mode. Next: lip-sync/avatar
-runner integrations, then characters/avatars. See `docs/STATUS.md`.
+shows Generate honestly disabled in browser mode. Transcripts are
+durable project data (segments linked one-to-one to assets, typed ops,
+invariants, history, ASR provenance); caption clips derive from them
+via the core command `syncCaptionsFromTranscript`, and the Studio
+Transcript panel seeks/edits/syncs them. Next: lip-sync/avatar runner
+integrations, then characters/avatars UX and agent editing. See
+`docs/STATUS.md`.

@@ -8,7 +8,7 @@ import { ProjectSession } from '@openvideomaker/core';
 import { ModelStore } from '@openvideomaker/downloader';
 import { Registry } from '@openvideomaker/registry';
 import type { ModelEntry } from '@openvideomaker/registry';
-import { attachGeneratedMedia, GenerationRunner } from '@openvideomaker/jobs';
+import { attachGeneratedMedia, attachTranscriptCaptions, GenerationRunner } from '@openvideomaker/jobs';
 
 const dir = mkdtempSync(join(tmpdir(), 'ovm-jobs-'));
 const modelBytes = Buffer.alloc(256 * 1024, 3);
@@ -165,6 +165,29 @@ describe('GenerationRunner', () => {
       throttle = 0;
     }
   }, 60_000);
+
+  it('attaches an ASR transcript and syncs caption clips from it', async () => {
+    const runner = makeRunner();
+    const job = runner.run({ capability: 'audio.tts', modelId: 'http/test/model', settings: { seconds: 1 }, outputDir: join(dir, 'out-transcript') });
+    await job.finished;
+    expect(job.state).toBe('completed');
+    const session = ProjectSession.create('ASR Attach');
+    const assetId = await attachGeneratedMedia(session, job, 'audio');
+    const result = attachTranscriptCaptions(session, job, { audioAssetId: assetId });
+    expect(result.segmentCount).toBe(2);
+    const transcript = session.project.transcripts[result.transcriptId];
+    expect(transcript?.source.kind).toBe('asr');
+    expect(transcript?.segments).toHaveLength(2);
+    expect(session.project.assetTranscripts[assetId]).toBe(result.transcriptId);
+    const sequenceId = Object.keys(session.project.sequences)[0]!;
+    const track = session.project.sequences[sequenceId]!.tracks.find((t) => t.kind === 'caption');
+    expect(track?.clips).toHaveLength(2);
+    expect(track?.clips[0]?.provenance?.capability).toBe('audio.tts');
+    // Re-attaching replaces instead of duplicating.
+    const again = attachTranscriptCaptions(session, job, { audioAssetId: assetId });
+    expect(again.segmentCount).toBe(2);
+    expect(session.project.sequences[sequenceId]!.tracks.find((t) => t.kind === 'caption')?.clips).toHaveLength(2);
+  }, 180_000);
 
   it('cancels a running generation', async () => {
     const runner = makeRunner();

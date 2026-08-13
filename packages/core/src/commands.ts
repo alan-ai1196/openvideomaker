@@ -1,5 +1,6 @@
-import { newClipId, type Clip, type ClipId, type SequenceId, type TrackId } from '@openvideomaker/schema';
+import { newClipId, newTrackId, type Clip, type ClipId, type SequenceId, type TrackId, type TranscriptId } from '@openvideomaker/schema';
 import { ProjectSession } from './session.js';
+import { captionClip } from './builders.js';
 
 /**
  * Higher-level edit commands composed from the operation vocabulary.
@@ -95,3 +96,62 @@ export function insertClipAt(session: ProjectSession, sequenceId: SequenceId, tr
   });
   return true;
 }
+
+/**
+ * Synchronize the caption track with a transcript: caption clips are
+ * rebuilt from the transcript's segments (one clip per non-empty
+ * segment). Re-running replaces the previous sync, so it is idempotent
+ * and undoable as one transaction. ASR-sourced transcripts carry their
+ * generation provenance onto every caption clip.
+ */
+export interface SyncCaptionsOptions {
+  transcriptId: TranscriptId;
+  sequenceId?: SequenceId;
+  trackId?: TrackId;
+}
+
+export interface SyncCaptionsResult {
+  trackId: TrackId;
+  clipCount: number;
+}
+
+export function syncCaptionsFromTranscript(session: ProjectSession, options: SyncCaptionsOptions): SyncCaptionsResult | null {
+  const transcript = session.project.transcripts[options.transcriptId];
+  if (!transcript) return null;
+  const sequenceId = options.sequenceId ?? session.project.activeSequenceId ?? (Object.keys(session.project.sequences)[0] as SequenceId | undefined);
+  if (!sequenceId) return null;
+  const sequence = session.project.sequences[sequenceId];
+  if (!sequence) return null;
+  // Snapshot BEFORE the transaction: ops apply only when it commits.
+  const existingTrack = options.trackId
+    ? sequence.tracks.find((t) => t.id === options.trackId)
+    : sequence.tracks.find((t) => t.kind === 'caption' && t.name === 'Captions');
+  const trackId: TrackId = existingTrack?.id ?? options.trackId ?? newTrackId();
+  const createNeeded = !existingTrack;
+  const clipsToRemove = existingTrack ? existingTrack.clips.map((c) => c.id) : [];
+  const provenance = transcript.source.kind === 'asr' ? transcript.source.provenance : null;
+  let clipCount = 0;
+  session.transaction((tx) => {
+    if (createNeeded) tx.createTrack({ sequenceId, trackId, kind: 'caption', name: 'Captions' });
+    // Clean slate: remove previous caption clips on this track.
+    for (const clipId of clipsToRemove) {
+      tx.removeClip({ sequenceId, clipId });
+    }
+    for (const segment of transcript.segments) {
+      const text = segment.text.trim();
+      if (!text) continue;
+      const durationUs = Math.max(segment.endUs - segment.startUs, 1000);
+      const clip = captionClip({
+        trackId,
+        start: segment.startUs,
+        duration: durationUs,
+        segments: [{ text, start: 0, end: durationUs }],
+      });
+      clip.provenance = provenance;
+      tx.insertClip({ sequenceId, trackId, clip });
+      clipCount++;
+    }
+  });
+  return { trackId, clipCount };
+}
+

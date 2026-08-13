@@ -91,5 +91,13 @@
   "modelcenter.install.disabled": "模型安装需在桌面应用中完成",
   "modelcenter.generate": "生成",
   "modelcenter.generate.disabled": "生成功能需在桌面应用中使用已安装的模型运行",
-  "modelcenter.generate.disabled.unverified": "模型验证并安装后即可使用生成功能"
+  "modelcenter.generate.disabled.unverified": "模型验证并安装后即可使用生成功能",
+  "panel.transcript": "文稿",
+  "transcript.empty": "还没有文稿",
+  "transcript.empty.hint": "文稿来自语音识别（桌面应用）或导入的项目。",
+  "transcript.syncCaptions": "同步字幕",
+  "transcript.edit.hint": "点击编辑",
+  "transcript.source.asr": "AI 文稿",
+  "transcript.source.import": "导入",
+  "transcript.source.manual": "手动"
 }

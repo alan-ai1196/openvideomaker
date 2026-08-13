@@ -7,8 +7,10 @@ import {
   MarkerIdSchema,
   OperationIdSchema,
   ProjectIdSchema,
+  SegmentIdSchema,
   SequenceIdSchema,
   TrackIdSchema,
+  TranscriptIdSchema,
 } from './ids.js';
 import {
   CaptionSegmentSchema,
@@ -24,6 +26,7 @@ import { AssetSchema, AssetSourceSchema, MediaInfoSchema } from './media.js';
 import { MarkerSchema } from './sequence.js';
 import { TrackKindSchema } from './track.js';
 import { CharacterSchema, ProjectSettingsSchema, VoiceConfigSchema } from './project.js';
+import { TranscriptSchema, TranscriptSegmentSchema } from './transcript.js';
 
 /**
  * Every project mutation is an explicit typed operation. Human edits,
@@ -317,6 +320,31 @@ export const GenerationRegenerateParamsSchema = z.object({
 });
 export type GenerationRegenerateParams = z.infer<typeof GenerationRegenerateParamsSchema>;
 
+export const TranscriptCreateParamsSchema = z.object({ transcript: TranscriptSchema });
+export type TranscriptCreateParams = z.infer<typeof TranscriptCreateParamsSchema>;
+
+export const TranscriptSetSegmentsParamsSchema = z.object({
+  transcriptId: TranscriptIdSchema,
+  segments: z.array(TranscriptSegmentSchema),
+});
+export type TranscriptSetSegmentsParams = z.infer<typeof TranscriptSetSegmentsParamsSchema>;
+
+export const TranscriptSetSegmentTextParamsSchema = z.object({
+  transcriptId: TranscriptIdSchema,
+  segmentId: SegmentIdSchema,
+  text: z.string().max(5000),
+});
+export type TranscriptSetSegmentTextParams = z.infer<typeof TranscriptSetSegmentTextParamsSchema>;
+
+export const TranscriptSetLanguageParamsSchema = z.object({
+  transcriptId: TranscriptIdSchema,
+  language: z.string().max(50),
+});
+export type TranscriptSetLanguageParams = z.infer<typeof TranscriptSetLanguageParamsSchema>;
+
+export const TranscriptRemoveParamsSchema = z.object({ transcriptId: TranscriptIdSchema });
+export type TranscriptRemoveParams = z.infer<typeof TranscriptRemoveParamsSchema>;
+
 // ------------------------------------------------------------ operation --
 
 const envelope = {
@@ -369,6 +397,11 @@ export const OperationSchema = z.discriminatedUnion('type', [
   z.object({ ...envelope, type: z.literal('voice.change'), params: VoiceChangeParamsSchema }),
   z.object({ ...envelope, type: z.literal('generation.create'), params: GenerationCreateParamsSchema }),
   z.object({ ...envelope, type: z.literal('generation.regenerate'), params: GenerationRegenerateParamsSchema }),
+  z.object({ ...envelope, type: z.literal('transcript.create'), params: TranscriptCreateParamsSchema }),
+  z.object({ ...envelope, type: z.literal('transcript.setSegments'), params: TranscriptSetSegmentsParamsSchema }),
+  z.object({ ...envelope, type: z.literal('transcript.setSegmentText'), params: TranscriptSetSegmentTextParamsSchema }),
+  z.object({ ...envelope, type: z.literal('transcript.setLanguage'), params: TranscriptSetLanguageParamsSchema }),
+  z.object({ ...envelope, type: z.literal('transcript.remove'), params: TranscriptRemoveParamsSchema }),
 ]);
 
 export const OPERATION_TYPES = [
@@ -415,6 +448,11 @@ export const OPERATION_TYPES = [
   'voice.change',
   'generation.create',
   'generation.regenerate',
+  'transcript.create',
+  'transcript.setSegments',
+  'transcript.setSegmentText',
+  'transcript.setLanguage',
+  'transcript.remove',
 ] as const;
 export type OperationType = (typeof OPERATION_TYPES)[number];
 

@@ -179,6 +179,8 @@ export interface ImportedAssetDraft {
   kind: Asset['kind'];
   name: string;
   path: string;
+  /** Override the default file source (e.g. a content-addressed reference). */
+  source?: AssetSource;
   media?: MediaInfo;
   importedAt?: string;
 }
@@ -188,7 +190,7 @@ export function importedAsset(draft: ImportedAssetDraft): Asset {
     id: draft.id ?? newAssetId(),
     kind: draft.kind,
     name: draft.name,
-    source: { kind: 'file', path: draft.path },
+    source: draft.source ?? { kind: 'file', path: draft.path },
     media: draft.media,
     origin: { kind: 'import' },
     importedAt: draft.importedAt ?? new Date().toISOString(),

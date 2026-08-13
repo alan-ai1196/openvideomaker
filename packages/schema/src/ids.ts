@@ -1,5 +1,9 @@
-import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
+
+/** A v4 UUID without dashes, via the platform crypto API (Node and browsers). */
+function uuid(): string {
+  return globalThis.crypto.randomUUID().replaceAll('-', '');
+}
 
 /**
  * All durable identifiers in OpenVideoMaker are opaque, prefixed strings.
@@ -49,7 +53,7 @@ export type EffectId = z.infer<typeof EffectIdSchema>;
 
 /** Generate a fresh id with the given entity prefix. */
 export function newId<P extends IdPrefix>(prefix: P): `${P}_${string}` {
-  return `${prefix}_${randomUUID().replaceAll('-', '')}`;
+  return `${prefix}_${uuid()}`;
 }
 
 export const newProjectId = (): ProjectId => newId('proj') as ProjectId;

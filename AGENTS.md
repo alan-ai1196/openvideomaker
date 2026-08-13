@@ -99,7 +99,10 @@ secrets. Inspect the diff before committing. No force pushes.
 
 Foundation stage. Implemented: `@openvideomaker/schema` (durable Video IR
 and typed operation vocabulary), `@openvideomaker/core` (operation
-engine: transactions, undo/redo, replay, concurrency, invariants) and
-`@openvideomaker/persistence` (SQLite project store). Next: Studio shell,
-preview/timeline slice, jobs/devices/render, registry and runner
-protocol. See `docs/STATUS.md`.
+engine: transactions, undo/redo, replay, concurrency, invariants),
+`@openvideomaker/persistence` (SQLite project store) and `apps/studio`
+(the React editor shell with a working editable timeline; see
+`docs/adr/0005-studio-one-way-data-flow.md` for its state model). Studio
+must mutate projects ONLY through `controller.mutate` -> core ops, and
+must never mirror project state in a second store. Next: preview/timeline
+slice, export, registry and runner protocol. See `docs/STATUS.md`.

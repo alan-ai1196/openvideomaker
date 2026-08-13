@@ -8,10 +8,10 @@ timeline with AI capabilities — captions, dubbing, avatars, lip sync,
 B-roll, reframing, cleanup, generative media — so that every AI result
 stays a normal, editable part of your project instead of a dead-end file.
 
-> **Status: pre-alpha, foundation stage.** The core project model and
-> operation engine are implemented and tested; the Studio UI, model
-> integrations, and packaging are being built. See `docs/STATUS.md` for
-> the current truth instead of guessing from this README.
+> **Status: pre-alpha.** The core project model, operation engine, SQLite
+> persistence, and a working Studio shell with a real editable timeline
+> are implemented and tested; model integrations, export and packaging
+> are being built. See `docs/STATUS.md` for the current truth.
 
 ## What exists today
 
@@ -22,6 +22,11 @@ stays a normal, editable part of your project instead of a dead-end file.
   path for every project change, shared by UI, MCP, SDK, CLI and agents:
   typed operations, transactions, undo/redo, deterministic replay,
   optimistic concurrency, and structural invariants.
+- **Project persistence** (`@openvideomaker/persistence`) — portable
+  SQLite project folders with crash-safe saves and full edit history.
+- **Studio** (`apps/studio`) — the React editor: graphite dark/light
+  design system, editable timeline (move, trim, zoom), inspector,
+  undo/redo, shortcuts, English + Simplified Chinese.
 
 ## Quick start (developers)
 
@@ -29,9 +34,11 @@ stays a normal, editable part of your project instead of a dead-end file.
 pnpm install
 pnpm build
 pnpm test
+pnpm --filter @openvideomaker/studio dev   # run Studio
 ```
 
-Requires Node ≥ 22.12 and pnpm ≥ 10. See `AGENTS.md` for repository
+Requires Node >= 22.12 and pnpm >= 10. Studio runs at
+`http://localhost:5183`. See `AGENTS.md` for repository
 invariants and `CONTRIBUTING.md` for contribution guidance.
 
 ## Product surfaces (planned)

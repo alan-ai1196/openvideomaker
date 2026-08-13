@@ -32,6 +32,11 @@ packages/persistence
                   operation log, crash-safe saves, corruption repair,
                   relocation-safe project folders.
                   Depends on: schema, core, better-sqlite3.
+
+apps/studio       The primary React editor: design tokens, shell layout
+                  (top bar, media/asset panels, preview stage, inspector,
+                  timeline), real editing interactions driven through the
+                  core operation layer. Depends on: schema, core.
 ```
 
 Dependency direction is strict: `schema ← core ← everything else`.

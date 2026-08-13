@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-13. This file is the single living status source; it
+Updated: 2026-08-13 (round 2). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -19,21 +19,27 @@ describes the repository truth and is updated whenever that truth changes.
   project folder layout, snapshot + append-only log, incremental saves,
   divergence detection, corruption repair, compaction, relocation
   safety. 11 tests.
-- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0004, UX
+- `apps/studio` — Studio shell + design system: graphite design tokens
+  (dark default + light, WCAG-AA-checked), Inter, i18n (en + zh-CN with
+  typed key coverage), shell layout (top bar / media panels / preview
+  stage / inspector / timeline / status bar), a real editable timeline
+  (ruler, playhead, drag-move, edge trim, zoom/fit), selection + inspector
+  editing (opacity, speed, gain, trim, text, enable, delete), undo/redo,
+  keyboard shortcuts, project JSON save/open, and an honest placeholder
+  preview stage. Playwright-validated (layout, interactions, contrast).
+- Docs: AGENTS.md, README, architecture docs, ADRs 0001-0005, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. Studio shell + design system: React/Vite app, tokens, light/dark,
-   layout skeleton, session wiring.
-2. Preview/timeline vertical slice: media import (ffprobe), thumbnails,
-   waveforms, canvas preview, timeline interaction basics.
-4. Export slice: render plan → FFmpeg, encoder detection, jobs.
-5. Model registry + providers (HF/ModelScope/mirror) + download store.
-6. Runner protocol + isolation; representative real AI integrations.
-7. Characters/avatars; transcript & media intelligence; agent editing.
-8. MCP server, SDK, CLI (`ovm`).
-9. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
+1. Preview/timeline vertical slice: real media import (ffprobe),
+   thumbnails, waveforms, canvas preview playback, ripple edits.
+2. Export slice: render plan → FFmpeg, encoder detection, jobs.
+3. Model registry + providers (HF/ModelScope/mirror) + download store.
+4. Runner protocol + isolation; representative real AI integrations.
+5. Characters/avatars; transcript & media intelligence; agent editing.
+6. MCP server, SDK, CLI (`ovm`).
+7. Model/Device/Job Centers; website (Astro + Cloudflare); Electron
    packaging; long-project performance hardening.
 
 ## Known environment notes

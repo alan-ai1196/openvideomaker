@@ -40,8 +40,11 @@ apps/site         The public marketing + docs site (Astro, static)
 
 apps/desktop      Electron shell over the SAME Studio build: sandboxed
                   renderer, narrow typed CJS preload (window.ovm),
-                  SQLite project persistence + device probing in the
-                  main process.
+                  SQLite project persistence + device probing + local
+                  rendering + local generation in the main process
+                  (DesktopGenerationService over the same Generation-
+                  Runner the SDK/CLI use), with a read-only ovm-media://
+                  protocol for allow-listed local media paths.
 
 apps/studio       The primary React editor: design tokens, shell layout
                   (top bar, media/asset panels, preview stage, inspector,

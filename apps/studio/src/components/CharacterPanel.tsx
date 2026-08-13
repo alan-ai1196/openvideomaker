@@ -13,7 +13,8 @@ const TTS_PROVIDERS = registry.byCapability('audio.tts');
  * Character Studio: persistent, reusable characters (identity + voice
  * + performance defaults). Everything lands as typed project
  * operations, so every edit is undoable. Voiceover GENERATION runs in
- * the desktop app; the browser Studio says so instead of faking it.
+ * the desktop app through the local jobs service; the browser Studio
+ * says so instead of faking it.
  */
 export function CharacterPanel() {
   const controller = useStudio();
@@ -40,11 +41,33 @@ export function CharacterPanel() {
 function CharacterCard({ character }: { character: Character }) {
   const controller = useStudio();
   const { t } = useI18n();
+  const [line, setLine] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [done, setDone] = useState(false);
   const update = (patch: Parameters<typeof controller.updateCharacter>[1]): void => {
     controller.updateCharacter(character.id, patch);
   };
   const voice = (patch: Partial<VoiceConfig>): void => {
     controller.changeCharacterVoice(character.id, { ...character.voice, ...patch });
+  };
+  const modelId = character.voice.modelId ?? character.voice.provider;
+  const runnable = controller.generationModels.some((m) => m.modelId === modelId && m.capability === 'audio.tts');
+  const canGenerate = controller.localGeneration && runnable && !generating;
+  const defaultLine = 'Hi, I am ' + character.name + '.';
+  let generateTitle: string;
+  if (generating) generateTitle = t('character.generate.running');
+  else if (modelId === 'system.tts' || (controller.localGeneration && !runnable)) generateTitle = t('character.generate.disabled.provider');
+  else if (!controller.localGeneration) generateTitle = t('character.generate.disabled');
+  else generateTitle = t('character.generate.voiceover');
+
+  const generate = async (): Promise<void> => {
+    setGenerating(true);
+    setDone(false);
+    setProgress(0);
+    const result = await controller.generateVoiceover(character.id, line.trim() || defaultLine, (p) => setProgress(p));
+    setGenerating(false);
+    if (result.ok) setDone(true);
   };
 
   return (
@@ -105,9 +128,21 @@ function CharacterCard({ character }: { character: Character }) {
         </label>
       </details>
 
-      <button type="button" className="button button-secondary character-generate" disabled title={t('character.generate.disabled')}>
-        {t('character.generate.voiceover')}
-      </button>
+      <div className="character-generate">
+        <input
+          className="character-generate-line"
+          type="text"
+          value={line}
+          placeholder={defaultLine}
+          aria-label={t('character.voiceover.line')}
+          disabled={generating}
+          onChange={(e) => setLine(e.target.value)}
+        />
+        <button type="button" className="button button-secondary" disabled={!canGenerate} title={generateTitle} onClick={() => void generate()}>
+          {generating ? t('character.generate.running') + ' ' + Math.round(progress * 100) + '%' : t('character.generate.voiceover')}
+        </button>
+        {done && !generating ? <span className="character-generate-done">{t('character.generate.done')}</span> : null}
+      </div>
     </section>
   );
 }

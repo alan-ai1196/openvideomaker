@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 18). This file is the single living status source; it
+Updated: 2026-08-14 (round 19). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -173,6 +173,28 @@ describes the repository truth and is updated whenever that truth changes.
   paths exist. Verified: headless smoke (persistence round trip +
   doctor inside Electron) and Playwright's Electron driver against the
   real window (Studio renders, bridge live, zero errors).
+- **Desktop generation slice**: REAL local AI generation through the
+  bridge - `DesktopGenerationService` wraps the same `GenerationRunner`
+  the SDK/CLI use (registry + content store + uv runtimes + runner
+  protocol), `ovm:generate` IPC with progress events and cancellation,
+  zod-validated requests, and `modelInputs` resolved against the store
+  revision so renderer code never knows weight paths. Results land in
+  projects ONLY through the typed operation layer: generated assets
+  via the core `generatedAsset` builder, transcripts via the new
+  shared core command `attachAsrResult` (jobs' node-side
+  `attachGeneratedTranscript` now delegates to it), captions via
+  `syncCaptionsFromTranscript`. The `ovm-media://` protocol lets the
+  sandboxed renderer play local media (imports, generated outputs,
+  renders, project assets) from a strict allow-list - never arbitrary
+  filesystem access. `localGeneration` is runtime-confirmed (true only
+  when the service builds) and the Character Studio voiceover, Model
+  Center sample and Transcript transcribe affordances are live in the
+  desktop app with progress + cancel. Verified: the headless smoke
+  runs a REAL Kokoro TTS -> Whisper ASR -> transcript + caption clips
+  round trip inside Electron (2.55s of audio, 1 segment, 1 caption),
+  and Playwright's Electron check confirms the live affordances
+  (voiceover/sample/transcribe enabled, generation capability list
+  from runner manifests, zero page errors).
 - **Desktop render slice**: real local rendering through the bridge -
   `import-media` (native picker + ffprobe) and `render` (save dialog,
   render plan + ffmpeg with progress events) in the main process, the
@@ -188,10 +210,10 @@ describes the repository truth and is updated whenever that truth changes.
 1. More verified runner integrations (lip-sync/avatars next:
    LatentSync/MuseTalk).
 2. LLM-driven planner behind the agent proposal contract;
-   script-to-speech generation (desktop).
-3. Desktop slices: generation IPC (flip localGeneration honestly),
-   model install, local MCP; Model/Device/Job Centers; installer
-   packaging; long-project performance hardening.
+   script-to-speech generation (desktop, line by line).
+3. Desktop slices: model install, local MCP; Model/Device/Job
+   Centers; installer packaging (bundle registry + runner adapters,
+   userData paths); long-project performance hardening.
 
 ## Known environment notes
 

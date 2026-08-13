@@ -18,6 +18,7 @@ export class GenerationError extends Error {
     | 'jobs.output-missing'
     | 'jobs.output-invalid'
     | 'jobs.not-completed'
+    | 'jobs.input-denied'
     | 'jobs.cancelled';
   constructor(code: GenerationError['code'], message: string) {
     super(message);
@@ -31,6 +32,13 @@ export interface GenerationRequest {
   modelId: string;
   /** Input file refs resolved by the caller (adapter-specific keys). */
   inputs?: Record<string, { path: string; sha256?: string }>;
+  /**
+   * Model-owned input files: adapter input key -> path inside the
+   * registry entry's file manifest (e.g. { voice: 'voices/af_heart.pt' }).
+   * Resolved through the content store, so callers never need to know
+   * where weights live.
+   */
+  modelInputs?: Record<string, string>;
   settings?: Record<string, unknown>;
   device?: 'cuda' | 'cpu' | 'mlx' | 'rocm';
   outputDir: string;
@@ -167,11 +175,17 @@ export class GenerationRunner {
         job.state = 'running';
         job.stage = 'running';
         job.emit('running');
+        // Model-owned inputs resolve against the pinned revision, so the
+        // exact artifact the job runs on is the one that was installed.
+        const inputs: Record<string, { path: string; sha256?: string }> = { ...(request.inputs ?? {}) };
+        for (const [key, manifestPath] of Object.entries(request.modelInputs ?? {})) {
+          inputs[key] = { path: this.store.filePath(entry.id, revision, manifestPath) };
+        }
         const execute = await host.execute(
           {
             capability: request.capability,
             modelId: request.modelId,
-            inputs: request.inputs,
+            inputs,
             settings: request.settings ?? {},
             outputDir: request.outputDir,
           },

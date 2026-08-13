@@ -18,7 +18,12 @@
     "@openvideomaker/persistence": "workspace:*",
     "@openvideomaker/devices": "workspace:*",
     "@openvideomaker/media": "workspace:*",
-    "@openvideomaker/render": "workspace:*"
+    "@openvideomaker/render": "workspace:*",
+    "@openvideomaker/jobs": "workspace:*",
+    "@openvideomaker/downloader": "workspace:*",
+    "@openvideomaker/registry": "workspace:*",
+    "@openvideomaker/runners": "workspace:*",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "electron": "43.4.0",

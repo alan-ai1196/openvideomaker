@@ -1,8 +1,10 @@
-import { characterDraft, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
 import type { MediaInfo } from '@openvideomaker/schema';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
+import { Registry } from '@openvideomaker/registry';
+import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
 import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
-import { getDesktopBridge } from './desktop';
+import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult } from './desktop';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -12,6 +14,10 @@ export interface MutationResult {
   code?: string;
   message?: string;
 }
+
+const REGISTRY = Registry.fromData(MODEL_ENTRIES);
+
+const SAMPLE_SENTENCE = 'Make videos with AI, and keep everything editable.';
 
 /**
  * UI-agnostic Studio state: wraps one ProjectSession and exposes
@@ -31,6 +37,10 @@ export class StudioController {
   #zoomPxPerSec = 48;
   #lastError: { code: string; message: string } | null = null;
   #mediaCache = new MediaCache();
+  /** Runtime-confirmed desktop capabilities (generation is false until the main process confirms it). */
+  #desktopRuntime: { localRender: boolean; localGeneration: boolean; localPersistence: boolean } | null = null;
+  /** Capability+model pairs the local generation service can actually run (from runner manifests). */
+  #generationModels: Array<{ capability: string; modelId: string }> = [];
 
   private constructor(session: ProjectSession) {
     this.#session = session;
@@ -93,15 +103,47 @@ export class StudioController {
    * What this runtime can actually do. The browser Studio renders through
    * the local renderer (desktop app or ovm-render CLI) and runs AI
    * generation through the local jobs service (desktop app); it never
-   * pretends to run FFmpeg or models inside the page.
+   * pretends to run FFmpeg or models inside the page. Generation is only
+   * true after the main process confirms its generation service built.
    */
   get capabilities(): { localRender: boolean; localGeneration: boolean; localPersistence: boolean } {
     const bridge = getDesktopBridge();
     return {
       localRender: bridge?.staticCapabilities.localRender ?? false,
-      localGeneration: bridge?.staticCapabilities.localGeneration ?? false,
+      localGeneration: this.#desktopRuntime?.localGeneration ?? false,
       localPersistence: bridge?.staticCapabilities.localPersistence ?? false,
     };
+  }
+
+  get localGeneration(): boolean {
+    return this.#desktopRuntime?.localGeneration ?? false;
+  }
+
+  get generationModels(): Array<{ capability: string; modelId: string }> {
+    return this.#generationModels;
+  }
+
+  /** Whether the local generation service can run this capability at all. */
+  generationAvailable(capability: string): boolean {
+    return this.localGeneration && this.#generationModels.some((m) => m.capability === capability);
+  }
+
+  /** Ask the desktop main process what it can actually run; updates capability flags honestly. */
+  async refreshDesktopCapabilities(): Promise<void> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return;
+    try {
+      const [caps, gen] = await Promise.all([bridge.capabilities(), bridge.generationCapabilities()]);
+      this.#desktopRuntime = {
+        localRender: caps.localRender === true,
+        localGeneration: caps.localGeneration === true,
+        localPersistence: caps.localPersistence === true,
+      };
+      this.#generationModels = Array.isArray(gen.models) ? gen.models : [];
+      this.#emit();
+    } catch {
+      // Bridge vanished or the main process rejected the call; the flags stay honestly false.
+    }
   }
 
   /** Replace the whole session with a loaded project (desktop open, or a file import). */
@@ -112,6 +154,10 @@ export class StudioController {
       this.#playheadUs = 0;
       this.#playing = false;
       this.#mediaCache = new MediaCache();
+      // Desktop mode: local file assets stream through the ovm-media protocol.
+      for (const asset of Object.values(project.assets)) {
+        if (asset.source.kind === 'file') this.#mediaCache.registerPath(asset.id, asset.source.path);
+      }
       this.#lastError = null;
       this.#emit();
       return { ok: true };
@@ -146,6 +192,7 @@ export class StudioController {
         const asset = importedAsset({ kind: mediaKind(item.media), name: item.name, path: item.path, media: item.media });
         const result = this.mutate((tx) => tx.importAsset({ asset }));
         if (!result.ok) return result;
+        this.#mediaCache.registerPath(asset.id, item.path);
       }
       return { ok: true };
     } catch (err) {
@@ -503,6 +550,198 @@ export class StudioController {
 
   exportProject(): string {
     return JSON.stringify({ project: this.project, log: this.#session.exportLog() }, null, 2);
+  }
+
+  // ------------------------------------------------------------------
+  // Local AI generation (desktop). Requests go through the same
+  // GenerationRunner the SDK/CLI use; results land in the project ONLY
+  // through the typed operation layer, with full provenance.
+  // ------------------------------------------------------------------
+
+  async #runDesktopGenerate(request: DesktopGenerateRequest, onProgress?: (progress: DesktopGenerateProgress) => void): Promise<DesktopGenerateResult> {
+    const bridge = getDesktopBridge();
+    if (!bridge) throw new Error('desktop bridge unavailable');
+    const unsubscribe = bridge.onGenerateProgress((progress) => onProgress?.(progress));
+    try {
+      return await bridge.generate(request);
+    } finally {
+      unsubscribe();
+    }
+  }
+
+  /** Resolve a TTS voice file from the model's registry file manifest (data-driven, never hardcoded per model). */
+  #resolveVoiceFileKey(modelId: string, voiceId?: string): string {
+    const entry = REGISTRY.byId(modelId);
+    const candidates = (entry?.files ?? []).map((f) => f.path).filter((p) => p.endsWith('.pt'));
+    if (voiceId) {
+      const requested = 'voices/' + voiceId + '.pt';
+      if (candidates.includes(requested)) return requested;
+    }
+    return candidates.find((p) => p.includes('af_heart')) ?? candidates[0] ?? 'voices/af_heart.pt';
+  }
+
+  #pickAsrModel(language?: string): string | null {
+    const asr = this.#generationModels.filter((m) => m.capability === 'audio.asr').map((m) => m.modelId);
+    if (language === 'zh') return asr.find((id) => id.includes('paraformer')) ?? asr[0] ?? null;
+    return asr.find((id) => id.includes('whisper')) ?? asr[0] ?? null;
+  }
+
+  /** Generate speech locally and import it as a provenance-carrying audio asset (optionally placed at the playhead). */
+  async generateSpeech(options: {
+    modelId: string;
+    text: string;
+    voiceId?: string;
+    name?: string;
+    device?: 'cuda' | 'cpu';
+    placeOnTimeline?: boolean;
+    onProgress?: (progress: number, stage: string) => void;
+  }): Promise<MutationResult & { assetId?: AssetId }> {
+    try {
+      const result = await this.#runDesktopGenerate(
+        {
+          capability: 'audio.tts',
+          modelId: options.modelId,
+          settings: { text: options.text },
+          modelInputs: { voice: this.#resolveVoiceFileKey(options.modelId, options.voiceId) },
+          device: options.device ?? 'cpu',
+          provenanceInputs: [{ kind: 'text', role: 'script', text: options.text }],
+        },
+        (p) => options.onProgress?.(p.progress, p.stage),
+      );
+      if (result.state !== 'completed' || !result.provenance) {
+        const message = result.error ?? 'generation did not complete';
+        this.reportError(message, 'generation');
+        return { ok: false, code: 'generation', message };
+      }
+      const output = result.outputs.audio;
+      if (!output) {
+        this.reportError('generation produced no audio', 'generation');
+        return { ok: false, code: 'generation', message: 'generation produced no audio' };
+      }
+      const asset = generatedAsset({
+        kind: 'audio',
+        name: options.name ?? 'Generated speech',
+        source: { kind: 'file', path: output.path },
+        media: output.media,
+        capability: result.provenance.capability,
+        model: result.provenance.model,
+        runner: result.provenance.runner,
+        settings: result.provenance.settings,
+        inputs: result.provenance.inputs,
+        regenerable: result.provenance.regenerable,
+        device: result.provenance.device,
+        generatedAt: result.provenance.generatedAt,
+      });
+      const imported = this.mutate((tx) => tx.importAsset({ asset }));
+      if (!imported.ok) return imported;
+      this.#mediaCache.registerPath(asset.id, output.path);
+      if (options.placeOnTimeline) this.addAssetToTimeline(asset.id);
+      return { ok: true, assetId: asset.id };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.reportError(message, 'generation');
+      return { ok: false, code: 'generation', message };
+    }
+  }
+
+  /** Generate a voiceover line for a character and place it on the timeline. */
+  async generateVoiceover(characterId: CharacterId, text: string, onProgress?: (progress: number, stage: string) => void): Promise<MutationResult & { assetId?: AssetId }> {
+    const character = this.project.characters[characterId];
+    if (!character) return { ok: false, code: 'op.not-found', message: 'character not found' };
+    const modelId = character.voice.modelId ?? character.voice.provider;
+    if (!this.#generationModels.some((m) => m.modelId === modelId && m.capability === 'audio.tts')) {
+      return { ok: false, code: 'generation', message: 'this character has no local TTS provider' };
+    }
+    return this.generateSpeech({
+      modelId,
+      text,
+      voiceId: character.voice.voiceId,
+      name: character.name + ' voiceover',
+      placeOnTimeline: true,
+      onProgress,
+    });
+  }
+
+  /** Transcribe a local media asset: durable transcript document + caption clips through core commands. */
+  async transcribeAsset(assetId: AssetId, options?: { language?: string; onProgress?: (progress: number, stage: string) => void }): Promise<MutationResult & { transcriptId?: TranscriptId }> {
+    const asset = this.project.assets[assetId];
+    if (!asset) return { ok: false, code: 'op.not-found', message: 'asset not found' };
+    if (asset.source.kind !== 'file') return { ok: false, code: 'generation', message: 'this asset has no local file to transcribe' };
+    const modelId = this.#pickAsrModel(options?.language);
+    if (!modelId) return { ok: false, code: 'generation', message: 'no local ASR model is available' };
+    try {
+      const result = await this.#runDesktopGenerate(
+        {
+          capability: 'audio.asr',
+          modelId,
+          inputs: { audio: { path: asset.source.path } },
+          settings: options?.language ? { language: options.language } : {},
+          device: 'cuda',
+          provenanceInputs: [{ kind: 'audio', role: 'source', assetId }],
+        },
+        (p) => options?.onProgress?.(p.progress, p.stage),
+      );
+      if (result.state !== 'completed' || !result.provenance) {
+        const message = result.error ?? 'transcription did not complete';
+        this.reportError(message, 'generation');
+        return { ok: false, code: 'generation', message };
+      }
+      const transcriptOutput = result.outputs.transcript;
+      const parsed = transcriptOutput?.json as { language?: string; segments?: unknown } | undefined;
+      if (!parsed || !Array.isArray(parsed.segments)) {
+        this.reportError('transcription produced no transcript', 'generation');
+        return { ok: false, code: 'generation', message: 'transcription produced no transcript' };
+      }
+      const segments = parsed.segments.map((segment, index) => {
+        const s = segment as { text?: unknown; startMs?: unknown; endMs?: unknown };
+        if (typeof s.text !== 'string' || typeof s.startMs !== 'number' || typeof s.endMs !== 'number') {
+          throw new Error('malformed transcript segment ' + index);
+        }
+        return { text: s.text, startMs: Math.round(s.startMs), endMs: Math.round(s.endMs) };
+      });
+      const attach = attachAsrResult(this.#session, {
+        audioAssetId: assetId,
+        language: typeof parsed.language === 'string' ? parsed.language : options?.language,
+        segments,
+        provenance: { ...result.provenance, inputs: [{ kind: 'audio', role: 'source', assetId }] },
+      });
+      const srt = result.outputs.srt;
+      if (srt) {
+        const srtAsset = generatedAsset({
+          kind: 'subtitle',
+          name: asset.name + ' subtitles',
+          source: { kind: 'file', path: srt.path },
+          capability: result.provenance.capability,
+          model: result.provenance.model,
+          runner: result.provenance.runner,
+          settings: result.provenance.settings,
+          inputs: result.provenance.inputs,
+          regenerable: result.provenance.regenerable,
+          device: result.provenance.device,
+          generatedAt: result.provenance.generatedAt,
+        });
+        this.mutate((tx) => tx.importAsset({ asset: srtAsset }));
+        this.#mediaCache.registerPath(srtAsset.id, srt.path);
+      }
+      this.#emit();
+      return { ok: true, transcriptId: attach.transcriptId };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.reportError(message, 'generation');
+      return { ok: false, code: 'generation', message };
+    }
+  }
+
+  /** A short local TTS sample for a model (the Model Center Generate affordance). */
+  async generateModelSample(modelId: string, onProgress?: (progress: number, stage: string) => void): Promise<MutationResult & { assetId?: AssetId }> {
+    const entry = REGISTRY.byId(modelId);
+    return this.generateSpeech({
+      modelId,
+      text: SAMPLE_SENTENCE,
+      name: (entry?.displayName ?? modelId) + ' sample',
+      placeOnTimeline: true,
+      onProgress,
+    });
   }
 
   #emit(): void {

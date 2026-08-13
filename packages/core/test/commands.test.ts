@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { insertClipAt, rippleDeleteClip, splitClipAt } from '@openvideomaker/core';
+import { attachAsrResult, insertClipAt, rippleDeleteClip, splitClipAt } from '@openvideomaker/core';
 import { mediaClip } from '@openvideomaker/core';
 import { importedAsset } from '@openvideomaker/core';
 import { AUDIO_MEDIA, setupSession, setupSessionWithAsset } from './helpers';
@@ -137,5 +137,79 @@ describe('insertClipAt (insert edit)', () => {
     expect(clips[3]!.start).toBe(10_000_000);
     expect(clips[0]!.start).toBe(0);
     expect(clips[1]!.start).toBe(5_000_000);
+  });
+});
+
+describe('attachAsrResult', () => {
+  const provenance = {
+    capability: 'audio.asr',
+    model: { id: 'hf/openai/whisper-large-v3', revision: 'main' },
+    runner: { kind: 'local-python' as const, version: '0.1.0' },
+    settings: { language: 'en' },
+    inputs: [{ kind: 'audio' as const, role: 'source', assetId: 'asset_000000000000' }],
+    generatedAt: '2026-08-14T00:00:00.000Z',
+    regenerable: true,
+  };
+
+  it('creates a durable ASR transcript linked one-to-one and syncs captions', () => {
+    const { session, sequenceId, asset } = setupSessionWithAsset();
+    const result = attachAsrResult(session, {
+      audioAssetId: asset.id,
+      language: 'en',
+      segments: [
+        { text: 'hello', startMs: 0, endMs: 500 },
+        { text: 'world', startMs: 500, endMs: 1000 },
+      ],
+      provenance: { ...provenance, inputs: [{ kind: 'audio', role: 'source', assetId: asset.id }] },
+      sequenceId,
+    });
+    const transcript = session.project.transcripts[result.transcriptId];
+    expect(transcript?.source.kind).toBe('asr');
+    expect(transcript?.assetId).toBe(asset.id);
+    expect(transcript?.segments).toHaveLength(2);
+    expect(transcript?.segments[0]?.startUs).toBe(0);
+    expect(transcript?.segments[1]?.endUs).toBe(1_000_000);
+    expect(session.project.assetTranscripts[asset.id]).toBe(result.transcriptId);
+    const track = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === result.trackId);
+    expect(track?.kind).toBe('caption');
+    expect(track?.clips).toHaveLength(2);
+    expect(track?.clips[0]?.provenance?.capability).toBe('audio.asr');
+  });
+
+  it('replaces a previous transcript for the same asset instead of duplicating', () => {
+    const { session, sequenceId, asset } = setupSessionWithAsset();
+    attachAsrResult(session, {
+      audioAssetId: asset.id,
+      segments: [{ text: 'first', startMs: 0, endMs: 400 }],
+      provenance: { ...provenance, inputs: [{ kind: 'audio', role: 'source', assetId: asset.id }] },
+      sequenceId,
+    });
+    const second = attachAsrResult(session, {
+      audioAssetId: asset.id,
+      segments: [{ text: 'second', startMs: 0, endMs: 400 }],
+      provenance: { ...provenance, inputs: [{ kind: 'audio', role: 'source', assetId: asset.id }] },
+      sequenceId,
+    });
+    expect(Object.keys(session.project.transcripts)).toHaveLength(1);
+    expect(session.project.assetTranscripts[asset.id]).toBe(second.transcriptId);
+    const captions = session.project.sequences[sequenceId]!.tracks.find((t) => t.kind === 'caption');
+    expect(captions?.clips).toHaveLength(1);
+    const caption = captions?.clips[0];
+    expect(caption?.kind === 'caption' ? (caption.segments[0]?.text ?? '') : '').toBe('second');
+  });
+
+  it('skips captions when asked and is undoable as one transaction', () => {
+    const { session, sequenceId, asset } = setupSessionWithAsset();
+    const result = attachAsrResult(session, {
+      audioAssetId: asset.id,
+      segments: [{ text: 'quiet', startMs: 0, endMs: 300 }],
+      provenance: { ...provenance, inputs: [{ kind: 'audio', role: 'source', assetId: asset.id }] },
+      sequenceId,
+      createCaptions: false,
+    });
+    expect(result.trackId).toBeUndefined();
+    expect(session.project.sequences[sequenceId]!.tracks.some((t) => t.kind === 'caption')).toBe(false);
+    session.undo();
+    expect(session.project.transcripts[result.transcriptId]).toBeUndefined();
   });
 });

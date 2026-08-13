@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -81,20 +81,23 @@ function makeEntry(): ModelEntry {
   };
 }
 
-function makeRunner(): GenerationRunner {
+function makeRunner(): { runner: GenerationRunner; store: ModelStore } {
   const registry = Registry.fromData([makeEntry()]);
   const store = new ModelStore(join(dir, 'store-' + Math.random().toString(36).slice(2, 8)));
-  return new GenerationRunner({
-    registry,
+  return {
     store,
-    runnersDir: resolve('test/fixtures'),
-    runtimesDir: join(dir, 'runtimes'),
-  });
+    runner: new GenerationRunner({
+      registry,
+      store,
+      runnersDir: resolve('test/fixtures'),
+      runtimesDir: join(dir, 'runtimes'),
+    }),
+  };
 }
 
 describe('GenerationRunner', () => {
   it('runs a generation end to end and lands an asset with provenance', async () => {
-    const runner = makeRunner();
+    const { runner } = makeRunner();
     const job = runner.run({
       capability: 'audio.tts',
       modelId: 'http/test/model',
@@ -123,7 +126,7 @@ describe('GenerationRunner', () => {
   }, 180_000);
 
   it('fails cleanly for unknown models', async () => {
-    const runner = makeRunner();
+    const { runner } = makeRunner();
     const job = runner.run({ capability: 'audio.tts', modelId: 'http/missing/model', outputDir: join(dir, 'out-x') });
     await job.finished;
     expect(job.state).toBe('failed');
@@ -131,7 +134,7 @@ describe('GenerationRunner', () => {
   });
 
   it('fails cleanly for capability mismatches', async () => {
-    const runner = makeRunner();
+    const { runner } = makeRunner();
     const job = runner.run({ capability: 'avatar.lip_sync', modelId: 'http/test/model', outputDir: join(dir, 'out-x2') });
     await job.finished;
     expect(job.state).toBe('failed');
@@ -139,7 +142,7 @@ describe('GenerationRunner', () => {
   });
 
   it('reports runner failures on the job', async () => {
-    const runner = makeRunner();
+    const { runner } = makeRunner();
     const job = runner.run({
       capability: 'audio.tts',
       modelId: 'http/test/model',
@@ -154,7 +157,7 @@ describe('GenerationRunner', () => {
   it('cancels a slow install', async () => {
     throttle = 60;
     try {
-      const runner = makeRunner();
+      const { runner } = makeRunner();
       const job = runner.run({ capability: 'audio.tts', modelId: 'http/test/model', outputDir: join(dir, 'out-cancel') });
       job.subscribe((event) => {
         if (event.state === 'installing' && event.bytes > 0) job.cancel();
@@ -167,7 +170,7 @@ describe('GenerationRunner', () => {
   }, 60_000);
 
   it('attaches an ASR transcript and syncs caption clips from it', async () => {
-    const runner = makeRunner();
+    const { runner } = makeRunner();
     const job = runner.run({ capability: 'audio.tts', modelId: 'http/test/model', settings: { seconds: 1 }, outputDir: join(dir, 'out-transcript') });
     await job.finished;
     expect(job.state).toBe('completed');
@@ -190,7 +193,7 @@ describe('GenerationRunner', () => {
   }, 180_000);
 
   it('cancels a running generation', async () => {
-    const runner = makeRunner();
+    const { runner } = makeRunner();
     const job = runner.run({
       capability: 'audio.tts',
       modelId: 'http/test/model',
@@ -204,4 +207,21 @@ describe('GenerationRunner', () => {
     expect(job.state).toBe('cancelled');
     expect(job.outputs.audio).toBeUndefined();
   }, 60_000);
+
+  it('resolves modelInputs against the content store revision', async () => {
+    const { runner, store } = makeRunner();
+    const job = runner.run({
+      capability: 'audio.tts',
+      modelId: 'http/test/model',
+      modelInputs: { voice: 'model.bin' },
+      settings: { seconds: 1 },
+      outputDir: join(dir, 'out-model-inputs'),
+    });
+    await job.finished;
+    expect(job.state).toBe('completed');
+    const echoed = JSON.parse(readFileSync(job.outputs.json!.path, 'utf8')) as { inputKeys: string[]; voicePath: string | null };
+    expect(echoed.inputKeys).toEqual(['voice']);
+    expect(echoed.voicePath).toBe(store.filePath('http/test/model', 'main', 'model.bin'));
+    expect(existsSync(echoed.voicePath!)).toBe(true);
+  }, 180_000);
 });

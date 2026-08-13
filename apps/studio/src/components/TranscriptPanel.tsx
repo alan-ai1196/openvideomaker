@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usToSeconds, type SegmentId, type TranscriptId } from '@openvideomaker/schema';
+import { usToSeconds, type AssetId, type SegmentId, type TranscriptId } from '@openvideomaker/schema';
 import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import type { MessageKey } from '../i18n/strings';
@@ -17,23 +17,35 @@ export function TranscriptPanel() {
   const [editing, setEditing] = useState<{ transcriptId: TranscriptId; segmentId: SegmentId } | null>(null);
   const [draft, setDraft] = useState('');
   const transcripts = Object.values(controller.project.transcripts);
+  const candidates = Object.values(controller.project.assets).filter((asset) =>
+    (asset.kind === 'video' || asset.kind === 'audio') &&
+    asset.source.kind === 'file' &&
+    !controller.project.assetTranscripts[asset.id],
+  );
 
   const commit = (transcriptId: TranscriptId, segmentId: SegmentId): void => {
     controller.setTranscriptSegmentText(transcriptId, segmentId, draft.trim());
     setEditing(null);
   };
 
-  if (transcripts.length === 0) {
-    return (
-      <div className="empty-panel">
-        <p>{t('transcript.empty')}</p>
-        <p className="empty-hint">{t('transcript.empty.hint')}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="transcript-list">
+      {candidates.length > 0 ? (
+        <section className="transcribe-card">
+          <header className="transcribe-head">
+            <span>{t('transcript.transcribe.hint')}</span>
+          </header>
+          {candidates.map((asset) => (
+            <TranscribeRow key={asset.id} assetId={asset.id} name={asset.name} />
+          ))}
+        </section>
+      ) : null}
+      {transcripts.length === 0 && candidates.length === 0 ? (
+        <div className="empty-panel">
+          <p>{t('transcript.empty')}</p>
+          <p className="empty-hint">{t('transcript.empty.hint')}</p>
+        </div>
+      ) : null}
       {transcripts.map((transcript) => {
         const asset = controller.project.assets[transcript.assetId];
         return (
@@ -86,6 +98,35 @@ export function TranscriptPanel() {
           </section>
         );
       })}
+    </div>
+  );
+}
+
+/** One media asset without a transcript, with a live local ASR affordance. */
+function TranscribeRow({ assetId, name }: { assetId: AssetId; name: string }) {
+  const controller = useStudio();
+  const { t } = useI18n();
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const available = controller.localGeneration && controller.generationAvailable('audio.asr');
+  const run = async (): Promise<void> => {
+    setRunning(true);
+    setProgress(0);
+    await controller.transcribeAsset(assetId, { onProgress: (p) => setProgress(p) });
+    setRunning(false);
+  };
+  return (
+    <div className="transcribe-row">
+      <span className="transcribe-name">{name}</span>
+      <button
+        type="button"
+        className="button button-secondary"
+        disabled={!available || running}
+        title={available ? t('transcript.transcribe') : t('transcript.transcribe.disabled')}
+        onClick={() => void run()}
+      >
+        {running ? t('transcript.transcribing') + ' ' + Math.round(progress * 100) + '%' : t('transcript.transcribe')}
+      </button>
     </div>
   );
 }

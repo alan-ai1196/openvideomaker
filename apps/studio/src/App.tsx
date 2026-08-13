@@ -23,6 +23,12 @@ function Studio() {
   const controller = useStudio();
   const { t } = useI18n();
 
+  // Desktop: confirm what the local backend can actually run, so
+  // capability flags (localGeneration) stay honest, never optimistic.
+  useEffect(() => {
+    void controller.refreshDesktopCapabilities();
+  }, [controller]);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;

@@ -173,10 +173,19 @@ characters, six typed operations); `syncTextClipsFromScript` places
 lines on a Script text track, and the Studio Script panel edits,
 seeks and syncs them. `apps/desktop` is the Electron shell over the
 SAME Studio build: sandboxed renderer, narrow typed CJS preload
-(`window.ovm`: capabilities/openProject/saveProject/runDoctor), real
-SQLite persistence + device probing + REAL local rendering today
-(import-media with native paths and a render IPC with progress; the
-Export dialog's Render button is live, `localRender: true`);
-localGeneration stays honestly false until its IPC path exists.
+(`window.ovm`: capabilities/openProject/saveProject/runDoctor/import/
+render/generate), real SQLite persistence + device probing + REAL
+local rendering (import-media with native paths, render IPC with
+progress; the Export dialog's Render button is live, `localRender:
+true`) + REAL local generation (DesktopGenerationService over the
+same GenerationRunner the SDK/CLI use; `ovm:generate` IPC with
+progress + cancel; `modelInputs` resolve model-owned files against
+the store revision; results land via the typed operation layer -
+`generatedAsset` imports and the shared core `attachAsrResult`
+command; the ovm-media:// protocol serves ONLY allow-listed local
+paths so the sandboxed renderer can play imported/generated media;
+`localGeneration` is runtime-confirmed, true only when the service
+builds). Live desktop affordances: Character Studio voiceover, Model
+Center TTS samples, Transcript panel transcription.
 Next: lip-sync/avatar runner integrations, then the LLM planner
 behind the proposal contract. See `docs/STATUS.md`.

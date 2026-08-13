@@ -15,6 +15,9 @@ coverage/
 # research caches (never commit upstream clones)
 .research/
 
+# astro dev cache
+apps/site/.astro/
+
 # environments / runtimes
 .venv/
 venv/

@@ -44,18 +44,33 @@ importers:
       '@openvideomaker/devices':
         specifier: workspace:*
         version: link:../../packages/devices
+      '@openvideomaker/downloader':
+        specifier: workspace:*
+        version: link:../../packages/downloader
+      '@openvideomaker/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
       '@openvideomaker/media':
         specifier: workspace:*
         version: link:../../packages/media
       '@openvideomaker/persistence':
         specifier: workspace:*
         version: link:../../packages/persistence
+      '@openvideomaker/registry':
+        specifier: workspace:*
+        version: link:../../packages/registry
       '@openvideomaker/render':
         specifier: workspace:*
         version: link:../../packages/render
+      '@openvideomaker/runners':
+        specifier: workspace:*
+        version: link:../../packages/runners
       '@openvideomaker/schema':
         specifier: workspace:*
         version: link:../../packages/schema
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       electron:
         specifier: 43.4.0

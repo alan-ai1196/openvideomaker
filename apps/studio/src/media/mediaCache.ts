@@ -34,6 +34,19 @@ export class MediaCache {
     return this.#entries.get(assetId) ?? {};
   }
 
+  /**
+   * Desktop mode: bind an asset to a local file path through the
+   * ovm-media:// protocol. The main process only serves paths the user
+   * imported, generated, rendered or opened, so this is presentation
+   * convenience over an allow-list, never filesystem access.
+   */
+  registerPath(assetId: AssetId, path: string): void {
+    const entry = this.#entries.get(assetId) ?? {};
+    entry.objectUrl = 'ovm-media://local/' + encodeURIComponent(path);
+    this.#entries.set(assetId, entry);
+    this.#emit();
+  }
+
   registerFile(assetId: AssetId, file: File, media: { hasVideo: boolean; hasAudio: boolean; durationUs: number }): void {
     const entry: CachedMedia = { objectUrl: URL.createObjectURL(file) };
     this.#entries.set(assetId, entry);

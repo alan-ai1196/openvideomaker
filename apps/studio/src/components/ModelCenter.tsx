@@ -52,7 +52,24 @@ export function ModelCenter() {
 
 function ModelCard({ entry }: { entry: ModelEntry }) {
   const { t } = useI18n();
-  const { capabilities } = useStudio();
+  const controller = useStudio();
+  const [generating, setGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const runnableHere = controller.generationModels.some((m) => m.modelId === entry.id && m.capability === 'audio.tts');
+  const canGenerate = controller.localGeneration && runnableHere;
+  const generateTitle = generating
+    ? t('modelcenter.generating')
+    : !controller.localGeneration
+      ? t(entry.verification.trust === 'verified' ? 'modelcenter.generate.disabled' : 'modelcenter.generate.disabled.unverified')
+      : runnableHere
+        ? t('modelcenter.generate.sample')
+        : t('modelcenter.generate.disabled.capability');
+  const generateSample = async (): Promise<void> => {
+    setGenerating(true);
+    setProgress(0);
+    await controller.generateModelSample(entry.id, (p) => setProgress(p));
+    setGenerating(false);
+  };
   return (
     <article className="model-card">
       <div className="model-card-head">
@@ -75,10 +92,11 @@ function ModelCard({ entry }: { entry: ModelEntry }) {
         <button
           type="button"
           className="button button-secondary"
-          disabled={!capabilities.localGeneration}
-          title={t(entry.verification.trust === 'verified' ? 'modelcenter.generate.disabled' : 'modelcenter.generate.disabled.unverified')}
+          disabled={!canGenerate || generating}
+          title={generateTitle}
+          onClick={() => void generateSample()}
         >
-          {t('modelcenter.generate')}
+          {generating ? t('modelcenter.generating') + ' ' + Math.round(progress * 100) + '%' : t('modelcenter.generate')}
         </button>
         <span className="model-card-evidence" title={entry.verification.evidence}>
           {entry.verification.evidence}

@@ -61,9 +61,15 @@ def execute(params):
     seconds = float(settings.get("seconds", 1.0))
     wav_path = os.path.join(output_dir, "out.wav")
     make_wav(wav_path, seconds)
+    inputs = params.get("inputs", {}) or {}
+    voice = inputs.get("voice") or {}
     data_path = os.path.join(output_dir, "out.json")
     with open(data_path, "w", encoding="utf-8") as fh:
-        json.dump({"echo": settings.get("echo", "")}, fh)
+        json.dump({
+            "echo": settings.get("echo", ""),
+            "inputKeys": sorted(inputs.keys()),
+            "voicePath": voice.get("path") if isinstance(voice, dict) else None,
+        }, fh)
     transcript_path = os.path.join(output_dir, "transcript.json")
     transcript = {
         "language": "en",

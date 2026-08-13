@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { generatedAsset, syncCaptionsFromTranscript, type ProjectSession } from '@openvideomaker/core';
+import { attachAsrResult, generatedAsset, syncCaptionsFromTranscript, type ProjectSession } from '@openvideomaker/core';
 import { probeMediaPath } from '@openvideomaker/media';
-import { newSegmentId, newTranscriptId, type AssetId, type AssetKind, type GenerationInput, type GenerationProvenance, type SequenceId, type TrackId, type TranscriptId, type TranscriptSegment } from '@openvideomaker/schema';
+import type { AssetId, AssetKind, GenerationInput, GenerationProvenance, SequenceId, TrackId, TranscriptId } from '@openvideomaker/schema';
 import { GenerationError } from './runner.js';
 import type { GenerationJob } from './job.js';
 
@@ -104,40 +104,23 @@ export interface AttachTranscriptOptions {
 /**
  * Turn an ASR job's transcript.json into a durable transcript document
  * linked to the audio asset (replacing any previous transcript for
- * that asset), and optionally sync caption clips from it via the core
- * command. Everything lands through the typed operation layer.
+ * that asset), and optionally sync caption clips from it. The document
+ * itself is created by the shared core command, so node-side and
+ * renderer-side attachments land through identical typed operations.
  */
 export function attachGeneratedTranscript(session: ProjectSession, job: GenerationJob, options: AttachTranscriptOptions): TranscriptId {
   const { provenance } = requireOutput(job, 'transcript');
   const parsed = parseTranscriptOutput(job);
   const inputs: GenerationInput[] = [{ kind: 'audio', role: 'source', assetId: options.audioAssetId }];
-  const now = new Date().toISOString();
-  const segments: TranscriptSegment[] = parsed.segments.map((segment) => ({
-    id: newSegmentId(),
-    startUs: segment.startMs * 1000,
-    endUs: segment.endMs * 1000,
-    text: segment.text,
-  }));
-  const transcriptId = newTranscriptId();
-  session.transaction((tx) => {
-    const previous = session.project.assetTranscripts[options.audioAssetId];
-    if (previous) tx.removeTranscript({ transcriptId: previous });
-    tx.createTranscript({
-      transcript: {
-        id: transcriptId,
-        assetId: options.audioAssetId,
-        language: parsed.language,
-        segments,
-        source: { kind: 'asr', provenance: { ...provenance, inputs } },
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
-  });
-  if (options.createCaptions !== false) {
-    syncCaptionsFromTranscript(session, { transcriptId, sequenceId: options.sequenceId, trackId: options.trackId });
-  }
-  return transcriptId;
+  return attachAsrResult(session, {
+    audioAssetId: options.audioAssetId,
+    language: parsed.language,
+    segments: parsed.segments,
+    provenance: { ...provenance, inputs },
+    sequenceId: options.sequenceId,
+    trackId: options.trackId,
+    createCaptions: options.createCaptions,
+  }).transcriptId;
 }
 
 export interface AttachCaptionsOptions {

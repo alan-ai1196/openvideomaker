@@ -1,4 +1,17 @@
-import { newClipId, newTrackId, type Clip, type ClipId, type ScriptId, type SequenceId, type TrackId, type TranscriptId } from '@openvideomaker/schema';
+import {
+  newClipId,
+  newSegmentId,
+  newTrackId,
+  newTranscriptId,
+  type AssetId,
+  type Clip,
+  type ClipId,
+  type GenerationProvenance,
+  type ScriptId,
+  type SequenceId,
+  type TrackId,
+  type TranscriptId,
+} from '@openvideomaker/schema';
 import { ProjectSession } from './session.js';
 import { captionClip, textClip } from './builders.js';
 
@@ -217,5 +230,78 @@ export function syncTextClipsFromScript(session: ProjectSession, options: SyncSc
     }
   });
   return { trackId, clipCount };
+}
+
+/** One time-aligned ASR segment as produced by a runner transcript output. */
+export interface AsrSegmentInput {
+  text: string;
+  startMs: number;
+  endMs: number;
+}
+
+export interface AttachAsrOptions {
+  /** The media asset the transcript is linked to (one-to-one). */
+  audioAssetId: AssetId;
+  language?: string;
+  segments: AsrSegmentInput[];
+  /** Full generation provenance recorded on the transcript document. */
+  provenance: GenerationProvenance;
+  sequenceId?: SequenceId;
+  trackId?: TrackId;
+  /** Also sync caption clips from the transcript (default true). */
+  createCaptions?: boolean;
+}
+
+export interface AttachAsrResult {
+  transcriptId: TranscriptId;
+  trackId?: TrackId;
+  clipCount: number;
+}
+
+/**
+ * Land an ASR result as a durable, editable transcript document linked
+ * one-to-one to its media asset (replacing any previous transcript for
+ * that asset), with caption clips derived through syncCaptionsFromTranscript.
+ * Shared by the jobs package (node) and the Studio desktop flow (renderer),
+ * so transcripts always enter projects through the same typed operations.
+ */
+export function attachAsrResult(session: ProjectSession, options: AttachAsrOptions): AttachAsrResult {
+  const transcriptId = newTranscriptId();
+  const now = new Date().toISOString();
+  const segments = options.segments.map((segment) => ({
+    id: newSegmentId(),
+    startUs: Math.round(segment.startMs) * 1000,
+    endUs: Math.round(segment.endMs) * 1000,
+    text: segment.text,
+  }));
+  session.transaction((tx) => {
+    const previous = session.project.assetTranscripts[options.audioAssetId];
+    if (previous) tx.removeTranscript({ transcriptId: previous });
+    tx.createTranscript({
+      transcript: {
+        id: transcriptId,
+        assetId: options.audioAssetId,
+        language: options.language,
+        segments,
+        source: { kind: 'asr', provenance: options.provenance },
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+  });
+  let trackId: TrackId | undefined;
+  let clipCount = 0;
+  if (options.createCaptions !== false) {
+    const sync = syncCaptionsFromTranscript(session, {
+      transcriptId,
+      sequenceId: options.sequenceId,
+      trackId: options.trackId,
+    });
+    if (sync) {
+      trackId = sync.trackId;
+      clipCount = sync.clipCount;
+    }
+  }
+  return { transcriptId, trackId, clipCount };
 }
 

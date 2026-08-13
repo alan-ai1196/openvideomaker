@@ -26,7 +26,7 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. Studio shell + design system: React/Vite app, tokens, light/dark,
    layout skeleton, session wiring.
-3. Preview/timeline vertical slice: media import (ffprobe), thumbnails,
+2. Preview/timeline vertical slice: media import (ffprobe), thumbnails,
    waveforms, canvas preview, timeline interaction basics.
 4. Export slice: render plan → FFmpeg, encoder detection, jobs.
 5. Model registry + providers (HF/ModelScope/mirror) + download store.

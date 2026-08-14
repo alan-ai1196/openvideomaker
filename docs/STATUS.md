@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 21). This file is the single living status source; it
+Updated: 2026-08-14 (round 22). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -241,15 +241,24 @@ describes the repository truth and is updated whenever that truth changes.
   model processes holding GPU memory) - regression-tested; the
   GenerationRunner describe timeout allows 2 minutes for cold-start
   imports.
+- **Desktop Redub flow**: lip sync inside the editing workflow - select a
+  talking-head clip in the timeline, pick a replacement audio asset, and
+  the Inspector's AI actions run `avatar.lip_sync` through the desktop
+  bridge (the verified LatentSync runner): the synced video lands as a
+  provenance-carrying asset on a NEW 'Lip sync' track at the source
+  clip's start, so the original stays intact for comparison and every
+  result remains fully editable. Browser mode hides the affordance
+  honestly. Playwright-verified in the desktop app (affordance live,
+  audio options from real assets, zero errors) with an opt-in
+  `OVM_CHECK_LIPSYNC=1` click-through that runs the REAL GPU job
+  through the UI.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. More verified runner integrations (MuseTalk/avatars next).
-2. The desktop Redub flow (avatar.lip_sync through the Studio: source
-   clip + speech -> synced video with provenance), then the LLM
-   planner behind the agent proposal contract.
+2. The LLM planner behind the agent proposal contract.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

@@ -1,6 +1,6 @@
 import { _electron as electron } from 'playwright';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 // A real local media file so the desktop import flow can run against it
@@ -12,6 +12,24 @@ execFileSync('ffmpeg', [
   '-f', 'lavfi', '-i', 'sine=frequency=440:duration=1',
   '-ar', '16000', '-ac', '1', sampleWav,
 ], { stdio: 'inherit' });
+
+// Redub: a real local VIDEO for the lip-sync affordance. The opt-in full
+// click-through (OVM_CHECK_LIPSYNC=1) needs a face, so it uses a trimmed
+// upstream demo clip when the research clone is present.
+const lipSyncVideo = resolve('.research/desktop-check-video.mp4');
+execFileSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error', '-y',
+  '-f', 'lavfi', '-i', 'testsrc2=size=320x180:rate=25',
+  '-t', '2', '-c:v', 'libx264', lipSyncVideo,
+], { stdio: 'inherit' });
+const upstreamDemo = resolve('.research/upstream/latentsync/assets/demo1_video.mp4');
+const fullLipSync = process.env.OVM_CHECK_LIPSYNC === '1' && existsSync(upstreamDemo);
+if (fullLipSync) {
+  execFileSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-y',
+    '-i', upstreamDemo, '-t', '5', '-r', '25', '-c:v', 'libx264', '-an', lipSyncVideo,
+  ], { stdio: 'inherit' });
+}
 
 const app = await electron.launch({ args: ['.'], cwd: 'apps/desktop' });
 // Stub the native open dialog: media import returns our sample wav.
@@ -103,6 +121,38 @@ await window.locator('.rail-button[title="Media"]').click();
 await window.waitForTimeout(300);
 report.assetCountAfterScriptSpeech = await window.locator('.asset-item').count();
 
+// Redub: import a real video, place it, select the clip, and verify the
+// lip-sync affordance is live in the desktop app.
+await app.evaluate(({ dialog }, filePath) => {
+  dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filePath] });
+}, lipSyncVideo);
+await window.locator('.leftpanel-content .button-primary').click();
+await window.waitForTimeout(1200);
+report.assetCountAfterVideoImport = await window.locator('.asset-item').count();
+await window.locator('.asset-item').last().click();
+await window.waitForTimeout(400);
+// The imported video lands at the playhead (position 0) as an insert edit,
+// so it is the FIRST media clip in timeline order.
+await window.locator('.clip-kind-media').first().click();
+await window.waitForTimeout(300);
+report.redubSectionVisible = await window.locator('.inspector-ai').count();
+report.redubAudioOptions = await window.locator('.inspector-redub-audio option').allTextContents();
+await window.locator('.inspector-redub-audio').selectOption({ index: 1 });
+await window.waitForTimeout(150);
+report.redubButtonEnabled = !(await window.locator('.inspector-redub .button-secondary').isDisabled());
+report.redubButtonLabel = await window.locator('.inspector-redub .button-secondary').textContent();
+if (fullLipSync) {
+  // Opt-in REAL lip-sync through the UI (several minutes on GPU).
+  const lanesBefore = await window.locator('.lane').count();
+  await window.locator('.inspector-redub .button-secondary').click();
+  await window.waitForSelector('.inspector-ai-done', { timeout: 900000 });
+  report.lipSyncDone = await window.locator('.inspector-ai-done').textContent();
+  report.lanesAfterLipSync = await window.locator('.lane').count();
+  report.lipSyncAddedLane = report.lanesAfterLipSync - lanesBefore;
+} else {
+  report.lipSyncDone = 'skipped (OVM_CHECK_LIPSYNC=1 to run the full GPU job)';
+}
+
 mkdirSync('.research/screenshots', { recursive: true });
 await window.screenshot({ path: '.research/screenshots/desktop-studio.png' });
 report.errors = errors;
@@ -133,6 +183,15 @@ if (report.scriptSpeechEnabled !== true) throw new Error('script speech affordan
 if (!(report.scriptSpeechAfter ?? '').includes('✓')) throw new Error('script speech did not complete: ' + report.scriptSpeechAfter);
 if (!(report.scriptLineStartAfter ?? '')) throw new Error('line did not gain a real start time');
 if (report.assetCountAfterScriptSpeech !== 7) throw new Error('script speech asset missing from the media panel: ' + report.assetCountAfterScriptSpeech);
+if (report.assetCountAfterVideoImport !== 8) throw new Error('video import failed: ' + report.assetCountAfterVideoImport);
+if (report.redubSectionVisible !== 1) throw new Error('redub section missing from the inspector');
+if (!(report.redubAudioOptions ?? []).some((o) => o.includes('voiceover'))) throw new Error('voiceover missing from redub audio options: ' + JSON.stringify(report.redubAudioOptions));
+if (report.redubButtonEnabled !== true) throw new Error('lip sync button not live');
+if (!(report.redubButtonLabel ?? '').includes('Lip sync')) throw new Error('lip sync label missing: ' + report.redubButtonLabel);
+if (fullLipSync) {
+  if (!(report.lipSyncDone ?? '').includes('new track')) throw new Error('real lip-sync did not complete: ' + report.lipSyncDone);
+  if (report.lipSyncAddedLane !== 1) throw new Error('lip-sync track missing: ' + report.lipSyncAddedLane);
+}
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');
 if (errors.length > 0) throw new Error('page errors: ' + errors.join(' | '));
 console.log('DESKTOP WINDOW OK');

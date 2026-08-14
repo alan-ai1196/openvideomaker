@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Clip } from '@openvideomaker/schema';
+import type { AssetId, Clip } from '@openvideomaker/schema';
 import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import { Button } from './controls';
@@ -38,6 +38,10 @@ export function Inspector() {
   const [durationDraft, setDurationDraft] = useState('');
   const [inPointDraft, setInPointDraft] = useState('');
   const [textDraft, setTextDraft] = useState('');
+  const [redubAudioId, setRedubAudioId] = useState<AssetId | ''>('');
+  const [redubRunning, setRedubRunning] = useState(false);
+  const [redubProgress, setRedubProgress] = useState(0);
+  const [redubDone, setRedubDone] = useState(false);
 
   useEffect(() => {
     if (clip) {
@@ -116,6 +120,54 @@ export function Inspector() {
         </div>
       ) : null}
 
+
+      {clip.kind === 'media' && controller.localGeneration ? (
+        <div className="inspector-ai">
+          <span className="field-label">{t('inspector.ai.actions')}</span>
+          {clip.kind === 'media' && controller.project.assets[clip.assetId]?.source.kind !== 'file' ? (
+            <p className="inspector-ai-hint">{t('inspector.lipsync.nofile')}</p>
+          ) : (
+            <div className="inspector-redub">
+              <select
+                className="inspector-redub-audio"
+                value={redubAudioId}
+                aria-label={t('inspector.lipsync.pickAudio')}
+                disabled={redubRunning}
+                onChange={(e) => {
+                  setRedubAudioId((e.target.value || '') as AssetId | '');
+                  setRedubDone(false);
+                }}
+              >
+                <option value="">{t('inspector.lipsync.pickAudio')}</option>
+                {Object.values(controller.project.assets)
+                  .filter((asset) => asset.kind === 'audio' && asset.source.kind === 'file')
+                  .map((asset) => (
+                    <option key={asset.id} value={asset.id}>{asset.name}</option>
+                  ))}
+              </select>
+              <button
+                type="button"
+                className="button button-secondary"
+                disabled={!redubAudioId || redubRunning || !controller.generationAvailable('avatar.lip_sync')}
+                title={controller.generationAvailable('avatar.lip_sync') ? t('inspector.lipsync') : t('inspector.lipsync.disabled')}
+                onClick={() => {
+                  if (!redubAudioId) return;
+                  setRedubRunning(true);
+                  setRedubDone(false);
+                  setRedubProgress(0);
+                  void controller.lipSyncClip(clip.id, redubAudioId, (progress) => setRedubProgress(progress)).then((result) => {
+                    setRedubRunning(false);
+                    if (result.ok) setRedubDone(true);
+                  });
+                }}
+              >
+                {redubRunning ? t('inspector.lipsync.running') + ' ' + Math.round(redubProgress * 100) + '%' : t('inspector.lipsync')}
+              </button>
+              {redubDone && !redubRunning ? <span className="inspector-ai-done">{t('inspector.lipsync.done')}</span> : null}
+            </div>
+          )}
+        </div>
+      ) : null}
       <div className="field-row">
         <label className="field">
           <span className="field-label">{t('inspector.start')} (s)</span>

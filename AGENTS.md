@@ -200,6 +200,10 @@ command; the ovm-media:// protocol serves ONLY allow-listed local
 paths so the sandboxed renderer can play imported/generated media;
 `localGeneration` is runtime-confirmed, true only when the service
 builds). Live desktop affordances: Character Studio voiceover, Model
-Center TTS samples, Transcript panel transcription.
-Next: the desktop Redub flow (avatar.lip_sync through the Studio),
-then the LLM planner behind the proposal contract. See `docs/STATUS.md`.
+Center TTS samples, Transcript panel transcription, and the Redub
+flow (select a talking-head clip, pick replacement audio, and the
+Inspector's AI actions run avatar.lip_sync through the bridge - the
+synced video lands on a new 'Lip sync' track with full provenance;
+opt-in OVM_CHECK_LIPSYNC=1 click-through runs the REAL GPU job
+through the UI).
+Next: the LLM planner behind the proposal contract. See `docs/STATUS.md`.

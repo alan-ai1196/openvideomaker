@@ -779,6 +779,89 @@ export class StudioController {
     }
   }
 
+
+  /**
+   * Redub: lip-sync the selected talking-head clip to a replacement audio
+   * asset (avatar.lip_sync). The synced video lands as a provenance-carrying
+   * asset on a NEW video track at the source clip's start, so the original
+   * stays intact for comparison - everything remains editable.
+   */
+  async lipSyncClip(clipId: ClipId, audioAssetId: AssetId, onProgress?: (progress: number, stage: string) => void): Promise<MutationResult & { assetId?: AssetId }> {
+    const sequence = this.activeSequence();
+    if (!sequence) return { ok: false, code: 'op.not-found', message: 'no active sequence' };
+    let sourceClip: { assetId: AssetId; start: number } | undefined;
+    for (const track of sequence.tracks) {
+      const clip = track.clips.find((c) => c.id === clipId);
+      if (clip?.kind === 'media') { sourceClip = { assetId: clip.assetId, start: clip.start }; break; }
+      if (clip) return { ok: false, code: 'generation', message: 'lip sync applies to media clips' };
+    }
+    if (!sourceClip) return { ok: false, code: 'op.not-found', message: 'clip not found' };
+    const videoAsset = this.project.assets[sourceClip.assetId];
+    const audioAsset = this.project.assets[audioAssetId];
+    if (!videoAsset || videoAsset.source.kind !== 'file') {
+      return { ok: false, code: 'generation', message: 'this clip has no local video file to lip-sync' };
+    }
+    if (!audioAsset || audioAsset.source.kind !== 'file') {
+      return { ok: false, code: 'generation', message: 'choose an audio asset with a local file' };
+    }
+    const modelId = this.#generationModels.find((m) => m.capability === 'avatar.lip_sync')?.modelId;
+    if (!modelId) return { ok: false, code: 'generation', message: 'no local lip-sync model is available' };
+    try {
+      const result = await this.#runDesktopGenerate(
+        {
+          capability: 'avatar.lip_sync',
+          modelId,
+          inputs: { video: { path: videoAsset.source.path }, audio: { path: audioAsset.source.path } },
+          device: 'cuda',
+          provenanceInputs: [
+            { kind: 'asset', role: 'source', assetId: sourceClip.assetId },
+            { kind: 'audio', role: 'replacement', assetId: audioAssetId },
+          ],
+        },
+        (p) => onProgress?.(p.progress, p.stage),
+      );
+      if (result.state !== 'completed' || !result.provenance) {
+        const message = result.error ?? 'lip sync did not complete';
+        this.reportError(message, 'generation');
+        return { ok: false, code: 'generation', message };
+      }
+      const output = result.outputs.video;
+      if (!output?.media) {
+        this.reportError('lip sync produced no playable video', 'generation');
+        return { ok: false, code: 'generation', message: 'lip sync produced no playable video' };
+      }
+      const asset = generatedAsset({
+        kind: 'video',
+        name: videoAsset.name + ' (lip sync)',
+        source: { kind: 'file', path: output.path },
+        media: output.media,
+        capability: result.provenance.capability,
+        model: result.provenance.model,
+        runner: result.provenance.runner,
+        settings: result.provenance.settings,
+        inputs: result.provenance.inputs,
+        regenerable: result.provenance.regenerable,
+        device: result.provenance.device,
+        generatedAt: result.provenance.generatedAt,
+      });
+      const imported = this.mutate((tx) => tx.importAsset({ asset }));
+      if (!imported.ok) return imported;
+      this.#mediaCache.registerPath(asset.id, output.path);
+      // A new video track keeps the original and the synced version side by side.
+      const durationUs = Math.max(1_000_000, output.media.durationUs ?? videoAsset.media?.durationUs ?? 5_000_000);
+      const trackId = newTrackId();
+      const placed = this.mutate((tx) => {
+        tx.createTrack({ sequenceId: sequence.id, trackId, kind: 'video', name: 'Lip sync' });
+        tx.insertClip({ sequenceId: sequence.id, trackId, clip: mediaClip({ trackId, assetId: asset.id, start: sourceClip.start, duration: durationUs }) });
+      });
+      if (!placed.ok) return { ok: true, assetId: asset.id };
+      return { ok: true, assetId: asset.id };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.reportError(message, 'generation');
+      return { ok: false, code: 'generation', message };
+    }
+  }
   /** A short local TTS sample for a model (the Model Center Generate affordance). */
   async generateModelSample(modelId: string, onProgress?: (progress: number, stage: string) => void): Promise<MutationResult & { assetId?: AssetId }> {
     const entry = REGISTRY.byId(modelId);

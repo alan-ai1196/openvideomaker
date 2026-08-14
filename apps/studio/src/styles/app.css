@@ -981,6 +981,18 @@
   pointer-events: none;
 }
 
+/* Snap guide shown while a dragged edge is attached to a target. */
+.snap-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--accent-bright, var(--accent));
+  box-shadow: 0 0 4px var(--accent);
+  z-index: 5;
+  pointer-events: none;
+}
+
 .playhead-cap {
   position: absolute;
   top: 0;

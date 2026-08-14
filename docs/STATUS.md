@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 42). This file is the single living status source; it
+Updated: 2026-08-14 (round 43). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -541,6 +541,18 @@ describes the repository truth and is updated whenever that truth changes.
   apply), and the desktop Playwright check clicks through the REAL flow
   on the 3-scene fixture (proposal 'Create a 3.0s short from the best
   moments', apply adds the Highlights track + 2 spread highlight clips).
+- **Timeline snapping**: dragged clips and trims attach to nearby
+  targets - the playhead and every other clip's edge - within ~8px,
+  with an accent guide line while attached
+  (`apps/studio/src/timeline/snap.ts` is pure and presentation-only;
+  the committed edit stays an ordinary typed operation, so snapping
+  never changes project semantics). Verified by the extended
+  `scripts/drag-check.mjs`: four scenarios (plain move unaffected,
+  edge snap to the previous clip's end from 0.3s away, playhead snap,
+  trim-in snap), each asserting the guide appears during the drag,
+  the committed position equals the target exactly, and the guide
+  clears after drop; the ui/agent/long-project/export browser checks
+  and the desktop gate all stay green.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

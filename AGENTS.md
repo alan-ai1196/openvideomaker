@@ -233,7 +233,14 @@ shows the exact connection command for the desktop's saved project
 DOM nodes to the visible window (long projects stay responsive:
 1500 clips load in ~0.7s with ~18 nodes rendered; verified by the
 long-project Playwright check, including selection and seeking far
-into the timeline). Installer packaging is real: pnpm desktop:package
+into the timeline). Snapping lands: dragged clips and trims attach
+to the playhead and every other clip's edge within ~8px, with an
+accent guide line while attached (a pure snap module -
+presentation-only, commits stay ordinary typed operations).
+Verified by the extended drag-check (4 scenarios: plain move,
+edge snap, playhead snap, trim-in snap - each asserts the guide
+during the drag, the exact target position after, and the guide
+clearing on drop). Installer packaging is real: pnpm desktop:package
 builds an NSIS setup + unpacked app carrying the Studio dist, registry
 data and runner adapters in resources (packaged path resolution +
 userData homes for models/runtimes); the packaged binary passes the

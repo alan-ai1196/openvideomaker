@@ -5,14 +5,17 @@ import { useI18n } from '../i18n/context';
 import { IconButton } from './controls';
 import { ZoomInIcon, ZoomOutIcon } from './icons';
 import { durationToPx, formatTimecode, pxToUs, rulerLabel, rulerStepSeconds, snapToFrame, usToPx } from '../timeline/math';
+import { collectSnapEdges, snapTimeUs } from '../timeline/snap';
 
 const TRACK_HEADER_W = 168;
 const MIN_DRAG_PX = 3;
+/** Snapping attaches dragged edges within ~8px of a target. */
+const SNAP_THRESHOLD_PX = 8;
 
 type DragState =
   | { type: 'playhead' }
-  | { type: 'move'; clipId: ClipId; trackId: TrackId; grabOffsetUs: number; previewStartUs: number; moved: boolean }
-  | { type: 'trim'; clipId: ClipId; trackId: TrackId; edge: 'in' | 'out'; previewStartUs: number; previewDurationUs: number; moved: boolean };
+  | { type: 'move'; clipId: ClipId; trackId: TrackId; grabOffsetUs: number; previewStartUs: number; snapUs: number | null; moved: boolean }
+  | { type: 'trim'; clipId: ClipId; trackId: TrackId; edge: 'in' | 'out'; previewStartUs: number; previewDurationUs: number; snapUs: number | null; moved: boolean };
 
 function ClipVisuals({ controller, clip }: { controller: ReturnType<typeof useStudio>; clip: Extract<Clip, { kind: 'media' }> }) {
   const cached = controller.mediaCache.get(clip.assetId);
@@ -203,16 +206,41 @@ export function Timeline() {
     }
     if (drag.type === 'move') {
       const us = pointerToUs(e.clientX);
-      const start = Math.max(0, us - drag.grabOffsetUs);
-      updateDrag({ ...drag, previewStartUs: start, moved: true });
+      const raw = Math.max(0, us - drag.grabOffsetUs);
+      const found = findClip(drag.clipId);
+      const dur = found?.clip.duration ?? 0;
+      const edges = collectSnapEdges(sequence.tracks, drag.clipId);
+      const thresholdUs = Math.max(400_000, Math.round((SNAP_THRESHOLD_PX / pxPerSec) * 1_000_000));
+      // Snap whichever edge of the moving clip is closer to a target.
+      const startSnap = snapTimeUs(raw, edges, controller.playheadUs, fps, thresholdUs);
+      const endSnap = dur > 0 ? snapTimeUs(raw + dur, edges, controller.playheadUs, fps, thresholdUs) : null;
+      let start = raw;
+      let snapUs: number | null = null;
+      const deltaStart = startSnap ? Math.abs(startSnap.snappedUs - raw) : Infinity;
+      const deltaEnd = endSnap ? Math.abs(endSnap.snappedUs - (raw + dur)) : Infinity;
+      if (Number.isFinite(deltaStart) || Number.isFinite(deltaEnd)) {
+        const useStart = deltaStart <= deltaEnd;
+        const chosen = useStart ? startSnap : endSnap;
+        if (chosen) {
+          start = useStart ? chosen.snappedUs : raw + (chosen.snappedUs - (raw + dur));
+          snapUs = chosen.targetUs;
+        }
+      }
+      updateDrag({ ...drag, previewStartUs: start, snapUs, moved: true });
       return;
     }
     if (drag.type === 'trim') {
       const us = Math.max(0, pointerToUs(e.clientX));
+      const edges = collectSnapEdges(sequence.tracks, drag.clipId);
+      const thresholdUs = Math.max(400_000, Math.round((SNAP_THRESHOLD_PX / pxPerSec) * 1_000_000));
       if (drag.edge === 'in') {
-        updateDrag({ ...drag, previewStartUs: us, moved: true });
+        const snap = snapTimeUs(us, edges, controller.playheadUs, fps, thresholdUs);
+        updateDrag({ ...drag, previewStartUs: snap ? snap.snappedUs : us, snapUs: snap?.targetUs ?? null, moved: true });
       } else {
-        updateDrag({ ...drag, previewDurationUs: Math.max(1, us - drag.previewStartUs), moved: true });
+        const rawEnd = drag.previewStartUs + Math.max(1, us - drag.previewStartUs);
+        const snap = snapTimeUs(rawEnd, edges, controller.playheadUs, fps, thresholdUs);
+        const duration = snap ? Math.max(1, snap.snappedUs - drag.previewStartUs) : Math.max(1, us - drag.previewStartUs);
+        updateDrag({ ...drag, previewDurationUs: duration, snapUs: snap?.targetUs ?? null, moved: true });
       }
     }
   };
@@ -233,12 +261,12 @@ export function Timeline() {
     const found = findClip(clipId);
     if (!found) return;
     if (edge === 'in') {
-      updateDrag({ type: 'trim', clipId, trackId, edge, previewStartUs: found.clip.start, previewDurationUs: found.clip.duration, moved: false });
+      updateDrag({ type: 'trim', clipId, trackId, edge, previewStartUs: found.clip.start, previewDurationUs: found.clip.duration, snapUs: null, moved: false });
     } else if (edge === 'out') {
-      updateDrag({ type: 'trim', clipId, trackId, edge, previewStartUs: found.clip.start, previewDurationUs: found.clip.duration, moved: false });
+      updateDrag({ type: 'trim', clipId, trackId, edge, previewStartUs: found.clip.start, previewDurationUs: found.clip.duration, snapUs: null, moved: false });
     } else {
       const grabOffsetUs = Math.max(0, pointerToUs(e.clientX) - found.clip.start);
-      updateDrag({ type: 'move', clipId, trackId, grabOffsetUs, previewStartUs: found.clip.start, moved: false });
+      updateDrag({ type: 'move', clipId, trackId, grabOffsetUs, previewStartUs: found.clip.start, snapUs: null, moved: false });
     }
   };
 
@@ -357,6 +385,9 @@ export function Timeline() {
             <div className="playhead" style={{ left: usToPx(controller.playheadUs, view) }} onPointerDown={startPlayheadDrag}>
               <span className="playhead-cap" />
             </div>
+            {drag && drag.type !== 'playhead' && drag.snapUs !== null ? (
+              <div className="snap-guide" style={{ left: usToPx(drag.snapUs, view) }} aria-hidden="true" />
+            ) : null}
           </div>
         </div>
       </div>

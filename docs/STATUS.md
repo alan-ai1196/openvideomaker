@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 25). This file is the single living status source; it
+Updated: 2026-08-14 (round 26). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -292,14 +292,24 @@ describes the repository truth and is updated whenever that truth changes.
   caption track on the timeline) plus the honest unconfigured default
   (not advertised, section hidden). Real-model verification awaits a
   configured provider - stated, never implied.
+- **Device Center**: the probed device graph gets a real Studio
+  surface (Devices tab) sharing `ovm doctor`'s logic - friendly first
+  ('Your PC is ready for local AI.' when a GPU was probed), then this
+  computer / video encoding / runtimes / recommendations / warnings,
+  with the raw developer report behind progressive disclosure. The
+  desktop bridge's `ovm:doctor` now returns the graph + the derived
+  recommendations + the formatted report; the browser Studio honestly
+  says diagnostics run in the desktop app. Playwright-verified in the
+  desktop app (RTX 3090 row, ffmpeg encoders, recommendations, raw
+  report, zero errors) and in the browser (honest empty state).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. More verified runner integrations (MuseTalk/avatars next).
-2. The Device Center; installer packaging; long-project
-   performance hardening; local MCP server in the desktop app.
+2. Installer packaging; long-project performance hardening; a local
+   MCP server in the desktop app.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

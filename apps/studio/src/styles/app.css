@@ -1712,6 +1712,96 @@ button.asset-item:hover {
 }
 
 
+/* Device Center */
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.device-headline {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.device-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-raised);
+}
+
+.device-section {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.device-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.device-label {
+  flex: none;
+  width: 74px;
+  color: var(--text-tertiary);
+}
+
+.device-value {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.device-notes {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.device-notes-warn {
+  color: var(--warning, #d9a441);
+}
+
+.device-advanced summary {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.device-report {
+  margin: 8px 0 0;
+  padding: 8px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
 /* Job Center */
 .job-list {
   display: flex;

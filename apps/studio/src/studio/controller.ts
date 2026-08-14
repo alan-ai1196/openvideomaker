@@ -4,7 +4,7 @@ import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
 import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
 import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type EditPlan, type EditScript, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
-import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult } from './desktop';
+import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult, type StudioDoctorReport } from './desktop';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -61,6 +61,8 @@ export class StudioController {
   #jobSeq = 0;
   /** Model ids installed in the local content store (manifest-pinned). */
   #installedModels = new Set<string>();
+  /** The probed device graph + recommendations (Device Center). */
+  #deviceReport: StudioDoctorReport | null = null;
 
   private constructor(session: ProjectSession) {
     this.#session = session;
@@ -142,6 +144,11 @@ export class StudioController {
   /** Whether the desktop app has a configured LLM planner for agent edits. */
   get llmPlannerAvailable(): boolean {
     return this.#desktopRuntime?.llmPlanner ?? false;
+  }
+
+  /** The probed device graph for the Device Center (desktop only). */
+  get deviceReport(): StudioDoctorReport | null {
+    return this.#deviceReport;
   }
 
   get generationModels(): Array<{ capability: string; modelId: string }> {
@@ -262,6 +269,11 @@ export class StudioController {
       };
       this.#generationModels = Array.isArray(gen.models) ? gen.models : [];
       this.#installedModels = new Set((Array.isArray(installed) ? installed : []).map((i) => i.modelId));
+      try {
+        this.#deviceReport = await bridge.runDoctor();
+      } catch {
+        this.#deviceReport = null;
+      }
       this.#emit();
     } catch {
       // Bridge vanished or the main process rejected the call; the flags stay honestly false.

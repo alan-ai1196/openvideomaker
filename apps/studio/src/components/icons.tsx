@@ -63,6 +63,13 @@ export const JobsIcon = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+export const DeviceIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <rect x="4.5" y="4.5" width="7" height="7" rx="1" />
+    <path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3M3.7 3.7l2.1 2.1M10.2 10.2l2.1 2.1M12.3 3.7l-2.1 2.1M5.8 10.2l-2.1 2.1" />
+  </Icon>
+);
+
 export const SunIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}>
     <circle cx="8" cy="8" r="3" />

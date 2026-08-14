@@ -45,6 +45,32 @@ export interface DesktopGenerateResult {
   error: string | null;
 }
 
+/** The probed device graph, as the Device Center consumes it (from ovm-doctor's logic). */
+export interface StudioDeviceGraph {
+  probedAt: string;
+  os: {
+    platform: string;
+    arch: string;
+    release: string;
+    nodeVersion: string;
+    cpuModel: string;
+    logicalCores: number;
+    totalMemoryBytes: number;
+  };
+  gpus: Array<{ vendor: string; name: string; vramBytes?: number; driverVersion?: string; cudaVersion?: string }>;
+  ffmpegVersion: string | null;
+  encoders: Array<{ name: string; codec: string; hardware: boolean }>;
+  runtimes: Array<{ name: string; version: string; command: string }>;
+  capabilities: { videoEncode: boolean; hardwareVideoEncode: boolean; aiRunners: boolean };
+  warnings: string[];
+}
+
+export interface StudioDoctorReport {
+  graph: StudioDeviceGraph;
+  recommendations: string[];
+  report: string;
+}
+
 export interface DesktopRuntimeCapabilities {
   desktop: boolean;
   localPersistence: boolean;
@@ -66,7 +92,7 @@ export interface StudioDesktopBridge {
   capabilities(): Promise<DesktopRuntimeCapabilities>;
   openProject(): Promise<{ project: Project; log: ProjectLog } | null>;
   saveProject(project: Project, log: ProjectLog): Promise<{ ok: boolean; appended?: number; dir?: string; reason?: string }>;
-  runDoctor(): Promise<unknown>;
+  runDoctor(): Promise<StudioDoctorReport>;
   importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo }>>;
   renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
   onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;

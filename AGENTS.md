@@ -220,6 +220,10 @@ real too: the Model Center's Install button runs the content store's
 verified resumable install through ovm:model-install IPC (progress +
 cancel, an ordinary Job Center job), the store's installedModels()
 feeds the live 'Installed' card state, and entries without a verified
-file manifest stay honestly disabled.
-Next: the Device Center, installer packaging, a local MCP server in the
-desktop app, and long-project hardening. See `docs/STATUS.md`.
+file manifest stay honestly disabled. The Device Center (Devices tab)
+surfaces the probed device graph with ovm doctor's logic: friendly
+first ('Your PC is ready for local AI.'), details + recommendations
+behind progressive disclosure, the raw report for developers, and an
+honest 'runs in the desktop app' state in the browser.
+Next: installer packaging, a local MCP server in the desktop app, and
+long-project hardening. See `docs/STATUS.md`.

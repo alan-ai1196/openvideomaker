@@ -83,6 +83,10 @@ const report = await page.evaluate(() => {
 await page.locator('.rail-button[title="Jobs"]').click();
 await page.waitForTimeout(250);
 report.jobsTab = await page.locator('.empty-panel p').first().textContent();
+// Browser honesty: the Device Center says diagnostics run in the desktop app.
+await page.locator('.rail-button[title="Devices"]').click();
+await page.waitForTimeout(250);
+report.devicesTab = await page.locator('.empty-panel p').first().textContent();
 
 console.log(JSON.stringify(report, null, 2));
 await browser.close();

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { attachAsrResult, generatedAsset, importedAsset, mediaClip, ProjectSession } from '@openvideomaker/core';
 import { LlmPlanner } from '@openvideomaker/agent';
 import { ProjectStore } from '@openvideomaker/persistence';
-import { probeDeviceGraph } from '@openvideomaker/devices';
+import { doctorRecommendations, formatDoctor, probeDeviceGraph } from '@openvideomaker/devices';
 import { probeMediaPath, runTool } from '@openvideomaker/media';
 import { buildRenderPlan, RenderJob, runRenderJob } from '@openvideomaker/render';
 import type { GenerationJob } from '@openvideomaker/jobs';
@@ -187,7 +187,10 @@ function registerIpc(): void {
     }
   });
 
-  ipcMain.handle('ovm:doctor', () => probeDeviceGraph());
+  ipcMain.handle('ovm:doctor', async () => {
+    const graph = await probeDeviceGraph();
+    return { graph, recommendations: doctorRecommendations(graph), report: formatDoctor(graph) };
+  });
 
   ipcMain.handle('ovm:import-media', async () => {
     const result = await dialog.showOpenDialog({

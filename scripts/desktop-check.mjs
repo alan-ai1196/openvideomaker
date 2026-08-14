@@ -66,7 +66,7 @@ if (fullLlm) {
   };
 }
 
-const app = await electron.launch({ args: ['.'], cwd: 'apps/desktop', env: launchEnv ?? {} });
+const app = await electron.launch({ args: ['.'], cwd: 'apps/desktop', env: launchEnv ?? process.env });
 // Stub the native open dialog: media import returns our sample wav.
 await app.evaluate(({ dialog }, filePath) => {
   dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filePath] });
@@ -236,6 +236,16 @@ if (fullLlm) {
   report.lanesAfterLlm = await window.locator('.lane').count();
 }
 
+// Device Center: the probed device graph rendered friendly-first.
+await window.locator('.rail-button[title="Devices"]').click();
+await window.waitForTimeout(400);
+report.deviceHeadline = await window.locator('.device-headline').textContent();
+report.deviceCards = await window.locator('.device-card').count();
+report.deviceGpuRows = await window.locator('.device-row', { hasText: '3090' }).count();
+report.deviceFfmpegRow = await window.locator('.device-row', { hasText: 'ffmpeg' }).first().textContent();
+report.deviceRecommendations = await window.locator('.device-notes li').count();
+report.deviceRawAvailable = await window.locator('.device-report').count();
+
 mkdirSync('.research/screenshots', { recursive: true });
 await window.screenshot({ path: '.research/screenshots/desktop-studio.png' });
 report.errors = errors;
@@ -299,6 +309,12 @@ if (fullLlm) {
   if (report.llmPlannerAdvertised !== false) throw new Error('llm planner must not be advertised without configuration');
   if (report.agentAiVisible !== 0) throw new Error('agent AI plan section must be hidden without configuration');
 }
+if (!(report.deviceHeadline ?? '').includes('local AI')) throw new Error('device headline missing: ' + report.deviceHeadline);
+if (report.deviceCards < 3) throw new Error('device cards missing: ' + report.deviceCards);
+if (report.deviceGpuRows < 1) throw new Error('GPU row missing from the Device Center');
+if (!(report.deviceFfmpegRow ?? '').includes('8')) throw new Error('ffmpeg row missing: ' + report.deviceFfmpegRow);
+if (report.deviceRecommendations < 1) throw new Error('device recommendations missing');
+if (report.deviceRawAvailable !== 1) throw new Error('raw report missing');
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');
 if (errors.length > 0) throw new Error('page errors: ' + errors.join(' | '));
 console.log('DESKTOP WINDOW OK');

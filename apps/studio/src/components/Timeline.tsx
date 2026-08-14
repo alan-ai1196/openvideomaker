@@ -92,6 +92,20 @@ export function Timeline() {
 
   const view = { pxPerSec, scrollPx };
 
+  // Long-project virtualization: only clips inside the visible window
+  // (plus a margin) become DOM nodes, so timelines with thousands of
+  // clips stay responsive. The dragged clip is always rendered, even
+  // when the drag leaves the window.
+  const VIRTUAL_MARGIN_PX = 600;
+  // pxToUs is absolute (it re-adds scrollPx), so the window is expressed
+  // in viewport-relative pixels: [-margin, viewportWidth + margin].
+  const visibleStartUs = pxToUs(-VIRTUAL_MARGIN_PX, view);
+  const visibleEndUs = pxToUs(viewportWidth + VIRTUAL_MARGIN_PX, view);
+  const clipIsVisible = (clip: Clip): boolean => {
+    const dragged = drag && drag.type !== 'playhead' ? drag.clipId : null;
+    return clip.id === dragged || (clip.start + clip.duration >= visibleStartUs && clip.start <= visibleEndUs);
+  };
+
   const commitDrag = useCallback(() => {
     const current = dragRef.current;
     if (!current || !sequence) return;
@@ -281,7 +295,7 @@ export function Timeline() {
                   controller.selectClip(null);
                 }}
               >
-                {track.clips.map((clip) => {
+                {track.clips.filter(clipIsVisible).map((clip) => {
                   const pos = clipPosition(clip);
                   const selected = controller.selectedClipId === clip.id;
                   return (

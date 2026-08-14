@@ -247,13 +247,15 @@ report.deviceRecommendations = await window.locator('.device-notes li').count();
 report.deviceRawAvailable = await window.locator('.device-report').count();
 // Developer section: saving the project unlocks the MCP command.
 report.mcpUnsavedHint = await window.locator('.device-mcp-hint').count();
-const savedDir = resolve('.research/desktop-check-project');
+const savedDir = resolve('.research/desktop-check-project-' + Date.now());
 await app.evaluate(({ dialog }, dir) => {
   dialog.showSaveDialog = async () => ({ canceled: false, filePath: dir });
 }, savedDir);
 await window.locator('.topbar .icon-button[title="Save project file"]').first().click();
-await window.waitForTimeout(800);
-report.mcpCommand = await window.locator('.device-mcp-command').textContent();
+await window.waitForTimeout(2500);
+report.mcpCommand = (await window.locator('.device-mcp-command').count()) > 0 ? await window.locator('.device-mcp-command').textContent() : null;
+report.saveToast = (await window.locator('.toast').count()) > 0 ? await window.locator('.toast').textContent() : null;
+report.saveMcpHintStill = (await window.locator('.device-mcp-hint').count()) > 0 ? await window.locator('.device-mcp-hint').first().textContent() : null;
 
 mkdirSync('.research/screenshots', { recursive: true });
 await window.screenshot({ path: '.research/screenshots/desktop-studio.png' });

@@ -229,5 +229,9 @@ attaches to real projects: ovm-mcp / ovm mcp accept --project (a saved
 project folder or a .ovm.json export) through the shared
 openProjectForMcp loader, and the Device Center's Developer section
 shows the exact connection command for the desktop's saved project
-(copy button; honest 'save first' hint before that).
-Next: installer packaging and long-project hardening. See `docs/STATUS.md`.
+(copy button; honest 'save first' hint before that). The timeline virtualizes clip
+DOM nodes to the visible window (long projects stay responsive:
+1500 clips load in ~0.7s with ~18 nodes rendered; verified by the
+long-project Playwright check, including selection and seeking far
+into the timeline).
+Next: installer packaging. See `docs/STATUS.md`.

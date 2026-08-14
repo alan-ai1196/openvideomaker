@@ -406,7 +406,10 @@ export class StudioController {
     if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
     try {
       const result = await bridge.saveProject(this.#session.project as Project, this.#session.exportLog());
-      if (!result.ok) return { ok: false, code: 'desktop', message: result.reason ?? 'save failed' };
+      if (!result.ok) {
+        this.reportError(result.reason ?? 'save failed', 'desktop');
+        return { ok: false, code: 'desktop', message: result.reason ?? 'save failed' };
+      }
       this.#projectDir = result.dir ?? null;
       this.#emit();
       return { ok: true };

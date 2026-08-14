@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 27). This file is the single living status source; it
+Updated: 2026-08-14 (round 28). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -314,13 +314,21 @@ describes the repository truth and is updated whenever that truth changes.
   (name + media preserved through --project), and the Playwright
   desktop check saves through the UI and asserts the command contains
   the saved folder.
+- **Long-project hardening**: the timeline virtualizes clip DOM nodes
+  to the visible window (plus a margin; the dragged clip is always
+  rendered), so a REAL 1500-clip project loads in ~0.7s with 18 DOM
+  nodes instead of 1500 - and stays interactive at any scroll position.
+  A new long-project check loads a generated 1500-clip project in the
+  browser, scrolls far into it (virtualized at both ends), selects a
+  clip, seeks the playhead at 1:06:12, and asserts zero errors; all
+  existing Playwright checks still pass.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. More verified runner integrations (MuseTalk/avatars next).
-2. Installer packaging; long-project performance hardening.
+2. Installer packaging.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

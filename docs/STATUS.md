@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 31). This file is the single living status source; it
+Updated: 2026-08-14 (round 32). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -376,6 +376,22 @@ describes the repository truth and is updated whenever that truth changes.
   now clicks BOTH actions on a 3-scene fixture with two silence gaps
   (remove silences leaves three contiguous pieces, splitting the
   middle piece adds a fourth, Ctrl+Z restores).
+- **Fifth verified integration**: `runners/rmbg` - IS-Net general use
+  (DIS, Apache-2.0) for the `media.background_remove` capability: the
+  official `isnet-general-use.onnx` (178,648,008 bytes, sha256 pinned
+  from the rembg release asset) fetched through the artifact store, an
+  isolated uv runtime (onnxruntime 1.28 + pillow, CPU), and background
+  removal through the runner protocol on a real 1080x1920 face frame
+  (upstream LatentSync demo, plain background): RGBA cutout in ~1.0s
+  with mean subject alpha 0.81 vs 0.0005 in the background corners
+  (alpha gap 0.81). The adapter matches upstream rembg's DisSession
+  preprocessing contract and performs no downloads at runtime. Registry
+  entry `gh/danielgatis/rembg-isnet-general-use` marked `verified`
+  with dated evidence; a re-runnable `runners/rmbg/verify.mjs`
+  (real face frame when the demo clone exists, deterministic synthetic
+  subject otherwise) plus `make_fixture.py`/`analyze.py` objective
+  alpha measurement. The existing RMBG-2.0 entry stays honestly
+  unverified (non-commercial license noted).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

@@ -112,7 +112,19 @@ a runner slice verifies it.
 - **Limitations:** Schnell trades fidelity for speed; the dev variant is higher quality.
 - **Evidence:** Registry metadata (id, Apache-2.0 license) and the ModelScope mirror checked against both hub APIs on 2026-08-13; inference not yet exercised by OpenVideoMaker.
 
-## Enhancement (1)
+## Enhancement (2)
+
+### IS-Net general use
+
+- **Id:** `gh/danielgatis/rembg-isnet-general-use` - **Trust:** verified
+- **Upstream:** [xuebinqin/DIS (weights via danielgatis/rembg releases)](https://github.com/xuebinqin/DIS)
+- **License:** Apache License 2.0 (https://github.com/xuebinqin/DIS) - Upstream code and weights are Apache-2.0.
+- **Capabilities:** media.background_remove
+- **Runner:** local-python (rmbg adapter (runners/rmbg); ONNX Runtime)
+- **Hardware:** cpu/tested, cuda/untested, mlx/untested, rocm/untested
+- **Memory:** Weights ~178 MB; verified at 1080x1920 in ~1.0s on CPU (onnxruntime 1.28).
+- **Limitations:** Saliency-based: the model chooses the subject, so results vary on busy scenes; fine hair and transparency are approximate.; Single-image inputs; frame-by-frame video matting is future work.
+- **Evidence:** Executed 2026-08-14: the official isnet-general-use.onnx (178,648,008 bytes, sha256 pinned) fetched through the OpenVideoMaker artifact store, an isolated uv runtime (onnxruntime 1.28.0 + pillow 12.3.0 + numpy 2.5.2, CPU), and media.background_remove through the runner protocol on a real frame (1080x1920, upstream LatentSync demo: a face on a plain background): RGBA cutout in ~1.0s with mean subject alpha 0.81 (center region) vs 0.0005 in the background corners (alpha gap 0.81). The adapter performs no downloads at runtime.
 
 ### RMBG-2.0
 

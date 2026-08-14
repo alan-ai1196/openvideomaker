@@ -21,11 +21,12 @@ describe('ovm models', () => {
   it('lists all registry models with trust states', () => {
     const { out } = capture(() => runModels(['list']));
     const entries = JSON.parse(out) as Array<{ id: string; trust: string }>;
-    expect(entries.length).toBe(9);
+    expect(entries.length).toBe(10);
     expect(entries.filter((e) => e.trust === 'verified').map((e) => e.id)).toEqual([
       'hf/hexgrad/Kokoro-82M',
       'hf/bytedance/latentsync-1.5',
       'ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
+      'gh/danielgatis/rembg-isnet-general-use',
       'hf/openai/whisper-large-v3',
     ]);
   });

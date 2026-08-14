@@ -259,6 +259,17 @@ ripple-closed jump cuts, whole-clip removal) power the Inspector's
 transcript's speech shown per shot. Both are ordinary undoable,
 replay-deterministic cuts, verified by 5 media + 7 core tests and
 clicked end to end in the desktop Playwright check.
+`runners/rmbg` is the fifth verified integration: IS-Net general use
+(DIS, Apache-2.0) for `media.background_remove` - the official
+isnet-general-use.onnx through the artifact store, an isolated uv
+runtime (onnxruntime, CPU), and background removal through the runner
+protocol verified on a real 1080x1920 face frame (subject alpha 0.81
+vs 0.0005 in the background corners, ~1.0s); the adapter matches
+upstream rembg's DisSession preprocessing and never downloads at
+runtime; registry entry `gh/danielgatis/rembg-isnet-general-use` is
+`verified` with dated evidence and a re-runnable verify script
+(real face frame or deterministic synthetic fixture + objective alpha
+statistics). RMBG-2.0 remains honestly unverified (license noted).
 Next: app icons, code signing, auto-update, macOS/Linux packaging,
 media intelligence Levels 3-4, and further verified runners.
 See `docs/STATUS.md`.

@@ -58,7 +58,7 @@ export type ModelFile = z.infer<typeof ModelFileSchema>;
 
 export const ModelEntrySchema = z.object({
   schemaVersion: z.literal(1),
-  /** Stable id, prefixed by hub: 'hf/<owner>/<repo>' or 'ms/<org>/<name>'. */
+  /** Stable id, prefixed by source: 'hf/<owner>/<repo>', 'ms/<org>/<name>' or 'gh/<owner>/<repo>-<asset>'. */
   id: z.string().min(1),
   displayName: z.string().min(1),
   category: z.enum(['speech', 'lip-sync', 'video-generation', 'images', 'enhancement']),

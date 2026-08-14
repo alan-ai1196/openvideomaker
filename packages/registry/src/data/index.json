@@ -645,6 +645,87 @@
   },
   {
     "schemaVersion": 1,
+    "id": "gh/danielgatis/rembg-isnet-general-use",
+    "displayName": "IS-Net general use",
+    "category": "enhancement",
+    "description": "Background removal for images: IS-Net (DIS general-use) produces an alpha matte through ONNX Runtime.",
+    "upstream": {
+      "project": "xuebinqin/DIS (weights via danielgatis/rembg releases)",
+      "url": "https://github.com/xuebinqin/DIS",
+      "licenseSpdx": "Apache-2.0"
+    },
+    "capabilities": [
+      "media.background_remove"
+    ],
+    "runner": {
+      "kind": "local-python",
+      "notes": "rmbg adapter (runners/rmbg); ONNX Runtime"
+    },
+    "hardware": [
+      {
+        "platform": "cpu",
+        "status": "tested"
+      },
+      {
+        "platform": "cuda",
+        "status": "untested"
+      },
+      {
+        "platform": "mlx",
+        "status": "untested"
+      },
+      {
+        "platform": "rocm",
+        "status": "untested"
+      }
+    ],
+    "memory": {
+      "note": "Weights ~178 MB; verified at 1080x1920 in ~1.0s on CPU (onnxruntime 1.28)."
+    },
+    "precision": [
+      "fp32"
+    ],
+    "license": {
+      "id": "apache-2.0",
+      "name": "Apache License 2.0",
+      "url": "https://github.com/xuebinqin/DIS",
+      "note": "Upstream code and weights are Apache-2.0."
+    },
+    "sources": [
+      {
+        "kind": "http",
+        "baseUrl": "https://github.com/danielgatis/rembg/releases/download/v0.0.0",
+        "files": {
+          "isnet-general-use.onnx": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": "isnet-general-use.onnx",
+        "sha256": "60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a",
+        "sizeBytes": 178648008
+      }
+    ],
+    "limitations": [
+      "Saliency-based: the model chooses the subject, so results vary on busy scenes; fine hair and transparency are approximate.",
+      "Single-image inputs; frame-by-frame video matting is future work."
+    ],
+    "verification": {
+      "trust": "verified",
+      "evidence": "Executed 2026-08-14: the official isnet-general-use.onnx (178,648,008 bytes, sha256 pinned) fetched through the OpenVideoMaker artifact store, an isolated uv runtime (onnxruntime 1.28.0 + pillow 12.3.0 + numpy 2.5.2, CPU), and media.background_remove through the runner protocol on a real frame (1080x1920, upstream LatentSync demo: a face on a plain background): RGBA cutout in ~1.0s with mean subject alpha 0.81 (center region) vs 0.0005 in the background corners (alpha gap 0.81). The adapter performs no downloads at runtime.",
+      "verifiedAt": "2026-08-14"
+    },
+    "updatePolicy": {
+      "kind": "registry-pr",
+      "upstreamWatch": {
+        "kind": "git-release",
+        "url": "https://github.com/danielgatis/rembg"
+      }
+    }
+  },
+  {
+    "schemaVersion": 1,
     "id": "hf/Wan-AI/Wan2.2-T2V-A14B",
     "displayName": "Wan 2.2 (14B)",
     "category": "video-generation",

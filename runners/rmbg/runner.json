@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "rmbg",
+  "version": "0.1.0",
+  "capabilities": [
+    "media.background_remove"
+  ],
+  "models": [
+    "gh/danielgatis/rembg-isnet-general-use"
+  ],
+  "pythonVersion": "3.12",
+  "entry": "runner.py",
+  "modelFiles": {
+    "model": "isnet-general-use.onnx"
+  }
+}

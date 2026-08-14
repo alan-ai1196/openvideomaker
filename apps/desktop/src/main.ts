@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, net, protocol } from 'electron';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readdir, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -103,6 +104,41 @@ function registerMediaProtocol(): void {
   });
 }
 
+/** The OpenVideoMaker-managed home: model store, runtimes, generated outputs. */
+function ovmHome(): string {
+  const root = process.env.OVM_ROOT ?? resourcesRoot;
+  return process.env.OVM_HOME ?? (app.isPackaged ? app.getPath('userData') : join(root, '.research'));
+}
+
+/** Sum file sizes + counts under a directory (bounded to OVM dirs; 0 when missing). */
+async function walkDir(dir: string): Promise<{ bytes: number; files: number }> {
+  let bytes = 0;
+  let files = 0;
+  const stack = [dir];
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    let entries;
+    try {
+      entries = await readdir(current, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (entry.isFile()) {
+        try {
+          bytes += (await stat(full)).size;
+          files += 1;
+        } catch {
+          // File removed between listing and stat: skip.
+        }
+      }
+    }
+  }
+  return { bytes, files };
+}
+
 /**
  * The local generation backend: the SAME GenerationRunner the SDK/CLI
  * use (registry + content store + uv runtimes + runner protocol), driven
@@ -118,7 +154,7 @@ function buildGenerationService(): void {
       console.warn('desktop: generation service unavailable (registry or runners not found)');
       return;
     }
-    const home = process.env.OVM_HOME ?? (app.isPackaged ? app.getPath('userData') : join(root, '.research'));
+    const home = ovmHome();
     generationService = new DesktopGenerationService({
       registryData: JSON.parse(readFileSync(registryPath, 'utf8')),
       storeDir: join(home, 'model-store'),
@@ -340,7 +376,40 @@ function registerIpc(): void {
     }
   });
 
-  ipcMain.handle('ovm:model-install-cancel', (_event, payload: { modelId?: unknown }) => {
+  ipcMain.handle('ovm:storage', async () => {
+    const home = ovmHome();
+    const storeDir = join(home, 'model-store');
+    const models = (generationService?.installedModels() ?? []).map((m) => {
+      const manifest = generationService!.runner.store.manifest(m.modelId, m.revision);
+      const bytes = manifest ? manifest.files.reduce((sum, f) => sum + (f.sizeBytes ?? 0), 0) : 0;
+      return { modelId: m.modelId, bytes };
+    });
+    const runtimes: Array<{ name: string; bytes: number }> = [];
+    try {
+      for (const entry of await readdir(join(home, 'runtimes'))) {
+        const { bytes } = await walkDir(join(home, 'runtimes', entry));
+        runtimes.push({ name: entry, bytes });
+      }
+    } catch {
+      // No runtimes created yet - honest empty list.
+    }
+    const generated = await walkDir(join(home, 'generated'));
+    const partials = await walkDir(join(storeDir, 'partial'));
+    const totalBytes = models.reduce((sum, m) => sum + m.bytes, 0) + runtimes.reduce((sum, r) => sum + r.bytes, 0) + generated.bytes + partials.bytes;
+    return { home, models, runtimes, generated, partials, totalBytes };
+  });
+
+  // Clean ONLY interrupted downloads (resumable .part files). Model
+  // weights, runtimes and generated outputs stay untouched: generated
+  // outputs may be referenced by saved projects.
+  ipcMain.handle('ovm:storage-clean', async () => {
+    const partialsDir = join(ovmHome(), 'model-store', 'partial');
+    const before = await walkDir(partialsDir);
+    rmSync(partialsDir, { recursive: true, force: true });
+    return { removedBytes: before.bytes, removedFiles: before.files };
+  });
+
+    ipcMain.handle('ovm:model-install-cancel', (_event, payload: { modelId?: unknown }) => {
     if (typeof payload?.modelId === 'string') {
       activeInstalls.get(payload.modelId)?.abort();
       return { ok: true };

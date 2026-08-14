@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 36). This file is the single living status source; it
+Updated: 2026-08-14 (round 37). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -448,6 +448,16 @@ describes the repository truth and is updated whenever that truth changes.
   is ever locked in. 5 new core tests; verified in the desktop app
   (five cards, Vertical Short adds exactly two tracks including a
   Captions lane, zero errors).
+- **Storage management**: the Device Center now shows OVM-managed disk
+  usage - per-model weights (manifest-pinned sizes), isolated runtime
+  environments, generated outputs and interrupted downloads with a
+  total (new `ovm:storage` IPC walking ONLY OVM directories), plus a
+  'Clear interrupted downloads' action (`ovm:storage-clean`) that
+  removes resumable .part files and nothing else - models, runtimes
+  and generated outputs (which saved projects may reference) stay
+  untouched. Verified in the desktop app: the card lists the installed
+  models with real sizes, the fake + real partial downloads (1.4 GB)
+  are cleared to 0 B and the button disables itself, zero errors.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

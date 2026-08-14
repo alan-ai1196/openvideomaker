@@ -4,7 +4,7 @@ import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
 import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
 import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type EditPlan, type EditScript, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
-import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult, type StudioDoctorReport } from './desktop';
+import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult, type StudioDoctorReport, type StudioStorageReport } from './desktop';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -63,6 +63,7 @@ export class StudioController {
   #installedModels = new Set<string>();
   /** The probed device graph + recommendations (Device Center). */
   #deviceReport: StudioDoctorReport | null = null;
+  #storageReport: StudioStorageReport | null = null;
   /** The project folder the desktop app has open (for the Developer section). */
   #projectDir: string | null = null;
 
@@ -151,6 +152,11 @@ export class StudioController {
   /** The probed device graph for the Device Center (desktop only). */
   get deviceReport(): StudioDoctorReport | null {
     return this.#deviceReport;
+  }
+
+  /** OVM-managed storage usage (desktop); null until probed. */
+  get storageReport(): StudioStorageReport | null {
+    return this.#storageReport;
   }
 
   /** The desktop project folder (null until the project is saved/opened there). */
@@ -262,7 +268,32 @@ export class StudioController {
     else if (job.desktopId) void bridge.cancelModelInstall(job.desktopId);
   }
 
-  /** Ask the desktop main process what it can actually run; updates capability flags honestly. */
+  /** Refresh the OVM-managed storage usage report. */
+  async refreshStorage(): Promise<void> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return;
+    try {
+      this.#storageReport = await bridge.storage();
+      this.#emit();
+    } catch {
+      this.#storageReport = null;
+    }
+  }
+
+  /** Remove interrupted model downloads (resumable .part files) - nothing else. */
+  async cleanInterruptedDownloads(): Promise<{ removedBytes: number } | null> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return null;
+    try {
+      const result = await bridge.cleanStorage();
+      await this.refreshStorage();
+      return { removedBytes: result.removedBytes };
+    } catch {
+      return null;
+    }
+  }
+
+    /** Ask the desktop main process what it can actually run; updates capability flags honestly. */
   async refreshDesktopCapabilities(): Promise<void> {
     const bridge = getDesktopBridge();
     if (!bridge) return;
@@ -285,6 +316,11 @@ export class StudioController {
         this.#projectDir = (await bridge.projectInfo()).dir;
       } catch {
         this.#projectDir = null;
+      }
+      try {
+        this.#storageReport = await bridge.storage();
+      } catch {
+        this.#storageReport = null;
       }
       this.#emit();
     } catch {

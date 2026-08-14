@@ -55,6 +55,16 @@ export interface StudioMediaAnalysis {
   motionPerShot?: number[];
 }
 
+
+/** OVM-managed storage usage, as the Device Center shows it. */
+export interface StudioStorageReport {
+  home: string;
+  models: Array<{ modelId: string; bytes: number }>;
+  runtimes: Array<{ name: string; bytes: number }>;
+  generated: { bytes: number; files: number };
+  partials: { bytes: number; files: number };
+  totalBytes: number;
+}
 /** The probed device graph, as the Device Center consumes it (from ovm-doctor's logic). */
 export interface StudioDeviceGraph {
   probedAt: string;
@@ -104,6 +114,8 @@ export interface StudioDesktopBridge {
   saveProject(project: Project, log: ProjectLog): Promise<{ ok: boolean; appended?: number; dir?: string; reason?: string }>;
   runDoctor(): Promise<StudioDoctorReport>;
   projectInfo(): Promise<{ dir: string | null }>;
+  storage(): Promise<StudioStorageReport>;
+  cleanStorage(): Promise<{ removedBytes: number; removedFiles: number }>;
   importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo; kind?: 'video' | 'audio' | 'image'; analysis?: StudioMediaAnalysis }>>;
   renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
   onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;

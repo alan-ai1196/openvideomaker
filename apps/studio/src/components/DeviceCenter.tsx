@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 
@@ -10,7 +11,9 @@ import { useI18n } from '../i18n/context';
 export function DeviceCenter() {
   const controller = useStudio();
   const { t } = useI18n();
+  const [cleaning, setCleaning] = useState(false);
   const report = controller.deviceReport;
+  const storage = controller.storageReport;
   if (!report) {
     return (
       <div className="empty-panel">
@@ -85,7 +88,35 @@ export function DeviceCenter() {
         <summary>{t('devices.raw')}</summary>
         <pre className="device-report">{report.report}</pre>
       </details>
-      {controller.capabilities.localPersistence ? (
+      {storage && controller.capabilities.localGeneration ? (
+        <section className="device-card">
+          <h3 className="device-section">{t('devices.section.storage')}</h3>
+          <div className="device-rows">
+            {storage.models.map((model) => (
+              <DeviceRow key={model.modelId} label={model.modelId} value={formatBytes(model.bytes)} />
+            ))}
+            {storage.runtimes.map((runtime) => (
+              <DeviceRow key={runtime.name} label={t('devices.storage.runtime') + ' ' + runtime.name} value={formatBytes(runtime.bytes)} />
+            ))}
+            <DeviceRow label={t('devices.storage.generated')} value={formatBytes(storage.generated.bytes) + ' (' + storage.generated.files + ')'} />
+            <DeviceRow label={t('devices.storage.partials')} value={formatBytes(storage.partials.bytes)} />
+            <DeviceRow label={t('devices.storage.total')} value={formatBytes(storage.totalBytes)} />
+          </div>
+          <button
+            type="button"
+            className="button button-secondary device-clean"
+            disabled={cleaning || storage.partials.bytes === 0}
+            title={t('devices.storage.clean.hint')}
+            onClick={() => {
+              setCleaning(true);
+              void controller.cleanInterruptedDownloads().finally(() => setCleaning(false));
+            }}
+          >
+            {t('devices.storage.clean')}
+          </button>
+        </section>
+      ) : null}
+            {controller.capabilities.localPersistence ? (
         <section className="device-card">
           <h3 className="device-section">{t('devices.section.developer')}</h3>
           {controller.projectDir ? (
@@ -107,6 +138,14 @@ export function DeviceCenter() {
       ) : null}
     </div>
   );
+}
+
+/** Human-friendly byte formatting (KB/MB/GB, one decimal). */
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 ** 3) return (bytes / 1024 ** 3).toFixed(1) + ' GB';
+  if (bytes >= 1024 ** 2) return (bytes / 1024 ** 2).toFixed(1) + ' MB';
+  if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return bytes + ' B';
 }
 
 function DeviceRow({ label, value }: { label: string; value: string }) {

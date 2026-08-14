@@ -1,12 +1,17 @@
 import { _electron as electron } from 'playwright';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 // A real local media file so the desktop import flow can run against it
 // (the native dialog is stubbed to return this path).
 mkdirSync('.research', { recursive: true });
+// A fake interrupted model download so the storage clean action in the
+// Device Center has something real to remove (dev mode uses .research
+// as the OVM home, the same store the desktop app manages).
+mkdirSync('.research/model-store/partial/fake-model', { recursive: true });
+writeFileSync('.research/model-store/partial/fake-model/weights.part', Buffer.alloc(4096));
 const sampleWav = resolve('.research/desktop-check-sample.wav');
 execFileSync('ffmpeg', [
   '-hide_banner', '-loglevel', 'error', '-y',
@@ -384,6 +389,24 @@ report.deviceGpuRows = await window.locator('.device-row', { hasText: '3090' }).
 report.deviceFfmpegRow = await window.locator('.device-row', { hasText: 'ffmpeg' }).first().textContent();
 report.deviceRecommendations = await window.locator('.device-notes li').count();
 report.deviceRawAvailable = await window.locator('.device-report').count();
+// Storage: OVM-managed disk usage, with a clean action for interrupted
+// downloads (models and generated outputs stay untouched).
+report.storageCard = await window.locator('.device-card', { hasText: 'Storage' }).count();
+report.storageModelRows = await window.locator('.device-row', { hasText: 'Kokoro-82M' }).count();
+report.partialsRowVisible = await window.locator('.device-row', { hasText: 'Interrupted downloads' }).count();
+report.cleanButtonPresent = await window.locator('.device-clean').count();
+report.cleanButtonEnabled = report.cleanButtonPresent > 0 ? !(await window.locator('.device-clean').isDisabled()) : null;
+if (report.cleanButtonEnabled) {
+  await window.locator('.device-clean').click();
+  await window.waitForFunction(() => {
+    const row = document.querySelector('.device-row');
+    const rows = Array.from(document.querySelectorAll('.device-row') ?? []);
+    const partialRow = rows.find((r) => (r.textContent ?? '').includes('Interrupted downloads'));
+    return (partialRow?.textContent ?? '').includes('0 B');
+  }, null, { timeout: 15000 });
+  report.cleanButtonAfter = !(await window.locator('.device-clean').isDisabled());
+  report.partialsRowAfter = await window.locator('.device-row', { hasText: 'Interrupted downloads' }).textContent();
+}
 // Developer section: saving the project unlocks the MCP command.
 report.mcpUnsavedHint = await window.locator('.device-mcp-hint').count();
 const savedDir = resolve('.research/desktop-check-project-' + Date.now());
@@ -497,6 +520,12 @@ if (report.deviceGpuRows < 1) throw new Error('GPU row missing from the Device C
 if (!(report.deviceFfmpegRow ?? '').includes('8')) throw new Error('ffmpeg row missing: ' + report.deviceFfmpegRow);
 if (report.deviceRecommendations < 1) throw new Error('device recommendations missing');
 if (report.deviceRawAvailable !== 1) throw new Error('raw report missing');
+if (report.storageCard !== 1) throw new Error('storage card missing from the Device Center: ' + report.storageCard);
+if (report.storageModelRows < 1) throw new Error('installed model sizes missing from the storage card: ' + report.storageModelRows);
+if (report.partialsRowVisible !== 1) throw new Error('interrupted-download row missing: ' + report.partialsRowVisible);
+if (report.cleanButtonPresent !== 1) throw new Error('storage clean button missing');
+if (report.cleanButtonEnabled !== true) throw new Error('clean button should be enabled with a fake partial download present');
+if (report.cleanButtonAfter !== false) throw new Error('clean button should disable after clearing: ' + JSON.stringify({ after: report.cleanButtonAfter, row: report.partialsRowAfter }));
 if (!(report.mcpCommand ?? '').includes('ovm mcp --project')) throw new Error('MCP command missing: ' + report.mcpCommand);
 if (!(report.mcpCommand ?? '').includes('desktop-check-project')) throw new Error('MCP command lacks the project dir: ' + report.mcpCommand);
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');

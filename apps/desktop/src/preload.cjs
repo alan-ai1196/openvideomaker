@@ -40,6 +40,8 @@ const bridge = {
   saveProject: (project, log) => ipcRenderer.invoke('ovm:save-project', { project, log }),
   runDoctor: () => ipcRenderer.invoke('ovm:doctor'),
   projectInfo: () => ipcRenderer.invoke('ovm:project-info'),
+  storage: () => ipcRenderer.invoke('ovm:storage'),
+  cleanStorage: () => ipcRenderer.invoke('ovm:storage-clean'),
 };
 
 contextBridge.exposeInMainWorld('ovm', bridge);

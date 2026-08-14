@@ -308,7 +308,13 @@ one undoable, replay-deterministic transaction ('blank' replaces the
 sequence's tracks, undoably), and the Studio Templates panel shows the
 five presets with a real apply button - templates are ordinary
 editable structures, never locked modes (5 core tests + desktop-check
-click-through: Vertical Short adds exactly two tracks).
+click-through: Vertical Short adds exactly two tracks). The Device
+Center gained storage management: `ovm:storage` walks ONLY
+OVM-managed directories (per-model manifest sizes, runtimes, generated
+outputs, interrupted downloads, total) and `ovm:storage-clean` removes
+resumable .part files and nothing else - models and generated outputs
+stay untouched (desktop-check verified: real 1.4 GB of partials
+cleared to 0 B, the button disables when empty, zero errors).
 Next: code signing, auto-update, macOS/Linux packaging runs, media
 intelligence Level 4, and further verified runners.
 See `docs/STATUS.md`.

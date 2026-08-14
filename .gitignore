@@ -6,6 +6,14 @@ node_modules/
 dist/
 build/
 out/
+# ...but the app icon sources are part of the product identity:
+# un-ignore the desktop buildResources dir, then re-ignore its caches.
+!apps/desktop/build/
+apps/desktop/build/*
+!apps/desktop/build/icon.svg
+!apps/desktop/build/icon.png
+!apps/desktop/build/icon.ico
+apps/desktop/build/.icon-ico/
 release/
 .turbo/
 *.tsbuildinfo

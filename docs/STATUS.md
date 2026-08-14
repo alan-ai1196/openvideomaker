@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 33). This file is the single living status source; it
+Updated: 2026-08-14 (round 34). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -411,6 +411,18 @@ describes the repository truth and is updated whenever that truth changes.
   offering the affordance, the button is live, and the opt-in
   `OVM_CHECK_RMBG=1` click-through runs the real job through the UI
   (Inspector done state, Job Center entry, cutout asset + new track).
+- **App identity**: a real OpenVideoMaker icon - a graphite tile with
+  film-strip tracks, the accent play triangle and a timeline playhead
+  (single SVG source in `apps/desktop/build/icon.svg`, rendered by
+  `scripts/generate-icons.mjs` to a 1024px PNG + a 256px .ico).
+  electron-builder wires it everywhere: the Windows exe, the NSIS
+  installer/uninstaller, macOS and Linux targets, and the dev window
+  (packaged exes carry it in the binary). Verified against the
+  PACKAGED exe with the re-runnable `scripts/icon-check.mjs`: the
+  extracted shell icon matches the source PNG (center diff 11.5, corner
+  14.6 - Electron's default would differ by 100+) with graphite corners
+  (rgb 36/40/48) and the accent-blue play area (rgb 56/92/138). The
+  packaged app still passes the full packaged-check after re-packaging.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

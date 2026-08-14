@@ -15,15 +15,20 @@ extraResources:
       - "**/*"
       - "!**/__pycache__/**"
 win:
+  icon: build/icon.png
   target:
     - nsis
   artifactName: OpenVideoMaker-${version}-setup.${ext}
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
 mac:
+  icon: build/icon.png
   category: public.app-category.video
 linux:
+  icon: build/icon.png
   target:
     - AppImage
   category: AudioVideo

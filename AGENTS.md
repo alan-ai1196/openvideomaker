@@ -284,7 +284,14 @@ vs 0.000 background; the cutout lands in the saved project as a
 generated image asset with provenance); the desktop Playwright check
 finds the still as the only clip offering the affordance with a live
 button, and `OVM_CHECK_RMBG=1` clicks through the REAL job (Inspector
-done state, Job Center entry, cutout asset + new track).
-Next: app icons, code signing, auto-update, macOS/Linux packaging,
-media intelligence Levels 3-4, and further verified runners.
+done state, Job Center entry, cutout asset + new track). The app has a
+real icon: a graphite tile with film-strip tracks, the accent play
+triangle and a timeline playhead (single SVG source in
+`apps/desktop/build/icon.svg`; `scripts/generate-icons.mjs` renders the
+1024px PNG + 256px .ico; electron-builder wires it for the Windows exe,
+the NSIS installer/uninstaller, macOS and Linux, and the dev window).
+Verified against the PACKAGED exe by `scripts/icon-check.mjs` (shell
+icon matches the source PNG; graphite corners + accent-blue play area).
+Next: code signing, auto-update, macOS/Linux packaging runs, media
+intelligence Levels 3-4, and further verified runners.
 See `docs/STATUS.md`.

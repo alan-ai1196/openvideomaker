@@ -393,6 +393,9 @@ function createWindow(): BrowserWindow {
     height: 900,
     backgroundColor: '#10141b',
     show: !process.argv.includes('--smoke'),
+    // Dev-mode window icon; the packaged exe carries the same icon from
+    // electron-builder (win.icon), so no icon option is needed there.
+    ...(app.isPackaged ? {} : { icon: resolve(here, '../build/icon.png') }),
     webPreferences: {
       preload: join(here, 'preload.cjs'),
       contextIsolation: true,

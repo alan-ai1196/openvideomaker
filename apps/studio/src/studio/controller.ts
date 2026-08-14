@@ -15,6 +15,21 @@ export interface MutationResult {
   message?: string;
 }
 
+/** One visible unit of long-running work for the Job Center. */
+export interface StudioJob {
+  id: string;
+  kind: 'generate' | 'render';
+  label: string;
+  state: 'preparing' | 'running' | 'completed' | 'failed' | 'cancelled';
+  progress: number;
+  stage: string;
+  /** The main process's own job id, once the first progress event reports it. */
+  desktopId?: string;
+  error?: string;
+  startedAt: string;
+  finishedAt?: string;
+}
+
 const REGISTRY = Registry.fromData(MODEL_ENTRIES);
 
 const SAMPLE_SENTENCE = 'Make videos with AI, and keep everything editable.';
@@ -41,6 +56,9 @@ export class StudioController {
   #desktopRuntime: { localRender: boolean; localGeneration: boolean; localPersistence: boolean } | null = null;
   /** Capability+model pairs the local generation service can actually run (from runner manifests). */
   #generationModels: Array<{ capability: string; modelId: string }> = [];
+  /** Visible long-running work (the Job Center): generations and renders. */
+  #jobs = new Map<string, StudioJob>();
+  #jobSeq = 0;
 
   private constructor(session: ProjectSession) {
     this.#session = session;
@@ -128,6 +146,58 @@ export class StudioController {
     return this.localGeneration && this.#generationModels.some((m) => m.capability === capability);
   }
 
+  /** Visible long-running work for the Job Center, newest first. */
+  get jobs(): StudioJob[] {
+    return [...this.#jobs.values()].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  }
+
+  #beginJob(kind: StudioJob['kind'], label: string): string {
+    const id = 'job-' + ++this.#jobSeq + '-' + Math.random().toString(36).slice(2, 6);
+    this.#jobs.set(id, { id, kind, label, state: 'preparing', progress: 0, stage: 'preparing', startedAt: new Date().toISOString() });
+    this.#emit();
+    return id;
+  }
+
+  #patchJob(id: string, patch: Partial<StudioJob>): void {
+    const job = this.#jobs.get(id);
+    if (!job) return;
+    this.#jobs.set(id, { ...job, ...patch });
+    this.#emit();
+  }
+
+  #finishJob(id: string, state: 'completed' | 'failed' | 'cancelled', error?: string): void {
+    this.#patchJob(id, { state, error, finishedAt: new Date().toISOString(), progress: state === 'completed' ? 1 : undefined });
+  }
+
+  #adoptGenerationEvent(id: string, event: DesktopGenerateProgress): void {
+    const job = this.#jobs.get(id);
+    if (!job) return;
+    const state: StudioJob['state'] = event.state === 'queued' || event.state === 'installing' || event.state === 'preparing'
+      ? 'preparing'
+      : event.state === 'completed' ? 'completed'
+        : event.state === 'cancelled' ? 'cancelled'
+          : event.state === 'failed' ? 'failed'
+            : 'running';
+    const settled = state === 'completed' || state === 'cancelled' || state === 'failed';
+    this.#patchJob(id, {
+      desktopId: event.jobId,
+      state,
+      progress: event.progress,
+      stage: event.stage,
+      ...(settled ? { finishedAt: new Date().toISOString() } : {}),
+    });
+  }
+
+  /** Best-effort cancellation of visible work (generation or render). */
+  cancelJob(jobId: string): void {
+    const job = this.#jobs.get(jobId);
+    if (!job || job.state === 'completed' || job.state === 'failed' || job.state === 'cancelled') return;
+    const bridge = getDesktopBridge();
+    if (!bridge) return;
+    if (job.kind === 'generate') void bridge.cancelGenerate(job.desktopId ?? job.id);
+    else void bridge.cancelRender(job.desktopId ?? job.id);
+  }
+
   /** Ask the desktop main process what it can actually run; updates capability flags honestly. */
   async refreshDesktopCapabilities(): Promise<void> {
     const bridge = getDesktopBridge();
@@ -207,9 +277,17 @@ export class StudioController {
   ): Promise<MutationResult & { outputPath?: string }> {
     const bridge = getDesktopBridge();
     if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
-    const unsubscribe = bridge.onRenderProgress((progress) => onProgress?.(progress));
+    const project = this.#session.project as Project;
+    const jobId = this.#beginJob('render', 'Render ' + (project.name || 'video'));
+    const unsubscribe = bridge.onRenderProgress((progress) => {
+      const state: StudioJob['state'] = progress.state === 'completed' ? 'completed'
+        : progress.state === 'failed' ? 'failed'
+          : progress.state === 'cancelled' ? 'cancelled'
+            : 'running';
+      this.#patchJob(jobId, { state, progress: progress.progress, desktopId: progress.jobId });
+      onProgress?.(progress);
+    });
     try {
-      const project = this.#session.project as Project;
       const assetPaths: Record<string, string> = {};
       for (const [id, asset] of Object.entries(project.assets)) {
         if (asset.source.kind === 'file') assetPaths[id] = asset.source.path;
@@ -226,8 +304,15 @@ export class StudioController {
           encoderPreference: 'auto',
         },
       });
-      if (result.state === 'completed') return { ok: true, outputPath: result.outputPath };
-      if (result.state === 'cancelled') return { ok: false, code: 'cancelled', message: 'render cancelled' };
+      if (result.state === 'completed') {
+        this.#finishJob(jobId, 'completed');
+        return { ok: true, outputPath: result.outputPath };
+      }
+      if (result.state === 'cancelled') {
+        this.#finishJob(jobId, 'cancelled');
+        return { ok: false, code: 'cancelled', message: 'render cancelled' };
+      }
+      this.#finishJob(jobId, 'failed', result.error ?? undefined);
       this.reportError(result.error ?? 'render failed', 'render');
       return { ok: false, code: 'render', message: result.error ?? 'render failed' };
     } catch (err) {
@@ -563,12 +648,23 @@ export class StudioController {
   // through the typed operation layer, with full provenance.
   // ------------------------------------------------------------------
 
-  async #runDesktopGenerate(request: DesktopGenerateRequest, onProgress?: (progress: DesktopGenerateProgress) => void): Promise<DesktopGenerateResult> {
+  async #runDesktopGenerate(request: DesktopGenerateRequest, jobLabel: string, onProgress?: (progress: DesktopGenerateProgress) => void): Promise<DesktopGenerateResult> {
     const bridge = getDesktopBridge();
     if (!bridge) throw new Error('desktop bridge unavailable');
-    const unsubscribe = bridge.onGenerateProgress((progress) => onProgress?.(progress));
+    const jobId = this.#beginJob('generate', jobLabel);
+    const unsubscribe = bridge.onGenerateProgress((progress) => {
+      this.#adoptGenerationEvent(jobId, progress);
+      onProgress?.(progress);
+    });
     try {
-      return await bridge.generate(request);
+      const result = await bridge.generate(request);
+      if (result.state === 'completed') this.#finishJob(jobId, 'completed');
+      else if (result.state === 'cancelled') this.#finishJob(jobId, 'cancelled');
+      else this.#finishJob(jobId, 'failed', result.error ?? undefined);
+      return result;
+    } catch (err) {
+      this.#finishJob(jobId, 'failed', err instanceof Error ? err.message : String(err));
+      throw err;
     } finally {
       unsubscribe();
     }
@@ -612,6 +708,7 @@ export class StudioController {
           device: options.device ?? 'cpu',
           provenanceInputs: [{ kind: 'text', role: 'script', text: options.text }],
         },
+        options.name ?? 'Generate speech',
         (p) => options.onProgress?.(p.progress, p.stage),
       );
       if (result.state !== 'completed' || !result.provenance) {
@@ -726,6 +823,7 @@ export class StudioController {
           device: 'cuda',
           provenanceInputs: [{ kind: 'audio', role: 'source', assetId }],
         },
+        'Transcribe ' + asset.name,
         (p) => options?.onProgress?.(p.progress, p.stage),
       );
       if (result.state !== 'completed' || !result.provenance) {
@@ -818,6 +916,7 @@ export class StudioController {
             { kind: 'audio', role: 'replacement', assetId: audioAssetId },
           ],
         },
+        'Lip sync ' + videoAsset.name,
         (p) => onProgress?.(p.progress, p.stage),
       );
       if (result.state !== 'completed' || !result.provenance) {
@@ -854,7 +953,12 @@ export class StudioController {
         tx.createTrack({ sequenceId: sequence.id, trackId, kind: 'video', name: 'Lip sync' });
         tx.insertClip({ sequenceId: sequence.id, trackId, clip: mediaClip({ trackId, assetId: asset.id, start: sourceClip.start, duration: durationUs }) });
       });
-      if (!placed.ok) return { ok: true, assetId: asset.id };
+      if (!placed.ok) {
+        // The asset is imported and usable even when timeline placement
+        // failed; surface the placement problem instead of hiding it.
+        console.error('lip-sync placement failed: ' + (placed.message ?? 'unknown') + ' (' + (placed.code ?? 'no code') + ')');
+        this.reportError('synced video imported, but placing it failed: ' + (placed.message ?? 'unknown'), 'generation');
+      }
       return { ok: true, assetId: asset.id };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

@@ -5,14 +5,15 @@ import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import { Button } from './controls';
 import { ModelCenter } from './ModelCenter';
-import { AgentIcon, CaptionsIcon, FilmIcon, GridIcon, PersonIcon, ScriptIcon, SparkIcon, TranscriptIcon, TypeIcon, UploadIcon, WaveIcon } from './icons';
+import { AgentIcon, CaptionsIcon, FilmIcon, GridIcon, JobsIcon, PersonIcon, ScriptIcon, SparkIcon, TranscriptIcon, TypeIcon, UploadIcon, WaveIcon } from './icons';
 import { TranscriptPanel } from './TranscriptPanel';
 import { CharacterPanel } from './CharacterPanel';
 import { AgentPanel } from './AgentPanel';
 import { ScriptPanel } from './ScriptPanel';
+import { JobCenter } from './JobCenter';
 import type { MessageKey } from '../i18n/strings';
 
-type PanelId = 'media' | 'text' | 'captions' | 'transcript' | 'script' | 'audio' | 'avatars' | 'ai' | 'agent' | 'templates';
+type PanelId = 'media' | 'text' | 'captions' | 'transcript' | 'script' | 'audio' | 'avatars' | 'ai' | 'agent' | 'jobs' | 'templates';
 
 const TABS: Array<{ id: PanelId; key: MessageKey; icon: (p: { className?: string }) => ReactElement }> = [
   { id: 'media', key: 'panel.media', icon: (p) => <FilmIcon {...p} /> },
@@ -24,6 +25,7 @@ const TABS: Array<{ id: PanelId; key: MessageKey; icon: (p: { className?: string
   { id: 'avatars', key: 'panel.avatars', icon: (p) => <PersonIcon {...p} /> },
   { id: 'ai', key: 'panel.ai', icon: (p) => <SparkIcon {...p} /> },
   { id: 'agent', key: 'panel.agent', icon: (p) => <AgentIcon {...p} /> },
+  { id: 'jobs', key: 'panel.jobs', icon: (p) => <JobsIcon {...p} /> },
   { id: 'templates', key: 'panel.templates', icon: (p) => <GridIcon {...p} /> },
 ];
 
@@ -139,6 +141,8 @@ export function LeftPanel() {
           <ModelCenter />
         ) : active === 'agent' ? (
           <AgentPanel />
+        ) : active === 'jobs' ? (
+          <JobCenter />
         ) : (
           <EmptyPanel text={t('panel.empty.generic')} hint={t('panel.empty.hint')} />
         )}

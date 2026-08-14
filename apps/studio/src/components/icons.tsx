@@ -56,6 +56,13 @@ export const TrashIcon = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+export const JobsIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <circle cx="8" cy="8" r="5.5" />
+    <path d="M8 5.5V8l1.8 1.2M11.8 11.8L14 14" />
+  </Icon>
+);
+
 export const SunIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}>
     <circle cx="8" cy="8" r="3" />

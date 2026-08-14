@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 22). This file is the single living status source; it
+Updated: 2026-08-14 (round 23). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -252,6 +252,18 @@ describes the repository truth and is updated whenever that truth changes.
   audio options from real assets, zero errors) with an opt-in
   `OVM_CHECK_LIPSYNC=1` click-through that runs the REAL GPU job
   through the UI.
+- **Job Center**: long-running work is visible - every generation and
+  render registers as a uniform job (label, state, progress, stage,
+  cancel) on the new Jobs tab. Generation jobs adopt the main
+  process's job id from the first progress event, so Cancel really
+  cancels the backend job; renders got `ovm:render-cancel` IPC (the
+  main process tracks active RenderJobs). A failed/cancelled job never
+  touches the project - results only ever arrive through the typed
+  operation layer. Verified: the Playwright Electron check sees the
+  real Kokoro voiceover job as Completed in the Job Center, the opt-in
+  full lip-sync run sees it RUNNING with a progress bar + cancel
+  button and then Completed, and the browser Studio shows the honest
+  empty state.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -259,6 +271,9 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. More verified runner integrations (MuseTalk/avatars next).
 2. The LLM planner behind the agent proposal contract.
+3. Model install in the desktop app (Model Center Install becomes
+   real) and the Device Center; installer packaging; long-project
+   performance hardening.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

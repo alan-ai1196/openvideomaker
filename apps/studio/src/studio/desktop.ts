@@ -67,8 +67,9 @@ export interface StudioDesktopBridge {
   saveProject(project: Project, log: ProjectLog): Promise<{ ok: boolean; appended?: number; dir?: string; reason?: string }>;
   runDoctor(): Promise<unknown>;
   importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo }>>;
-  renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null }>;
-  onRenderProgress(listener: (progress: { state: string; progress: number }) => void): () => void;
+  renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
+  onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;
+  cancelRender(jobId: string): Promise<{ ok: boolean }>;
   generate(request: DesktopGenerateRequest): Promise<DesktopGenerateResult>;
   cancelGenerate(jobId: string): Promise<{ ok: boolean }>;
   onGenerateProgress(listener: (progress: DesktopGenerateProgress) => void): () => void;

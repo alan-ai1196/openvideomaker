@@ -12,6 +12,7 @@ const bridge = {
   staticCapabilities: { desktop: true, localPersistence: true, localRender: true, localGeneration: true },
   importMedia: () => ipcRenderer.invoke('ovm:import-media'),
   renderProject: (payload) => ipcRenderer.invoke('ovm:render', payload),
+  cancelRender: (jobId) => ipcRenderer.invoke('ovm:render-cancel', { jobId }),
   onRenderProgress: (listener) => {
     const handler = (_event, progress) => listener(progress);
     ipcRenderer.on('ovm:render-progress', handler);

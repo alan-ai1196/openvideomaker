@@ -73,6 +73,13 @@ await window.locator('.character-generate-line').first().fill('Hello from the de
 await window.locator('.character-generate .button-secondary').first().click();
 await window.waitForSelector('.character-generate-done', { timeout: 180000 });
 report.voiceoverDone = await window.locator('.character-generate-done').first().textContent();
+// Job Center: the finished generation is visible with its state.
+await window.locator('.rail-button[title="Jobs"]').click();
+await window.waitForTimeout(400);
+report.jobCardsAfterVoiceover = await window.locator('.job-card').count();
+report.jobLabelAfterVoiceover = await window.locator('.job-card .job-label').first().textContent();
+report.jobStateAfterVoiceover = await window.locator('.job-card .job-state').first().textContent();
+report.jobKindAfterVoiceover = await window.locator('.job-card .job-kind').first().textContent();
 await window.locator('.rail-button[title="Media"]').click();
 await window.waitForTimeout(400);
 report.assetCountAfterVoiceover = await window.locator('.asset-item').count();
@@ -142,13 +149,30 @@ await window.waitForTimeout(150);
 report.redubButtonEnabled = !(await window.locator('.inspector-redub .button-secondary').isDisabled());
 report.redubButtonLabel = await window.locator('.inspector-redub .button-secondary').textContent();
 if (fullLipSync) {
-  // Opt-in REAL lip-sync through the UI (several minutes on GPU).
+  // Opt-in REAL lip-sync through the UI (several minutes on GPU). The
+  // Job Center must show it running (progress + cancel) and then completed.
   const lanesBefore = await window.locator('.lane').count();
   await window.locator('.inspector-redub .button-secondary').click();
-  await window.waitForSelector('.inspector-ai-done', { timeout: 900000 });
-  report.lipSyncDone = await window.locator('.inspector-ai-done').textContent();
-  report.lanesAfterLipSync = await window.locator('.lane').count();
-  report.lipSyncAddedLane = report.lanesAfterLipSync - lanesBefore;
+  await window.waitForTimeout(1500);
+  await window.locator('.rail-button[title="Jobs"]').click();
+  await window.waitForTimeout(400);
+  report.jobRunningVisible = (await window.locator('.job-card.job-running, .job-card.job-preparing').count()) > 0;
+  report.jobProgressVisible = (await window.locator('.job-card .job-progress-bar').count()) > 0;
+  report.jobCancelVisible = (await window.locator('.job-card .button-secondary').count()) > 0;
+  // Wait for THIS job to complete (earlier completed jobs exist).
+  await window.waitForSelector('.job-card.job-completed:has-text("Lip sync")', { timeout: 900000 });
+  report.lipSyncDone = 'completed in the Job Center';
+  // The placement transaction lands moments after the job completes; poll
+  // instead of throwing so the report always prints diagnostics.
+  const laneDeadline = Date.now() + 30000;
+  let lanesNow = await window.locator('.lane').count();
+  while (lanesNow === lanesBefore && Date.now() < laneDeadline) {
+    await window.waitForTimeout(1000);
+    lanesNow = await window.locator('.lane').count();
+  }
+  report.lanesAfterLipSync = lanesNow;
+  report.lipSyncAddedLane = lanesNow - lanesBefore;
+  report.lipSyncToast = (await window.locator('.toast').count()) > 0 ? await window.locator('.toast').textContent() : null;
 } else {
   report.lipSyncDone = 'skipped (OVM_CHECK_LIPSYNC=1 to run the full GPU job)';
 }
@@ -188,8 +212,15 @@ if (report.redubSectionVisible !== 1) throw new Error('redub section missing fro
 if (!(report.redubAudioOptions ?? []).some((o) => o.includes('voiceover'))) throw new Error('voiceover missing from redub audio options: ' + JSON.stringify(report.redubAudioOptions));
 if (report.redubButtonEnabled !== true) throw new Error('lip sync button not live');
 if (!(report.redubButtonLabel ?? '').includes('Lip sync')) throw new Error('lip sync label missing: ' + report.redubButtonLabel);
+if (report.jobCardsAfterVoiceover !== 1) throw new Error('voiceover job missing from the Job Center: ' + report.jobCardsAfterVoiceover);
+if (!(report.jobLabelAfterVoiceover ?? '').includes('voiceover')) throw new Error('job label missing: ' + report.jobLabelAfterVoiceover);
+if (report.jobStateAfterVoiceover !== 'Completed') throw new Error('job state wrong: ' + report.jobStateAfterVoiceover);
+if (report.jobKindAfterVoiceover !== 'AI') throw new Error('job kind wrong: ' + report.jobKindAfterVoiceover);
 if (fullLipSync) {
-  if (!(report.lipSyncDone ?? '').includes('new track')) throw new Error('real lip-sync did not complete: ' + report.lipSyncDone);
+  if (!(report.lipSyncDone ?? '').includes('Job Center')) throw new Error('real lip-sync did not complete: ' + report.lipSyncDone);
+  if (report.jobRunningVisible !== true) throw new Error('running lip-sync job not visible in the Job Center');
+  if (report.jobProgressVisible !== true) throw new Error('job progress bar missing');
+  if (report.jobCancelVisible !== true) throw new Error('job cancel button missing');
   if (report.lipSyncAddedLane !== 1) throw new Error('lip-sync track missing: ' + report.lipSyncAddedLane);
 }
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');

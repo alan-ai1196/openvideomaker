@@ -205,5 +205,10 @@ flow (select a talking-head clip, pick replacement audio, and the
 Inspector's AI actions run avatar.lip_sync through the bridge - the
 synced video lands on a new 'Lip sync' track with full provenance;
 opt-in OVM_CHECK_LIPSYNC=1 click-through runs the REAL GPU job
-through the UI).
+through the UI). The Job Center (Jobs tab) makes every long-running
+unit of work visible with progress and cancellation: generations and
+renders register uniform jobs (the render path gained
+ovm:render-cancel IPC), generation jobs adopt the backend job id from
+the first progress event so cancel reaches the real job, and failed
+or cancelled work never touches the project.
 Next: the LLM planner behind the proposal contract. See `docs/STATUS.md`.

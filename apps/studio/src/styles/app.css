@@ -1712,6 +1712,96 @@ button.asset-item:hover {
 }
 
 
+/* Job Center */
+.job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.job-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-raised);
+}
+
+.job-card.job-failed {
+  border-color: var(--danger, #d9534f);
+}
+
+.job-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.job-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-state {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.job-completed .job-state {
+  color: var(--success, #3fb68b);
+}
+
+.job-failed .job-state {
+  color: var(--danger, #d9534f);
+}
+
+.job-progress {
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--bg-inset);
+  overflow: hidden;
+}
+
+.job-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.job-error {
+  margin: 8px 0 0;
+  font-size: 10px;
+  color: var(--danger, #d9534f);
+  line-height: 1.4;
+}
+
+.job-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.job-kind {
+  flex: 1;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.job-foot .button {
+  height: 24px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
 /* Agent panel */
 .agent-list {
   display: flex;

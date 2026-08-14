@@ -78,5 +78,11 @@ const report = await page.evaluate(() => {
   return results;
 });
 
+// Browser honesty: the Jobs tab exists and shows the empty state (no
+// local jobs can run in the browser).
+await page.locator('.rail-button[title="Jobs"]').click();
+await page.waitForTimeout(250);
+report.jobsTab = await page.locator('.empty-panel p').first().textContent();
+
 console.log(JSON.stringify(report, null, 2));
 await browser.close();

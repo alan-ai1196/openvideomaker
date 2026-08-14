@@ -31,6 +31,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const studioDist = resolve(here, '../../studio/dist');
 let currentProjectDir: string | null = null;
 let generationService: DesktopGenerationService | null = null;
+const activeRenders = new Map<string, RenderJob>();
 
 // Privileged before app ready: the renderer may stream local media files
 // through this protocol. It never serves arbitrary files - see the
@@ -202,11 +203,21 @@ function registerIpc(): void {
       if (result.canceled || !result.filePath) return { state: 'cancelled', outputPath: undefined, error: null };
       outputPath = result.filePath;
     }
+    const jobId = 'render-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
     const job = await renderProjectLocal({ ...payload, outputPath }, (progress) => {
-      if (!event.sender.isDestroyed()) event.sender.send('ovm:render-progress', progress);
-    });
+      if (!event.sender.isDestroyed()) event.sender.send('ovm:render-progress', { ...progress, jobId });
+    }, jobId);
+    activeRenders.delete(jobId);
     if (job.state === 'completed' && outputPath) allowMediaPath(outputPath);
-    return { state: job.state, outputPath: job.state === 'completed' ? job.outputPath : undefined, error: job.error };
+    return { state: job.state, outputPath: job.state === 'completed' ? job.outputPath : undefined, error: job.error, jobId };
+  });
+
+  ipcMain.handle('ovm:render-cancel', (_event, payload: { jobId?: unknown }) => {
+    if (typeof payload?.jobId !== 'string') return { ok: false };
+    const job = activeRenders.get(payload.jobId);
+    if (!job) return { ok: false };
+    job.cancel();
+    return { ok: true };
   });
 
   ipcMain.handle('ovm:generate', async (event, payload) => {
@@ -264,14 +275,15 @@ interface RenderPayload {
 }
 
 /** Shared by the IPC handler and the smoke test: plan -> ffmpeg -> job. */
-async function renderProjectLocal(payload: RenderPayload, onProgress?: (progress: { state: string; progress: number }) => void): Promise<RenderJob> {
+async function renderProjectLocal(payload: RenderPayload, onProgress?: (progress: { state: string; progress: number }) => void, jobId = 'desktop-render'): Promise<RenderJob> {
   if (!payload.outputPath) throw new Error('render requires an outputPath');
   const plan = await buildRenderPlan(
     payload.project,
     { ...payload.options, outputPath: payload.outputPath },
     (assetId) => payload.assetPaths[assetId] ?? null,
   );
-  const job = new RenderJob('desktop-render');
+  const job = new RenderJob(jobId);
+  activeRenders.set(jobId, job);
   job.subscribe((event) => onProgress?.({ state: event.state, progress: event.progress }));
   return runRenderJob(plan, job);
 }

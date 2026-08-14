@@ -890,6 +890,27 @@
   color: var(--accent);
   border-color: var(--accent);
 }
+.shot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.shot-action {
+  font-size: 11px;
+}
+
+.shot-text {
+  display: block;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 .clip-captions {
   position: absolute;

@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { analyzeMedia, detectShots, detectAudioRegions, runTool } from '@openvideomaker/media';
+import { analyzeMedia, detectShotMotion, detectShots, detectAudioRegions, runTool } from '@openvideomaker/media';
 
 const dir = mkdtempSync(join(tmpdir(), 'ovm-intel-'));
 const videoPath = join(dir, 'scenes.mp4');
@@ -60,5 +60,28 @@ describe('media intelligence level 1', () => {
     expect(analysis.keyframeAtUs).toHaveLength(analysis.shots.length);
     expect(analysis.durationUs).toBeGreaterThan(2_500_000);
     for (const point of analysis.keyframeAtUs) expect(point).toBeGreaterThan(0);
+  }, 120_000);
+});
+
+describe('media intelligence level 2 motion', () => {
+  it('measures near-zero motion for static color shots', async () => {
+    const shots = await detectShots(videoPath, { durationUs: VIDEO_DURATION_US });
+    const motion = await detectShotMotion(videoPath, shots);
+    expect(motion).toHaveLength(shots.length);
+    for (const score of motion) expect(score).toBeLessThan(1.0);
+  }, 120_000);
+
+  it('measures real motion on a moving pattern', async () => {
+    const movingPath = join(dir, 'moving.mp4');
+    const made = await runTool('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-y',
+      '-f', 'lavfi', '-i', 'testsrc2=duration=2:size=320x180:rate=25',
+      '-c:v', 'libx264', movingPath,
+    ]);
+    if (made.code !== 0) throw new Error('moving fixture failed: ' + made.stderr);
+    const shots = await detectShots(movingPath, { durationUs: 2_000_000 });
+    expect(shots.length).toBeGreaterThanOrEqual(1);
+    const motion = await detectShotMotion(movingPath, shots);
+    expect(motion[0]).toBeGreaterThan(2.0);
   }, 120_000);
 });

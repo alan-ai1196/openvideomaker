@@ -1,4 +1,4 @@
-import { attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, rippleDeleteClip, splitClipAt, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, removeRangesFromClip, rippleDeleteClip, splitClipAt, splitClipAtTimes, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
 import type { MediaInfo } from '@openvideomaker/schema';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
@@ -721,6 +721,80 @@ export class StudioController {
       return true;
     }
     return false;
+  }
+
+  // ------------------------------------------------------------------
+  // Shot-based editing. The shot/silence structure comes from the
+  // session-scoped media intelligence analysis (desktop import); the
+  // edits themselves are ordinary typed operations, so they are fully
+  // undoable and replayable like any other cut.
+  // ------------------------------------------------------------------
+
+  #selectedClip(): Extract<import('@openvideomaker/schema').Clip, { kind: 'media' }> | undefined {
+    const clipId = this.#selectedClipId;
+    if (!clipId) return undefined;
+    const sequence = this.activeSequence();
+    if (!sequence) return undefined;
+    for (const track of sequence.tracks) {
+      const clip = track.clips.find((c) => c.id === clipId);
+      if (clip && clip.kind === 'media') return clip as Extract<import('@openvideomaker/schema').Clip, { kind: 'media' }>;
+    }
+    return undefined;
+  }
+
+  /** Split the selected media clip at every shot boundary inside it. */
+  splitSelectedAtShots(): boolean {
+    const clip = this.#selectedClip();
+    if (!clip) return false;
+    const analysis = this.mediaCache.get(clip.assetId).analysis;
+    const shots = analysis?.shots;
+    if (!shots || shots.length < 2) return false;
+    const sequence = this.activeSequence();
+    if (!sequence) return false;
+    const boundaries: number[] = [];
+    for (let i = 1; i < shots.length; i += 1) {
+      const offsetUs = shots[i]!.startUs - clip.inPoint;
+      if (offsetUs <= 0 || offsetUs >= clip.duration / clip.speed) continue;
+      boundaries.push(Math.round(clip.start + offsetUs * clip.speed));
+    }
+    if (boundaries.length === 0) return false;
+    const result = splitClipAtTimes(this.#session, sequence.id, clip.id, boundaries);
+    if (!result || result.splits === 0) return false;
+    this.#selectedClipId = result.lastPieceId;
+    this.#emit();
+    return true;
+  }
+
+  /**
+   * Remove the silence ranges of the selected media clip (asset-space
+   * audio analysis converted to timeline positions) and ripple-close the
+   * gaps. Returns the removed duration, or null when nothing applied.
+   */
+  removeSilenceFromSelected(): { removedUs: number; removedPieces: number } | null {
+    const clip = this.#selectedClip();
+    if (!clip) return null;
+    const analysis = this.mediaCache.get(clip.assetId).analysis;
+    const silentRegions = analysis?.audioRegions?.filter((r) => r.silent) ?? [];
+    if (silentRegions.length === 0) return null;
+    const sequence = this.activeSequence();
+    if (!sequence) return null;
+    const srcStart = clip.inPoint;
+    const srcEnd = clip.inPoint + clip.duration / clip.speed;
+    const ranges: Array<{ start: number; end: number }> = [];
+    for (const region of silentRegions) {
+      const s = Math.max(region.startUs, srcStart);
+      const e = Math.min(region.endUs, srcEnd);
+      if (e <= s) continue;
+      ranges.push({
+        start: Math.round(clip.start + (s - srcStart) * clip.speed),
+        end: Math.round(clip.start + (e - srcStart) * clip.speed),
+      });
+    }
+    const result = removeRangesFromClip(this.#session, sequence.id, clip.id, ranges);
+    if (!result || result.removedPieces === 0) return null;
+    this.#selectedClipId = result.remaining[0] ?? null;
+    this.#emit();
+    return { removedUs: result.removedUs, removedPieces: result.removedPieces };
   }
 
   exportProject(): string {

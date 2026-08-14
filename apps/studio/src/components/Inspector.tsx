@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AssetId, Clip } from '@openvideomaker/schema';
+import { alignTranscriptToShots } from '@openvideomaker/media/shot-analysis';
 import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import { Button } from './controls';
@@ -17,30 +18,70 @@ function findSelectedClip(controller: ReturnType<typeof useStudio>): Clip | unde
   return undefined;
 }
 
-/** Media intelligence Level 1: clickable shot list for the selected clip. */
+/**
+ * Media intelligence: clickable shot list for the selected clip, with the
+ * durable transcript's speech aligned per shot (Level 2 view over the
+ * transcript - never a copy), plus the two shot-based edit commands:
+ * split at shots and remove silences. Both run through the core operation
+ * layer, so they are ordinary undoable edits.
+ */
 function ShotsSection({ controller, clip }: { controller: ReturnType<typeof useStudio>; clip: Extract<Clip, { kind: 'media' }> }) {
   const { t } = useI18n();
   const cached = controller.mediaCache.get(clip.assetId);
   const shots = cached.analysis?.shots;
-  if (!shots || shots.length < 2) return null;
   const visibleDurationUs = clip.duration / clip.speed;
+  const transcript = Object.values(controller.project.transcripts).find((tr) => tr.assetId === clip.assetId);
+  const shotTexts = transcript && shots
+    ? alignTranscriptToShots(shots, transcript.segments.map((seg) => ({ startUs: seg.startUs, endUs: seg.endUs, text: seg.text })))
+    : null;
+  const srcStart = clip.inPoint;
+  const srcEnd = clip.inPoint + visibleDurationUs;
+  let silenceUs = 0;
+  for (const region of cached.analysis?.audioRegions ?? []) {
+    if (!region.silent) continue;
+    const s = Math.max(region.startUs, srcStart);
+    const e = Math.min(region.endUs, srcEnd);
+    if (e > s) silenceUs += e - s;
+  }
+  const canSplit = !!shots && shots.length >= 2 && shots.some((shot, i) => {
+    if (i === 0) return false;
+    const offsetUs = shot.startUs - clip.inPoint;
+    return offsetUs > 0 && offsetUs < visibleDurationUs;
+  });
+  if ((!shots || shots.length < 2) && silenceUs === 0) return null;
   return (
     <div className="field">
-      <span className="field-label">{t('inspector.shots')} ({shots.length})</span>
-      <ul className="shot-list">
-        {shots.map((shot, index) => {
-          const offsetUs = shot.startUs - clip.inPoint;
-          if (offsetUs < 0 || offsetUs > visibleDurationUs) return null;
-          const atUs = Math.round(clip.start + offsetUs * clip.speed);
-          return (
-            <li key={index}>
-              <button type="button" className="shot-item" title={t('inspector.shots.hint')} onClick={() => controller.setPlayhead(atUs)}>
-                {(shot.startUs / 1_000_000).toFixed(1)}s
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      <span className="field-label">{t('inspector.shots')}{shots ? ` (${shots.length})` : ''}</span>
+      {shots && shots.length >= 2 ? (
+        <ul className="shot-list">
+          {shots.map((shot, index) => {
+            const offsetUs = shot.startUs - clip.inPoint;
+            if (offsetUs < 0 || offsetUs > visibleDurationUs) return null;
+            const atUs = Math.round(clip.start + offsetUs * clip.speed);
+            const text = shotTexts?.[index]?.text ?? '';
+            return (
+              <li key={index}>
+                <button type="button" className="shot-item" title={t('inspector.shots.hint')} onClick={() => controller.setPlayhead(atUs)}>
+                  {(shot.startUs / 1_000_000).toFixed(1)}s
+                  {text ? <span className="shot-text">“{text}”</span> : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      <div className="shot-actions">
+        {canSplit ? (
+          <button type="button" className="button button-secondary shot-action" title={t('inspector.shots.split.hint')} onClick={() => controller.splitSelectedAtShots()}>
+            {t('inspector.shots.split')}
+          </button>
+        ) : null}
+        {silenceUs > 0 ? (
+          <button type="button" className="button button-secondary shot-action" title={t('inspector.shots.removeSilence.hint')} onClick={() => controller.removeSilenceFromSelected()}>
+            {t('inspector.shots.removeSilence')} (-{(silenceUs / 1_000_000).toFixed(1)}s)
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

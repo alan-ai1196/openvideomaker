@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 30). This file is the single living status source; it
+Updated: 2026-08-14 (round 31). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -353,6 +353,29 @@ describes the repository truth and is updated whenever that truth changes.
   docs/research/musetalk-mmpose-blocker.md records the analysis; no
   runner is shipped, so the Studio honestly reports 'no runner
   adapter' instead of pretending support.
+- **Shot-based editing + media intelligence Level 2**: the shot
+  structure now drives real edits - `splitClipAtTimes` and
+  `removeRangesFromClip` core commands (split at N times in one
+  atomic transaction; remove clamped/merged timeline ranges with
+  ripple-close, head/tail trims included) with deterministic-replay
+  tests - and Level 2 analysis stays model-free and pure:
+  transcript-to-shot alignment (`alignTranscriptToShots`), per-shot
+  speech flags from audio regions, per-shot motion via ffmpeg
+  signalstats YDIF (`detectShotMotion` / `analyzeMediaLevel2`, one
+  extra decode pass on desktop import), and `classifyShots`
+  (speech/motion/still heuristics). The Inspector's shot list shows
+  the durable transcript's speech per shot and gains two actions:
+  'Split at shots' and 'Remove silences (-0.8s)' - both run through
+  the core operation layer like any cut (undo/redo, replay), and
+  silence removal ripple-closes gaps into jump cuts. The pure
+  analysis functions ship as `@openvideomaker/media/shot-analysis`
+  so the browser bundle never touches ffmpeg. Verified: 5 new media
+  tests (alignment/classification + static-vs-moving motion fixtures),
+  7 new core tests (multi-split, interior/head/tail/whole-clip
+  removal, undo/replay determinism), and the desktop Playwright check
+  now clicks BOTH actions on a 3-scene fixture with two silence gaps
+  (remove silences leaves three contiguous pieces, splitting the
+  middle piece adds a fourth, Ctrl+Z restores).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

@@ -1,6 +1,6 @@
 # Media intelligence: transcripts today, layered understanding next
 
-Status: matches current code (round 11).
+Status: matches current code (round 31).
 
 ## What exists now: transcripts (level 1)
 
@@ -26,14 +26,27 @@ Integration:
   text inline (typed ops), sync captions. Browser mode edits
   transcripts honestly; transcription itself runs in the desktop app.
 
-## Planned layers (honest: not implemented yet)
+## Layer ladder
 
 Level 0: file metadata - probed at import (`@openvideomaker/media`).
 
-Level 1: shots, audio structure, keyframes - not implemented; the
-analyzer abstraction (capability-based, lazy, background) will own it.
+Level 1 (round 30): shots, audio structure, keyframes - ffmpeg-derived
+on desktop import (scene-change detection, silencedetect, shot
+midpoints), session-scoped presentation data.
 
-Level 2: scene summaries, speaker/action segments - not implemented.
+Level 2 (round 31): shot-scoped speech and activity - pure, model-free
+functions in `@openvideomaker/media/shot-analysis`:
+`alignTranscriptToShots` maps durable transcript segments onto shots
+by time overlap, `shotsWithSpeech` derives per-shot speech flags from
+audio regions, `detectShotMotion` measures per-shot inter-frame luma
+difference (ffmpeg signalstats YDIF, one extra decode pass), and
+`classifyShots` labels shots speech/motion/still from those signals.
+The shot structure also drives real edits: core `splitClipAtTimes`
+and `removeRangesFromClip` (ripple-closed silence removal) power the
+Inspector's shot actions. "Scene summaries" in the LLM sense are NOT
+claimed here: the per-shot text is verbatim transcript overlap, and
+speech/action classification is documented heuristics - no model, no
+summarization.
 
 Level 3: entities/topics/semantic search - not implemented.
 

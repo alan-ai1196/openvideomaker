@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./shot-analysis": {
+      "types": "./dist/shotAnalysis.d.ts",
+      "import": "./dist/shotAnalysis.js"
     }
   },
   "scripts": {

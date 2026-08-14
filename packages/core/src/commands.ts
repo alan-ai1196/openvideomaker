@@ -79,6 +79,146 @@ export function splitClipAt(session: ProjectSession, sequenceId: SequenceId, cli
   });
   return rightId;
 }
+
+/**
+ * Split one clip at several absolute timeline times in one atomic
+ * transaction (shot boundaries, silence edges, ...). Times outside the
+ * clip or at its edges are ignored; duplicates split once. Returns the
+ * number of splits applied and the rightmost piece's id (the original
+ * clip id when nothing was split).
+ */
+export interface SplitTimesResult {
+  splits: number;
+  lastPieceId: ClipId;
+}
+
+export function splitClipAtTimes(session: ProjectSession, sequenceId: SequenceId, clipId: ClipId, atUsList: number[]): SplitTimesResult | null {
+  const sequence = session.project.sequences[sequenceId];
+  if (!sequence) return null;
+  let clip: { start: number; duration: number } | undefined;
+  for (const track of sequence.tracks) {
+    const found = track.clips.find((c) => c.id === clipId);
+    if (found) { clip = found; break; }
+  }
+  if (!clip) return null;
+  const end = clip.start + clip.duration;
+  const times = [...new Set(atUsList.filter((t) => Number.isFinite(t) && t > clip.start && t < end))].sort((a, b) => a - b);
+  if (times.length === 0) return { splits: 0, lastPieceId: clipId };
+  let lastPieceId: ClipId = clipId;
+  session.transaction((tx) => {
+    let currentId: ClipId = clipId;
+    let currentStart = clip.start;
+    for (const t of times) {
+      const leftId = tx.newClipId();
+      const rightId = tx.newClipId();
+      tx.splitClip({ sequenceId, clipId: currentId, at: Math.round(t - currentStart), leftClipId: leftId, rightClipId: rightId });
+      currentId = rightId;
+      currentStart = t;
+    }
+    lastPieceId = currentId;
+  });
+  return { splits: times.length, lastPieceId };
+}
+
+/**
+ * Remove timeline ranges from one clip and ripple-close the gaps: the
+ * clip is split at every range edge and each covered piece is removed
+ * with the standard ripple shift (every later clip on the track moves
+ * left), so silences become jump cuts in one atomic, undoable
+ * transaction. Ranges are clamped to the clip and merged when they
+ * overlap; ranges touching the edges trim the head/tail, and a range
+ * covering the whole clip removes it entirely.
+ */
+export interface RemoveRangesResult {
+  /** Boundary pieces removed (at least 1 when anything changed). */
+  removedPieces: number;
+  /** Total timeline microseconds removed from the track (ripple-closed). */
+  removedUs: number;
+  /** Remaining pieces in timeline order (empty when the clip was fully removed). */
+  remaining: ClipId[];
+}
+
+export function removeRangesFromClip(session: ProjectSession, sequenceId: SequenceId, clipId: ClipId, ranges: Array<{ start: number; end: number }>): RemoveRangesResult | null {
+  const sequence = session.project.sequences[sequenceId];
+  if (!sequence) return null;
+  let clip: { start: number; duration: number } | undefined;
+  let trackId = '';
+  for (const track of sequence.tracks) {
+    const found = track.clips.find((c) => c.id === clipId);
+    if (found) { clip = found; trackId = track.id; break; }
+  }
+  if (!clip) return null;
+  const start = clip.start;
+  const end = clip.start + clip.duration;
+  const merged: Array<{ start: number; end: number }> = [];
+  for (const r of [...ranges].sort((a, b) => a.start - b.start || a.end - b.end)) {
+    const s = Math.max(r.start, start);
+    const e = Math.min(r.end, end);
+    if (e <= s) continue;
+    const last = merged[merged.length - 1];
+    if (last && s <= last.end) last.end = Math.max(last.end, e);
+    else merged.push({ start: s, end: e });
+  }
+  if (merged.length === 0) return { removedPieces: 0, removedUs: 0, remaining: [clipId] };
+  const boundaries = [start];
+  for (const r of merged) boundaries.push(r.start, r.end);
+  boundaries.push(end);
+  const sorted = [...new Set(boundaries)].sort((a, b) => a - b);
+  const pieceSpans: Array<{ start: number; end: number }> = [];
+  const covered: boolean[] = [];
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const s = sorted[i]!;
+    const e = sorted[i + 1]!;
+    if (e <= s) continue;
+    pieceSpans.push({ start: s, end: e });
+    covered.push(merged.some((r) => s >= r.start && e <= r.end));
+  }
+  // Later clips on the same track (original geometry; tracks do not
+  // overlap, so none of them starts inside a removed range).
+  const otherClips = sequence.tracks
+    .find((t) => t.id === trackId)!.clips
+    .filter((c) => c.id !== clipId)
+    .map((c) => ({ id: c.id, start: c.start }));
+  const pieceIds: ClipId[] = [];
+  const remaining: ClipId[] = [];
+  let removedPieces = 0;
+  let removedUs = 0;
+  session.transaction((tx) => {
+    // Split into boundary pieces (ascending; the right piece carries on).
+    let currentId: ClipId = clipId;
+    let currentStart = start;
+    for (let i = 0; i < pieceSpans.length; i += 1) {
+      const span = pieceSpans[i]!;
+      if (i === pieceSpans.length - 1) { pieceIds.push(currentId); break; }
+      const leftId = tx.newClipId();
+      const rightId = tx.newClipId();
+      tx.splitClip({ sequenceId, clipId: currentId, at: span.end - currentStart, leftClipId: leftId, rightClipId: rightId });
+      pieceIds.push(leftId);
+      currentId = rightId;
+      currentStart = span.end;
+    }
+    // Remove covered pieces ascending, ripple-shifting everything later.
+    let removedSoFar = 0;
+    for (let i = 0; i < pieceSpans.length; i += 1) {
+      const span = pieceSpans[i]!;
+      if (!covered[i]) { remaining.push(pieceIds[i]!); continue; }
+      const dur = span.end - span.start;
+      tx.removeClip({ sequenceId, clipId: pieceIds[i]! });
+      for (const other of otherClips) {
+        if (other.start >= span.end) tx.moveClip({ sequenceId, clipId: other.id, start: other.start - removedSoFar - dur });
+      }
+      for (let j = 0; j < pieceSpans.length; j += 1) {
+        if (j === i || covered[j] || pieceSpans[j]!.start < span.end) continue;
+        tx.moveClip({ sequenceId, clipId: pieceIds[j]!, start: pieceSpans[j]!.start - removedSoFar - dur });
+      }
+      removedSoFar += dur;
+      removedPieces += 1;
+      removedUs += dur;
+    }
+  });
+  return { removedPieces, removedUs, remaining };
+}
+
 /**
  * Insert edit (ripple insert): split whatever contains the insertion
  * point, then shift everything from that point right by the new clip's

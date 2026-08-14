@@ -18,15 +18,22 @@ execFileSync('ffmpeg', [
 // click-through (OVM_CHECK_LIPSYNC=1) needs a face, so it uses a trimmed
 // upstream demo clip when the research clone is present.
 const lipSyncVideo = resolve('.research/desktop-check-video.mp4');
-// Three distinct scenes so media intelligence (shot detection on import)
-// produces visible shot markers.
+// Three distinct scenes with a tone track that carries two silence gaps
+// (0.4s each, strictly inside scenes 1 and 2), so media intelligence
+// produces shot markers AND removable silence regions.
 execFileSync('ffmpeg', [
   '-hide_banner', '-loglevel', 'error', '-y',
   '-f', 'lavfi', '-i', 'color=c=red:s=320x180:d=1.5',
   '-f', 'lavfi', '-i', 'color=c=blue:s=320x180:d=1.5',
   '-f', 'lavfi', '-i', 'color=c=green:s=320x180:d=1.5',
-  '-filter_complex', '[0:v][1:v][2:v]concat=n=3:v=1[outv]',
-  '-map', '[outv]', '-c:v', 'libx264', '-r', '25', lipSyncVideo,
+  '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=0.7',
+  '-f', 'lavfi', '-i', 'anullsrc=channel_layout=mono:sample_rate=44100:duration=0.4',
+  '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=0.4',
+  '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=1.1',
+  '-f', 'lavfi', '-i', 'anullsrc=channel_layout=mono:sample_rate=44100:duration=0.4',
+  '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=1.5',
+  '-filter_complex', '[0:v][1:v][2:v]concat=n=3:v=1[outv];[3:a][4:a][5:a][6:a][7:a][8:a]concat=n=6:v=0:a=1[outa]',
+  '-map', '[outv]', '-map', '[outa]', '-c:v', 'libx264', '-c:a', 'aac', '-r', '25', '-shortest', lipSyncVideo,
 ], { stdio: 'inherit' });
 const upstreamDemo = resolve('.research/upstream/latentsync/assets/demo1_video.mp4');
 const fullLipSync = process.env.OVM_CHECK_LIPSYNC === '1' && existsSync(upstreamDemo);
@@ -198,6 +205,32 @@ if (report.shotItems > 0) {
   await window.waitForTimeout(200);
 }
 report.timeAfterShotSeek = await window.locator('.transport-time').textContent();
+// Shot-based editing: silence removal (ripple-closed) and splitting at
+// shot boundaries are real, undoable timeline edits. The opt-in full
+// lip-sync fixture has no audio, so the silence affordance is skipped.
+const silenceActions = await window.locator('.shot-action', { hasText: 'silences' }).count();
+if (silenceActions > 0) {
+  report.removeSilenceLabel = await window.locator('.shot-action', { hasText: 'silences' }).textContent();
+  report.splitAtShotsLabel = await window.locator('.shot-action', { hasText: 'Split' }).textContent();
+  report.mediaClipsBeforeActions = await window.locator('.clip-kind-media').count();
+  await window.locator('.shot-action', { hasText: 'silences' }).click();
+  await window.waitForTimeout(500);
+  report.mediaClipsAfterRemoveSilence = await window.locator('.clip-kind-media').count();
+  // The middle remaining piece covers source 1.1s-2.6s, which contains
+  // the 1.5s shot boundary strictly inside.
+  await window.locator('.clip-kind-media').nth(1).click();
+  await window.waitForTimeout(300);
+  await window.locator('.shot-action', { hasText: 'Split' }).click();
+  await window.waitForTimeout(500);
+  report.mediaClipsAfterSplit = await window.locator('.clip-kind-media').count();
+  await window.keyboard.press('Control+z');
+  await window.waitForTimeout(400);
+  report.mediaClipsAfterUndo = await window.locator('.clip-kind-media').count();
+} else {
+  report.shotEditingSkipped = 'no audio in fixture';
+}
+await window.locator('.clip-kind-media').first().click();
+await window.waitForTimeout(300);
 report.redubAudioOptions = await window.locator('.inspector-redub-audio option').allTextContents();
 await window.locator('.inspector-redub-audio').selectOption({ index: 1 });
 await window.waitForTimeout(150);
@@ -313,6 +346,16 @@ if (report.redubSectionVisible !== 1) throw new Error('redub section missing fro
 if (report.shotMarks < 2) throw new Error('shot markers missing from the clip: ' + report.shotMarks);
 if (report.shotItems < 3) throw new Error('shot list missing from the inspector: ' + report.shotItems);
 if (report.timeAfterShotSeek === '00:00:00:00') throw new Error('shot click did not seek the playhead');
+if (report.shotEditingSkipped) {
+  console.log('shot editing skipped (' + report.shotEditingSkipped + ')');
+} else {
+  if (!(report.removeSilenceLabel ?? '').includes('Remove silences')) throw new Error('remove-silence label missing: ' + report.removeSilenceLabel);
+  if (!/\(-0\.\ds\)/.test(report.removeSilenceLabel ?? '')) throw new Error('silence duration missing from label: ' + report.removeSilenceLabel);
+  if (!(report.splitAtShotsLabel ?? '').includes('Split')) throw new Error('split-at-shots label missing: ' + report.splitAtShotsLabel);
+  if (report.mediaClipsAfterRemoveSilence !== report.mediaClipsBeforeActions + 2) throw new Error('remove silences should leave three pieces: ' + JSON.stringify({ before: report.mediaClipsBeforeActions, after: report.mediaClipsAfterRemoveSilence }));
+  if (report.mediaClipsAfterSplit !== report.mediaClipsAfterRemoveSilence + 1) throw new Error('split at shots should add one piece: ' + JSON.stringify({ before: report.mediaClipsAfterRemoveSilence, after: report.mediaClipsAfterSplit }));
+  if (report.mediaClipsAfterUndo !== report.mediaClipsAfterRemoveSilence) throw new Error('undo should restore the pre-split piece count: ' + JSON.stringify({ expected: report.mediaClipsAfterRemoveSilence, got: report.mediaClipsAfterUndo }));
+}
 if (!(report.redubAudioOptions ?? []).some((o) => o.includes('voiceover'))) throw new Error('voiceover missing from redub audio options: ' + JSON.stringify(report.redubAudioOptions));
 if (report.redubButtonEnabled !== true) throw new Error('lip sync button not live');
 if (!(report.redubButtonLabel ?? '').includes('Lip sync')) throw new Error('lip sync label missing: ' + report.redubButtonLabel);

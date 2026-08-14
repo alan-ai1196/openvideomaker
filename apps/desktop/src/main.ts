@@ -7,7 +7,7 @@ import { attachAsrResult, generatedAsset, importedAsset, mediaClip, ProjectSessi
 import { LlmPlanner } from '@openvideomaker/agent';
 import { ProjectStore } from '@openvideomaker/persistence';
 import { doctorRecommendations, formatDoctor, probeDeviceGraph } from '@openvideomaker/devices';
-import { analyzeMedia, probeMediaPath, runTool } from '@openvideomaker/media';
+import { analyzeMedia, analyzeMediaLevel2, probeMediaPath, runTool } from '@openvideomaker/media';
 import { buildRenderPlan, RenderJob, runRenderJob } from '@openvideomaker/render';
 import type { GenerationJob } from '@openvideomaker/jobs';
 import type { Project, ProjectLog } from '@openvideomaker/schema';
@@ -216,11 +216,13 @@ function registerIpc(): void {
           name: filePath.split(/[\\/]/).pop() ?? filePath,
           media: probe.media,
         };
-        // Media intelligence Level 1: shots, keyframe points and audio
-        // regions derived on import (best-effort; failures never block
-        // the import itself).
+        // Media intelligence Levels 1-2: shots, keyframe points, audio
+        // regions and per-shot motion derived on import (best-effort;
+        // failures never block the import itself).
         try {
-          if (probe.media.hasVideo || probe.media.hasAudio) {
+          if (probe.media.hasVideo) {
+            item.analysis = await analyzeMediaLevel2(filePath, { durationUs: probe.media.durationUs });
+          } else if (probe.media.hasAudio) {
             item.analysis = await analyzeMedia(filePath, { durationUs: probe.media.durationUs });
           }
         } catch {

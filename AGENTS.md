@@ -246,7 +246,19 @@ clickable shots. MuseTalk is assessed and honestly deferred: its v1.5
 path needs mmpose whose chumpy dependency does not build on Windows
 py3.12 in isolated uv runtimes (registry manifest fully pinned, blocker
 documented in docs/research/musetalk-mmpose-blocker.md, no runner
-shipped).
+shipped). Media intelligence Level 2 is model-free: pure
+transcript-to-shot alignment, per-shot speech flags, per-shot motion
+(ffmpeg signalstats YDIF) and speech/motion/still classification ship
+as `@openvideomaker/media/shot-analysis` (type-only imports keep the
+browser bundle free of the ffmpeg runner), and the shot structure now
+drives real edits through the operation layer: the core commands
+`splitClipAtTimes` (one atomic multi-split) and
+`removeRangesFromClip` (clamped/merged ranges, head/tail trims,
+ripple-closed jump cuts, whole-clip removal) power the Inspector's
+'Split at shots' and 'Remove silences' actions with the durable
+transcript's speech shown per shot. Both are ordinary undoable,
+replay-deterministic cuts, verified by 5 media + 7 core tests and
+clicked end to end in the desktop Playwright check.
 Next: app icons, code signing, auto-update, macOS/Linux packaging,
-media intelligence Levels 2-4, and further verified runners.
+media intelligence Levels 3-4, and further verified runners.
 See `docs/STATUS.md`.

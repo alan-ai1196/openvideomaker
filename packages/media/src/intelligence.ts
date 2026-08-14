@@ -113,3 +113,53 @@ export async function analyzeMedia(path: string, options: { durationUs?: number 
     audioRegions,
   };
 }
+/** Mean inter-frame luma difference per shot (0-255) - a cheap activity
+ * signal. One extra decode pass over the video (signalstats YDIF per
+ * frame); the first frame of each shot is skipped so the cut spike does
+ * not count. */
+export async function detectShotMotion(path: string, shots: Shot[], options: { timeoutMs?: number } = {}): Promise<number[]> {
+  const result = await runTool('ffmpeg', [
+    '-hide_banner', '-nostdin', '-i', path,
+    '-vf', 'signalstats,metadata=print:key=lavfi.signalstats.YDIF:file=-',
+    '-an', '-f', 'null', '-',
+  ], { timeoutMs: options.timeoutMs ?? 600_000 });
+  const frames: Array<{ t: number; y: number }> = [];
+  let currentT: number | null = null;
+  const text = (result.stdout ?? '') + '\n' + (result.stderr ?? '');
+  for (const line of text.split(/[\r\n]+/)) {
+    if (line.startsWith('frame:')) {
+      const t = /pts_time:([0-9]+(?:\.[0-9]+)?)/.exec(line);
+      currentT = t ? Number(t[1]) : currentT;
+      continue;
+    }
+    const y = /lavfi\.signalstats\.YDIF=([0-9]+(?:\.[0-9]+)?)/.exec(line);
+    if (y && currentT !== null) {
+      frames.push({ t: currentT, y: Number(y[1]) });
+      currentT = null;
+    }
+  }
+  const sums: number[] = shots.map(() => 0);
+  const counts: number[] = shots.map(() => 0);
+  let shotIndex = 0;
+  for (const frame of frames) {
+    while (shotIndex < shots.length - 1 && frame.t >= shots[shotIndex]!.endUs / 1_000_000) shotIndex += 1;
+    if (shotIndex >= shots.length) break;
+    // Skip the shot's first frame: YDIF there measures the cut, not motion.
+    if (frame.t < shots[shotIndex]!.startUs / 1_000_000 + 0.001) continue;
+    sums[shotIndex] = (sums[shotIndex] ?? 0) + frame.y;
+    counts[shotIndex] = (counts[shotIndex] ?? 0) + 1;
+  }
+  return shots.map((_, i) => (counts[i]! > 0 ? sums[i]! / counts[i]! : 0));
+}
+
+/** Level 1 analysis plus per-shot motion scores. */
+export interface MediaAnalysisLevel2 extends MediaAnalysis {
+  /** Per-shot mean inter-frame luma change (0-255); see classifyShots. */
+  motionPerShot: number[];
+}
+
+export async function analyzeMediaLevel2(path: string, options: { durationUs?: number } = {}): Promise<MediaAnalysisLevel2> {
+  const level1 = await analyzeMedia(path, options);
+  const motionPerShot = level1.shots.length > 0 ? await detectShotMotion(path, level1.shots) : [];
+  return { ...level1, motionPerShot };
+}

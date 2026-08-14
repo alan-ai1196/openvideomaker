@@ -112,6 +112,9 @@ importers:
       '@openvideomaker/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@openvideomaker/media':
+        specifier: workspace:*
+        version: link:../../packages/media
       '@openvideomaker/registry':
         specifier: workspace:*
         version: link:../../packages/registry

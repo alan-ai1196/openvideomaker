@@ -45,12 +45,14 @@ export interface DesktopGenerateResult {
   error: string | null;
 }
 
-/** Media intelligence Level 1 analysis, as the Studio consumes it. */
+/** Media intelligence analysis, as the Studio consumes it. */
 export interface StudioMediaAnalysis {
   durationUs: number;
   shots: Array<{ startUs: number; endUs: number }>;
   keyframeAtUs: number[];
   audioRegions: Array<{ startUs: number; endUs: number; silent: boolean }>;
+  /** Level 2: per-shot mean inter-frame luma difference (0-255). */
+  motionPerShot?: number[];
 }
 
 /** The probed device graph, as the Device Center consumes it (from ovm-doctor's logic). */

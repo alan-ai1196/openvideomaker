@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { attachAsrResult, insertClipAt, planScriptPlacements, rippleDeleteClip, splitClipAt, syncTextClipsFromScript } from '@openvideomaker/core';
+import { attachAsrResult, insertClipAt, planScriptPlacements, removeRangesFromClip, rippleDeleteClip, splitClipAt, splitClipAtTimes, syncTextClipsFromScript } from '@openvideomaker/core';
 import { newLineId, newScriptId } from '@openvideomaker/schema';
 import { mediaClip } from '@openvideomaker/core';
 import { importedAsset } from '@openvideomaker/core';
@@ -279,3 +279,123 @@ describe('planScriptPlacements', () => {
     expect(track?.clips[1]?.start).toBe(2_000_000);
   });
 });
+
+describe('splitClipAtTimes', () => {
+  it('splits at several times in one transaction and returns the rightmost piece', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const a = mediaClip({ trackId, assetId: asset.id, start: 1_000_000, duration: 9_000_000 });
+    session.transaction((tx) => tx.insertClip({ sequenceId, trackId, clip: a }));
+    const result = splitClipAtTimes(session, sequenceId, a.id, [8_000_000, 3_000_000, 5_000_000]);
+    expect(result).not.toBeNull();
+    expect(result!.splits).toBe(3);
+    const clips = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips;
+    expect(clips).toHaveLength(4);
+    expect(clips.map((c) => c.start)).toEqual([1_000_000, 3_000_000, 5_000_000, 8_000_000]);
+    expect(clips.map((c) => c.duration)).toEqual([2_000_000, 2_000_000, 3_000_000, 2_000_000]);
+    expect(clips[3]!.id).toBe(result!.lastPieceId);
+    expect(new Set(clips.map((c) => c.id)).size).toBe(4);
+  });
+
+  it('ignores edge and out-of-range times and deduplicates', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const a = mediaClip({ trackId, assetId: asset.id, start: 0, duration: 5_000_000 });
+    session.transaction((tx) => tx.insertClip({ sequenceId, trackId, clip: a }));
+    const result = splitClipAtTimes(session, sequenceId, a.id, [0, 5_000_000, 2_000_000, 2_000_000, 9_000_000]);
+    expect(result!.splits).toBe(1);
+    expect(result!.lastPieceId).not.toBe(a.id);
+    const clips = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips;
+    expect(clips).toHaveLength(2);
+  });
+
+  it('is one atomic transaction: undo/redo replays deterministically', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const a = mediaClip({ trackId, assetId: asset.id, start: 0, duration: 10_000_000 });
+    session.transaction((tx) => tx.insertClip({ sequenceId, trackId, clip: a }));
+    const anchor = session.checkpoint;
+    splitClipAtTimes(session, sequenceId, a.id, [2_000_000, 4_000_000, 6_000_000]);
+    const after = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => ({ id: c.id, start: c.start, duration: c.duration }));
+    expect(after).toHaveLength(4);
+    while (session.checkpoint > anchor) session.undo();
+    expect(session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => c.id)).toEqual([a.id]);
+    while (session.canRedo) session.redo();
+    const replayed = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => ({ id: c.id, start: c.start, duration: c.duration }));
+    expect(replayed).toEqual(after);
+  });
+});
+
+describe('removeRangesFromClip', () => {
+  it('removes an interior range and ripple-closes the gap for later clips', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const a = mediaClip({ trackId, assetId: asset.id, start: 0, duration: 10_000_000 });
+    const b = mediaClip({ trackId, assetId: asset.id, start: 10_000_000, duration: 2_000_000 });
+    const c = mediaClip({ trackId, assetId: asset.id, start: 12_000_000, duration: 2_000_000 });
+    session.transaction((tx) => {
+      tx.insertClip({ sequenceId, trackId, clip: a });
+      tx.insertClip({ sequenceId, trackId, clip: b });
+      tx.insertClip({ sequenceId, trackId, clip: c });
+    });
+    const result = removeRangesFromClip(session, sequenceId, a.id, [{ start: 2_000_000, end: 4_000_000 }]);
+    expect(result).not.toBeNull();
+    expect(result!.removedPieces).toBe(1);
+    expect(result!.removedUs).toBe(2_000_000);
+    const clips = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips;
+    expect(clips.map((c) => c.id)).toEqual([...result!.remaining, b.id, c.id]);
+    expect(clips.map((c) => c.start)).toEqual([0, 2_000_000, 8_000_000, 10_000_000]);
+    expect(clips.map((c) => c.duration)).toEqual([2_000_000, 6_000_000, 2_000_000, 2_000_000]);
+    expect(clips[1]!.kind === 'media' ? clips[1]!.inPoint : -1).toBe(4_000_000);
+  });
+
+  it('trims head/tail ranges and merges overlapping ones', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const a = mediaClip({ trackId, assetId: asset.id, start: 0, duration: 10_000_000 });
+    session.transaction((tx) => tx.insertClip({ sequenceId, trackId, clip: a }));
+    const result = removeRangesFromClip(session, sequenceId, a.id, [
+      { start: -1_000_000, end: 1_000_000 },
+      { start: 800_000, end: 1_500_000 },
+      { start: 9_000_000, end: 11_000_000 },
+    ]);
+    expect(result!.removedUs).toBe(2_500_000);
+    expect(result!.remaining).toHaveLength(1);
+    const clips = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips;
+    expect(clips.map((c) => c.start)).toEqual([0]);
+    expect(clips.map((c) => c.duration)).toEqual([7_500_000]);
+    expect(clips[0]!.id).toBe(result!.remaining[0]);
+  });
+
+  it('removes the whole clip when a range covers it entirely', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const a = mediaClip({ trackId, assetId: asset.id, start: 0, duration: 10_000_000 });
+    const b = mediaClip({ trackId, assetId: asset.id, start: 12_000_000, duration: 1_000_000 });
+    session.transaction((tx) => {
+      tx.insertClip({ sequenceId, trackId, clip: a });
+      tx.insertClip({ sequenceId, trackId, clip: b });
+    });
+    const result = removeRangesFromClip(session, sequenceId, a.id, [{ start: 0, end: 10_000_000 }]);
+    expect(result!.removedUs).toBe(10_000_000);
+    expect(result!.remaining).toEqual([]);
+    const clips = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips;
+    expect(clips.map((c) => c.id)).toEqual([b.id]);
+    expect(clips[0]!.start).toBe(2_000_000);
+  });
+
+  it('is a no-op without matching ranges and stays undoable as one transaction', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const a = mediaClip({ trackId, assetId: asset.id, start: 0, duration: 10_000_000 });
+    session.transaction((tx) => tx.insertClip({ sequenceId, trackId, clip: a }));
+    const before = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => c.id);
+    const result = removeRangesFromClip(session, sequenceId, a.id, [{ start: 20_000_000, end: 30_000_000 }]);
+    expect(result!.removedUs).toBe(0);
+    expect(result!.remaining).toEqual([a.id]);
+    expect(session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => c.id)).toEqual(before);
+    // Undo/replay determinism for the multi-range case.
+    const anchor = session.checkpoint;
+    removeRangesFromClip(session, sequenceId, a.id, [{ start: 1_000_000, end: 2_000_000 }, { start: 4_000_000, end: 6_000_000 }]);
+    const after = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => ({ id: c.id, start: c.start, duration: c.duration }));
+    while (session.checkpoint > anchor) session.undo();
+    expect(session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => c.id)).toEqual([a.id]);
+    while (session.canRedo) session.redo();
+    const replayed = session.project.sequences[sequenceId]!.tracks.find((t) => t.id === trackId)!.clips.map((c) => ({ id: c.id, start: c.start, duration: c.duration }));
+    expect(replayed).toEqual(after);
+  });
+});
+

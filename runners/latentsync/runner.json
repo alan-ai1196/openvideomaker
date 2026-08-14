@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "name": "latentsync",
+  "version": "0.1.0",
+  "capabilities": [
+    "avatar.lip_sync"
+  ],
+  "models": [
+    "hf/bytedance/latentsync-1.5"
+  ],
+  "pythonVersion": "3.12",
+  "entry": "runner.py",
+  "modelFiles": {
+    "unet": "latentsync_unet.pt",
+    "whisper": "whisper/tiny.pt",
+    "vae_config": "vae/config.json",
+    "vae_model": "vae/diffusion_pytorch_model.safetensors",
+    "aux_zip": "auxiliary/buffalo_l.zip"
+  }
+}

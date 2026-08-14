@@ -38,11 +38,12 @@ import Base from '../../layouts/Base.astro';
 
       <section class="alt">
         <span class="tag">Verification evidence</span>
-        <h2>Three verified integrations</h2>
+        <h2>Four verified integrations</h2>
         <div class="grid">
           <div class="card"><h3>Kokoro TTS</h3><p>Weights through the artifact store, loaded in an isolated uv runtime, TTS through the runner protocol - output confirmed with ffprobe.</p></div>
           <div class="card"><h3>Whisper Large v3</h3><p>CTranslate2 weights, CUDA float16 on an RTX 3090 (no system CUDA toolkit - the adapter registers the cublas wheel), 8/8 word overlap transcribing Kokoro-synthesized speech.</p></div>
           <div class="card"><h3>Paraformer (Mandarin)</h3><p>ModelScope weights, funasr on CPU, 14/14 character overlap on Windows-synthesized Mandarin speech.</p></div>
+          <div class="card"><h3>LatentSync 1.5</h3><p>Lip sync through the runner protocol on an RTX 3090 (CUDA fp16): a 5.1s 1080x1920 video with a detected face whose mouth region changed 7.9x the frame average while the rest stayed intact - all artifacts pinned, no runtime downloads.</p></div>
         </div>
       </section>
 
@@ -50,7 +51,8 @@ import Base from '../../layouts/Base.astro';
         <span class="tag">Next</span>
         <h2>What's being built</h2>
         <ul style="color: var(--ink-soft); font-size: 15px; line-height: 2">
-          <li>Lip-sync and avatar runner integrations (LatentSync / MuseTalk)</li>
+          <li>MuseTalk and further avatar runner integrations</li>
+          <li>The desktop Redub flow (lip sync a clip from new speech)</li>
           <li>An LLM planner behind the proposal contract</li>
           <li>Model / Device / Job Centers, desktop model install and packaging</li>
           <li>Long-project performance and reliability hardening</li>

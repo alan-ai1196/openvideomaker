@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 20). This file is the single living status source; it
+Updated: 2026-08-14 (round 21). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -216,14 +216,40 @@ describes the repository truth and is updated whenever that truth changes.
   the placement plan, and the Playwright Electron check clicks the
   real Generate speech button (Kokoro TTS runs inside the desktop app,
   the line gains a start time, the asset appears in the Media panel).
+- **Fourth verified integration**: `runners/latentsync` - LatentSync 1.5
+  (ByteDance, Apache-2.0 code / OpenRAIL++ weights) for the
+  `avatar.lip_sync` capability: the vendored upstream inference package
+  (pinned commit, training modules excluded, adapter patches marked),
+  a hermetic reimplementation of the upstream inference entrypoint, and
+  a pinned file manifest (UNet 4.83GiB + whisper tiny + SD VAE
+  safetensors + InsightFace buffalo_l, sha256s measured from the
+  official hub). Windows-specific upstream gaps are fixed in the
+  adapter (decord-free ffmpeg audio, argument arrays instead of shell
+  interpolation, InsightFace models pre-placed from the artifact store
+  so the runtime performs NO downloads). Verified end to end on an RTX
+  3090 (CUDA fp16, 512px): 5.08s 1080x1920 mp4 with video+audio, face
+  detected (0.87), mouth region changed 7.9x the frame average while
+  the surrounding pixels stayed intact (MAD 1.65). Registry entry
+  `hf/bytedance/latentsync-1.5` marked `verified` with dated evidence.
+- **Runner-host hardening (found by the latentsync slice)**: a Python
+  thread iterating stdin deadlocks torch/numpy imports on Windows
+  (reproduced minimally; OpenBLAS console init) - the adapter
+  pre-imports at module level and documents why; `RunnerHost.dispose`
+  now hard-stops a runner that ignores dispose by killing the whole
+  process tree (uv-venv python.exe is a launcher whose real
+  interpreter is a child; killing only the launcher orphaned live
+  model processes holding GPU memory) - regression-tested; the
+  GenerationRunner describe timeout allows 2 minutes for cold-start
+  imports.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. More verified runner integrations (lip-sync/avatars next:
-   LatentSync/MuseTalk).
-2. LLM-driven planner behind the agent proposal contract.
+1. More verified runner integrations (MuseTalk/avatars next).
+2. The desktop Redub flow (avatar.lip_sync through the Studio: source
+   clip + speech -> synced video with provenance), then the LLM
+   planner behind the agent proposal contract.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

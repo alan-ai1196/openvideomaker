@@ -161,7 +161,9 @@ export class GenerationRunner {
       });
       host.start();
       try {
-        const description = await host.describe(60_000);
+        // Cold start includes the adapter's module imports (heavy models
+        // pre-import before their protocol loop starts), so allow 2 minutes.
+        const description = await host.describe(120_000);
         if (!('protocolVersion' in description)) throw new GenerationError('jobs.prepare-failed', 'runner describe failed');
         const modelFiles = Object.fromEntries(
           Object.entries(manifest.modelFiles).map(([key, path]) => [key, { path: this.store.filePath(entry.id, revision, path) }]),

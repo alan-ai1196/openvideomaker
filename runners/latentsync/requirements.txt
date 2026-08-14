@@ -1,0 +1,25 @@
+# LatentSync runtime: upstream's inference stack (torch cu121 pin kept),
+# minus the training/gradio-only deps. decord is dropped - the vendored
+# package decodes audio with the ffmpeg binary imageio-ffmpeg provides.
+torch==2.5.1
+torchvision==0.20.1
+--extra-index-url https://download.pytorch.org/whl/cu121
+diffusers==0.32.2
+transformers==4.48.0
+accelerate==0.26.1
+einops==0.7.0
+omegaconf==2.3.0
+opencv-python==4.9.0.80
+python_speech_features==0.6
+librosa==0.10.1
+imageio==2.31.1
+imageio-ffmpeg==0.5.1
+ffmpeg-python==0.2.0
+numpy==1.26.4
+kornia==0.8.0
+insightface==0.7.3
+onnxruntime==1.21.0
+DeepCache==0.1.1
+soundfile==0.12.1
+tqdm
+huggingface-hub==0.30.2

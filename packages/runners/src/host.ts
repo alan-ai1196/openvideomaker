@@ -54,6 +54,7 @@ export class RunnerHost {
   #crashed = false;
   #logs: string[] = [];
   #events = new Set<(event: RunnerEvent) => void>();
+  #terminateTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(readonly options: RunnerSpawnOptions) {}
 
@@ -219,5 +220,31 @@ export class RunnerHost {
     const id = 'r' + ++this.#seq;
     this.#request(DisposeRequestSchema.parse({ id, method: 'dispose' }), 5_000).catch(() => undefined);
     this.#child?.stdin?.end();
+    // Hard stop if the runner ignores dispose (e.g. stuck loading): on
+    // Windows, uv-venv python.exe is a LAUNCHER whose real interpreter
+    // is a child process, so kill the whole tree - killing the launcher
+    // pid alone would orphan a live model process holding GPU memory.
+    this.#terminateTimer = setTimeout(() => this.#terminateTree(), 5_000);
+    this.#terminateTimer.unref?.();
+  }
+
+  /** Kill the runner process (and its children on Windows) when it will not exit on its own. */
+  #terminateTree(): void {
+    const child = this.#child;
+    if (!child || child.exitCode !== null || child.signalCode !== null) return;
+    const pid = child.pid;
+    if (pid === undefined) return;
+    this.#log('info', 'runner did not exit; terminating process tree ' + String(pid));
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' }).on('error', () => {
+        try {
+          child.kill();
+        } catch {
+          // Already gone.
+        }
+      });
+    } else {
+      child.kill('SIGKILL');
+    }
   }
 }

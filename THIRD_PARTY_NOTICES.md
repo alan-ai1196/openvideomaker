@@ -12,6 +12,12 @@ runtime/tooling dependencies of the project code.
 | react / react-dom | MIT | Studio UI |
 | @fontsource-variable/inter | OFL-1.1 (font) / MIT (package) | Studio typography |
 
+## Vendored runner code
+
+| Package | License | Purpose |
+|---|---|---|
+| LatentSync (bytedance/LatentSync, commit a229c3948406bc2cf6eaf4873e662e70c6a04746) | Apache-2.0 | Vendored inference package in `runners/latentsync/vendor/` (training/eval modules excluded; adapter-local patches marked `OVM adapter patch`) |
+
 ## Development dependencies
 
 | Package | License | Purpose |

@@ -50,15 +50,15 @@ a runner slice verifies it.
 
 ### LatentSync 1.5
 
-- **Id:** `hf/bytedance/latentsync-1.5` - **Trust:** unverified
+- **Id:** `hf/bytedance/latentsync-1.5` - **Trust:** verified
 - **Upstream:** [bytedance/LatentSync](https://github.com/bytedance/LatentSync)
 - **License:** OpenRAIL++-M (https://huggingface.co/bytedance/latentsync-1.5) - OpenRAIL licenses carry behavioral use restrictions; review before commercial use.
 - **Capabilities:** avatar.lip_sync
-- **Runner:** local-python (latentsync adapter)
-- **Hardware:** cuda/expected, cpu/unavailable, mlx/unavailable, rocm/untested
-- **Memory:** GPU required; exact VRAM depends on resolution and frames.
+- **Runner:** local-python (latentsync adapter (runners/latentsync))
+- **Hardware:** cuda/tested, cpu/unavailable, mlx/unavailable, rocm/untested
+- **Memory:** GPU required; verified on a 24 GB RTX 3090 in fp16 at 512px inference.
 - **Limitations:** Needs a cropped, frontal face; quality depends on source identity preservation.
-- **Evidence:** Registry metadata (id, OpenRAIL++ license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker.
+- **Evidence:** Executed 2026-08-14: all files fetched through the OpenVideoMaker artifact store (sha256s pinned from the official hub), an isolated uv runtime (torch 2.5.1 cu121), and avatar.lip_sync through the runner protocol on an RTX 3090 (CUDA fp16, 512px): a 5.08s 1080x1920 mp4 with video+audio, a detected face (0.87), and a mouth region that changed 7.9x the frame average while the rest of the frame stayed intact (MAD 1.65). The adapter pre-places InsightFace models, so the runtime performs no downloads.
 
 ### MuseTalk
 

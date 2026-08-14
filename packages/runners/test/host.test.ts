@@ -76,6 +76,28 @@ describe('RunnerHost protocol', () => {
     expect(events).toContain('cancelled');
     host.dispose();
   });
+
+  it('hard-stops a runner that ignores dispose, so no orphan survives', async () => {
+    // Regression: a runner stuck loading (never reading dispose) must be
+    // killed as a process tree - uv-venv python.exe is a launcher whose
+    // real interpreter is a child, and killing the launcher pid alone
+    // orphans a live model process holding GPU memory.
+    const pidFile = join(dir, 'stuck.pid');
+    const host = new RunnerHost({ command: process.execPath, args: [mockRunner, '--stuck=' + pidFile], envAllow: [] });
+    host.start();
+    const description = await host.describe();
+    expect(description.ok).toBe(true);
+    host.dispose();
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 8000));
+    const pid = Number(readFileSync(pidFile, 'utf8').trim());
+    let alive = true;
+    try {
+      process.kill(pid, 0);
+    } catch {
+      alive = false;
+    }
+    expect(alive).toBe(false);
+  }, 20_000);
 });
 
 describe('UvRuntime isolation', () => {

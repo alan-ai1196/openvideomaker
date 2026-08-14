@@ -5,6 +5,8 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const crash = process.argv.includes('--crash');
+const stuckPidFile = process.argv.find((a) => a.startsWith('--stuck='))?.split('=')[1];
+if (stuckPidFile) writeFileSync(stuckPidFile, String(process.pid));
 const slowMs = Number(process.argv.find((a) => a.startsWith('--slow='))?.split('=')[1] ?? 0);
 
 function send(message) {
@@ -60,7 +62,9 @@ lines.on('line', (line) => {
     return;
   }
   if (request.method === 'dispose') {
-    send({ id: request.id, ok: true });
-    process.exit(0);
+    if (!stuckPidFile) send({ id: request.id, ok: true });
+    // --stuck mode: ignore dispose and keep running, like a runner that
+    // is blocked loading a model and never notices the request.
+    if (!stuckPidFile) process.exit(0);
   }
 });

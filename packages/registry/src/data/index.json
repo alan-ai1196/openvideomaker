@@ -171,12 +171,12 @@
     ],
     "runner": {
       "kind": "local-python",
-      "notes": "latentsync adapter"
+      "notes": "latentsync adapter (runners/latentsync)"
     },
     "hardware": [
       {
         "platform": "cuda",
-        "status": "expected"
+        "status": "tested"
       },
       {
         "platform": "cpu",
@@ -192,7 +192,7 @@
       }
     ],
     "memory": {
-      "note": "GPU required; exact VRAM depends on resolution and frames."
+      "note": "GPU required; verified on a 24 GB RTX 3090 in fp16 at 512px inference."
     },
     "precision": [
       "fp16",
@@ -208,14 +208,51 @@
       {
         "kind": "hf",
         "repo": "bytedance/latentsync-1.5"
+      },
+      {
+        "kind": "http",
+        "baseUrl": "https://huggingface.co",
+        "files": {
+          "vae/config.json": "https://huggingface.co/stabilityai/sd-vae-ft-mse/resolve/main/config.json",
+          "vae/diffusion_pytorch_model.safetensors": "https://huggingface.co/stabilityai/sd-vae-ft-mse/resolve/main/diffusion_pytorch_model.safetensors",
+          "auxiliary/buffalo_l.zip": "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": "latentsync_unet.pt",
+        "sha256": "6440b49a7ccceff56cdc001f5f17605216337f5bbd66fa360139768926e23f51",
+        "sizeBytes": 5072348184
+      },
+      {
+        "path": "whisper/tiny.pt",
+        "sha256": "65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9",
+        "sizeBytes": 75572083
+      },
+      {
+        "path": "vae/config.json",
+        "sha256": "92d3dfb746fca211a2c9e019e285f8597412211728dce3c5bcf4eda0f2d62e7e",
+        "sizeBytes": 547
+      },
+      {
+        "path": "vae/diffusion_pytorch_model.safetensors",
+        "sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815",
+        "sizeBytes": 334643276
+      },
+      {
+        "path": "auxiliary/buffalo_l.zip",
+        "sha256": "80ffe37d8a5940d59a7384c201a2a38d4741f2f3c51eef46ebb28218a7b0ca2f",
+        "sizeBytes": 288621354
       }
     ],
     "limitations": [
       "Needs a cropped, frontal face; quality depends on source identity preservation."
     ],
     "verification": {
-      "trust": "unverified",
-      "evidence": "Registry metadata (id, OpenRAIL++ license, availability) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+      "trust": "verified",
+      "evidence": "Executed 2026-08-14: all files fetched through the OpenVideoMaker artifact store (sha256s pinned from the official hub), an isolated uv runtime (torch 2.5.1 cu121), and avatar.lip_sync through the runner protocol on an RTX 3090 (CUDA fp16, 512px): a 5.08s 1080x1920 mp4 with video+audio, a detected face (0.87), and a mouth region that changed 7.9x the frame average while the rest of the frame stayed intact (MAD 1.65). The adapter pre-places InsightFace models, so the runtime performs no downloads.",
+      "verifiedAt": "2026-08-14"
     },
     "updatePolicy": {
       "kind": "registry-pr",

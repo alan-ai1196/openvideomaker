@@ -141,7 +141,18 @@ real (TTS voiceover asset, ASR caption clips + subtitles in a saved
 project). `runners/paraformer-asr` is the third (FunASR Paraformer
 Mandarin ASR: ModelScope weights through the artifact store, 14/14
 character overlap on Windows-SAPI-synthesized speech; the adapter keeps
-funasr's stdout away from the protocol stream). The Studio Model Center
+funasr's stdout away from the protocol stream). `runners/latentsync` is
+the fourth (LatentSync 1.5 avatar.lip_sync: the vendored upstream
+inference package at a pinned commit with marked adapter patches, a
+pinned file manifest, and real CUDA fp16 verification on an RTX 3090 -
+5.08s 1080x1920 output, mouth region changed 7.9x the frame average;
+the adapter pre-places InsightFace models so the runtime never
+downloads). Runner-host hardening from that slice: heavy imports must
+happen at module level BEFORE a stdin reader thread starts (Windows
+torch/numpy import deadlock - reproduced), and RunnerHost.dispose
+hard-stops ignored disposes by killing the process tree (uv-venv
+launchers orphan their real interpreter otherwise) - both
+regression-tested. The Studio Model Center
 shows Generate honestly disabled in browser mode. Transcripts are
 durable project data (segments linked one-to-one to assets, typed ops,
 invariants, history, ASR provenance); caption clips derive from them
@@ -190,5 +201,5 @@ paths so the sandboxed renderer can play imported/generated media;
 `localGeneration` is runtime-confirmed, true only when the service
 builds). Live desktop affordances: Character Studio voiceover, Model
 Center TTS samples, Transcript panel transcription.
-Next: lip-sync/avatar runner integrations, then the LLM planner
-behind the proposal contract. See `docs/STATUS.md`.
+Next: the desktop Redub flow (avatar.lip_sync through the Studio),
+then the LLM planner behind the proposal contract. See `docs/STATUS.md`.

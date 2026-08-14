@@ -1,4 +1,4 @@
-import { attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, removeRangesFromClip, rippleDeleteClip, splitClipAt, splitClipAtTimes, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TransactionScope } from '@openvideomaker/core';
+import { applyProjectTemplate, attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, removeRangesFromClip, rippleDeleteClip, splitClipAt, splitClipAtTimes, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TemplateId, type TransactionScope } from '@openvideomaker/core';
 import type { MediaInfo } from '@openvideomaker/schema';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
@@ -709,6 +709,17 @@ export class StudioController {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Apply a product template: ordinary tracks/settings/scripts through
+   * one undoable transaction (the project is never in a locked mode).
+   */
+  applyTemplate(templateId: TemplateId): MutationResult {
+    const result = applyProjectTemplate(this.#session, templateId);
+    if (!result) return { ok: false, code: 'op.not-found', message: 'unknown template' };
+    this.#emit();
+    return { ok: true };
   }
 
   /** Ripple-delete the selected clip and clear the selection. */

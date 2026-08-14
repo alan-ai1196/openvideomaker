@@ -362,6 +362,19 @@ if (fullLlm) {
   report.lanesAfterLlm = await window.locator('.lane').count();
 }
 
+// Product templates: presets that build ordinary editable tracks and
+// settings through the core operation layer (nothing locked in).
+await window.locator('.rail-button[title="Templates"]').click();
+await window.waitForTimeout(300);
+report.templateCards = await window.locator('.template-card').count();
+report.templateNames = await window.locator('.template-name').allTextContents();
+const lanesBeforeTemplate = await window.locator('.lane').count();
+await window.locator('.template-card', { hasText: 'Vertical Short' }).locator('.button').click();
+await window.waitForTimeout(400);
+report.lanesAfterTemplate = await window.locator('.lane').count();
+report.templateAddedLanes = report.lanesAfterTemplate - lanesBeforeTemplate;
+report.templateVerticalLane = await window.locator('.lane', { hasText: 'Captions' }).count();
+
 // Device Center: the probed device graph rendered friendly-first.
 await window.locator('.rail-button[title="Devices"]').click();
 await window.waitForTimeout(400);
@@ -440,6 +453,10 @@ if (report.shotEditingSkipped) {
   if (report.mediaClipsAfterSplit !== report.mediaClipsAfterRemoveSilence + 1) throw new Error('split at shots should add one piece: ' + JSON.stringify({ before: report.mediaClipsAfterRemoveSilence, after: report.mediaClipsAfterSplit }));
   if (report.mediaClipsAfterUndo !== report.mediaClipsAfterRemoveSilence) throw new Error('undo should restore the pre-split piece count: ' + JSON.stringify({ expected: report.mediaClipsAfterRemoveSilence, got: report.mediaClipsAfterUndo }));
 }
+if (report.templateCards !== 5) throw new Error('template cards missing: ' + report.templateCards);
+if (!(report.templateNames ?? []).some((n) => n.includes('Talking Video'))) throw new Error('talking video template missing: ' + JSON.stringify(report.templateNames));
+if (report.templateAddedLanes !== 2) throw new Error('vertical short template should add two tracks: ' + report.templateAddedLanes);
+if (report.templateVerticalLane !== 1) throw new Error('caption track missing after template: ' + report.templateVerticalLane);
 if (report.assetCountAfterImageImport !== 9) throw new Error('image import failed: ' + report.assetCountAfterImageImport);
 if (report.cutoutClipIndex < 0) throw new Error('no media clip offers the background-removal affordance (image kind not flowing through the bridge?)');
 if (report.cutoutButtonEnabled !== true) throw new Error('cutout button not live');

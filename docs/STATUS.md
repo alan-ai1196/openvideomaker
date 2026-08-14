@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 35). This file is the single living status source; it
+Updated: 2026-08-14 (round 36). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -436,6 +436,18 @@ describes the repository truth and is updated whenever that truth changes.
   shapes. Verified in the desktop app: searching the demo transcript
   for 'videos' returns the matching line and seeking lands exactly at
   00:00:02:00, keyword chips render from the transcript, zero errors.
+- **Product templates**: creation presets that build ORDINARY editable
+  IR structures - `@openvideomaker/core` `PROJECT_TEMPLATES` +
+  `applyProjectTemplate` (Talking Video, Auto Dub, Podcast Clips,
+  Vertical Short, Blank Project): each applies composition settings,
+  named tracks and script documents through the standard typed
+  operations in ONE undoable, replay-deterministic transaction
+  ('blank' replaces the sequence's tracks, also undoably). The Studio's
+  Templates panel (the rail tab, previously empty) shows the five
+  presets with descriptions and a 'Use this template' button - nothing
+  is ever locked in. 5 new core tests; verified in the desktop app
+  (five cards, Vertical Short adds exactly two tracks including a
+  Captions lane, zero errors).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

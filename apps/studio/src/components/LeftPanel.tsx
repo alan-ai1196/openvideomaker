@@ -12,6 +12,7 @@ import { AgentPanel } from './AgentPanel';
 import { ScriptPanel } from './ScriptPanel';
 import { JobCenter } from './JobCenter';
 import { DeviceCenter } from './DeviceCenter';
+import { TemplatesPanel } from './TemplatesPanel';
 import type { MessageKey } from '../i18n/strings';
 
 type PanelId = 'media' | 'text' | 'captions' | 'transcript' | 'script' | 'audio' | 'avatars' | 'ai' | 'agent' | 'jobs' | 'devices' | 'templates';
@@ -147,6 +148,8 @@ export function LeftPanel() {
           <JobCenter />
         ) : active === 'devices' ? (
           <DeviceCenter />
+        ) : active === 'templates' ? (
+          <TemplatesPanel />
         ) : (
           <EmptyPanel text={t('panel.empty.generic')} hint={t('panel.empty.hint')} />
         )}

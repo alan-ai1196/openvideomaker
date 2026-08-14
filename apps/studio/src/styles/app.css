@@ -1464,6 +1464,47 @@ button.asset-item:hover {
   flex-wrap: wrap;
 }
 
+
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.template-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.template-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.template-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.template-desc {
+  margin: 4px 0 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.template-meta {
+  margin-bottom: 8px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
 .transcript-tools {
   margin-bottom: 10px;
 }

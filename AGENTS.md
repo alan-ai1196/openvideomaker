@@ -300,7 +300,15 @@ box (ranked hits seek the playhead) and per-transcript keyword chips;
 entity extraction and embedding search are NOT claimed - they need
 models, and the scorers stay swappable. Verified: 6 media tests and
 the desktop check (searching the demo transcript for 'videos' seeks
-00:00:02:00; keyword chips render; zero errors).
+00:00:02:00; keyword chips render; zero errors). Product templates
+land in core: `PROJECT_TEMPLATES` + `applyProjectTemplate` (Talking
+Video, Auto Dub, Podcast Clips, Vertical Short, Blank) apply settings,
+named tracks and script documents through the standard typed ops in
+one undoable, replay-deterministic transaction ('blank' replaces the
+sequence's tracks, undoably), and the Studio Templates panel shows the
+five presets with a real apply button - templates are ordinary
+editable structures, never locked modes (5 core tests + desktop-check
+click-through: Vertical Short adds exactly two tracks).
 Next: code signing, auto-update, macOS/Linux packaging runs, media
 intelligence Level 4, and further verified runners.
 See `docs/STATUS.md`.

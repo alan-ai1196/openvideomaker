@@ -110,6 +110,40 @@ function ovmHome(): string {
   return process.env.OVM_HOME ?? (app.isPackaged ? app.getPath('userData') : join(root, '.research'));
 }
 
+/** Recently used projects (dir + display name, newest first, capped). */
+interface RecentProject {
+  dir: string;
+  name: string;
+  updatedAt: string;
+}
+
+function recentsPath(): string {
+  return join(ovmHome(), 'recents.json');
+}
+
+function loadRecents(): RecentProject[] {
+  try {
+    const raw = JSON.parse(readFileSync(recentsPath(), 'utf8')) as unknown;
+    if (Array.isArray(raw)) {
+      return raw
+        .filter((r): r is RecentProject => !!r && typeof (r as RecentProject).dir === 'string' && typeof (r as RecentProject).name === 'string')
+        .slice(0, 10);
+    }
+  } catch {
+    // No recents yet - an honest empty list.
+  }
+  return [];
+}
+
+function recordRecent(dir: string, name: string): void {
+  const next = [{ dir, name, updatedAt: new Date().toISOString() }, ...loadRecents().filter((r) => r.dir !== dir)].slice(0, 10);
+  try {
+    writeFileSync(recentsPath(), JSON.stringify(next, null, 2));
+  } catch {
+    // Recents are a convenience; failures never block saving.
+  }
+}
+
 /** Sum file sizes + counts under a directory (bounded to OVM dirs; 0 when missing). */
 async function walkDir(dir: string): Promise<{ bytes: number; files: number }> {
   let bytes = 0;
@@ -205,10 +239,33 @@ function registerIpc(): void {
     const loaded = store.load();
     store.close();
     currentProjectDir = dir;
+    recordRecent(dir, loaded.project.name);
     for (const asset of Object.values(loaded.project.assets)) {
       if (asset.source.kind === 'file') allowMediaPath(asset.source.path);
     }
     return { project: loaded.project, log: loaded.log } satisfies { project: Project; log: ProjectLog };
+  });
+
+  ipcMain.handle('ovm:recents', () => loadRecents());
+
+  // Open a previously used project folder directly (no dialog). The
+  // folder entered the recents list through the app's own save/open
+  // dialogs, so it has the same trust level as a fresh dialog choice.
+  ipcMain.handle('ovm:open-project-dir', async (_event, payload: { dir?: unknown }) => {
+    if (typeof payload?.dir !== 'string' || payload.dir.length === 0) return { ok: false, message: 'a project directory is required' };
+    try {
+      const store = ProjectStore.open(payload.dir);
+      const loaded = store.load();
+      store.close();
+      currentProjectDir = payload.dir;
+      recordRecent(payload.dir, loaded.project.name);
+      for (const asset of Object.values(loaded.project.assets)) {
+        if (asset.source.kind === 'file') allowMediaPath(asset.source.path);
+      }
+      return { ok: true, project: loaded.project, log: loaded.log, dir: payload.dir };
+    } catch (err) {
+      return { ok: false, message: (err as Error).message };
+    }
   });
 
   ipcMain.handle('ovm:save-project', async (_event, payload: { project: Project; log: ProjectLog }) => {
@@ -223,6 +280,7 @@ function registerIpc(): void {
         : ProjectStore.create(currentProjectDir, payload.project.id);
       const saved = store.save(payload.project, payload.log);
       store.close();
+      recordRecent(currentProjectDir, payload.project.name);
       return { ok: true, appended: saved.appended, dir: currentProjectDir };
     } catch (err) {
       return { ok: false, reason: (err as Error).message };

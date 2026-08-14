@@ -42,6 +42,8 @@ const bridge = {
   projectInfo: () => ipcRenderer.invoke('ovm:project-info'),
   storage: () => ipcRenderer.invoke('ovm:storage'),
   cleanStorage: () => ipcRenderer.invoke('ovm:storage-clean'),
+  recents: () => ipcRenderer.invoke('ovm:recents'),
+  openProjectDir: (dir) => ipcRenderer.invoke('ovm:open-project-dir', { dir }),
 };
 
 contextBridge.exposeInMainWorld('ovm', bridge);

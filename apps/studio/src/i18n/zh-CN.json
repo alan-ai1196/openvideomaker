@@ -1,5 +1,12 @@
 {
   "app.name": "OpenVideoMaker Studio",
+  "home.open": "主页",
+  "home.subtitle": "你想制作什么？",
+  "home.recents": "最近的项目",
+  "home.recents.hint": "在桌面应用中保存过的项目会显示在这里。",
+  "home.templates": "从模板开始",
+  "home.import": "导入媒体",
+  "home.continue": "继续编辑",
   "topbar.undo": "撤销",
   "topbar.redo": "重做",
   "topbar.export": "导出",

@@ -5,11 +5,11 @@ import { useStudio, useStudioReplace } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import { Button, IconButton, Kbd } from './controls';
 import { ExportDialog } from './ExportDialog';
-import { DownloadIcon, KeyboardIcon, MoonIcon, PauseIcon, PlayIcon, RedoIcon, SkipStartIcon, SunIcon, UndoIcon, UploadIcon } from './icons';
+import { DownloadIcon, HomeIcon, KeyboardIcon, MoonIcon, PauseIcon, PlayIcon, RedoIcon, SkipStartIcon, SunIcon, UndoIcon, UploadIcon } from './icons';
 import { formatTimecode } from '../timeline/math';
 import { useTheme } from '../theme';
 
-export function TopBar() {
+export function TopBar({ onHome }: { onHome?: () => void }) {
   const controller = useStudio();
   const replace = useStudioReplace();
   const { t, language, setLanguage } = useI18n();
@@ -116,6 +116,7 @@ export function TopBar() {
       </div>
 
       <div className="topbar-actions">
+        {onHome ? <IconButton icon={<HomeIcon />} label={t('home.open')} onClick={onHome} /> : null}
         <IconButton icon={<UndoIcon />} label={t('topbar.undo')} disabled={!controller.canUndo} onClick={() => controller.undo()} />
         <IconButton icon={<RedoIcon />} label={t('topbar.redo')} disabled={!controller.canRedo} onClick={() => controller.redo()} />
         <span className="topbar-sep" />

@@ -56,6 +56,13 @@ export interface StudioMediaAnalysis {
 }
 
 
+/** A recently used project, as the Studio home shows it. */
+export interface StudioRecentProject {
+  dir: string;
+  name: string;
+  updatedAt: string;
+}
+
 /** OVM-managed storage usage, as the Device Center shows it. */
 export interface StudioStorageReport {
   home: string;
@@ -116,6 +123,8 @@ export interface StudioDesktopBridge {
   projectInfo(): Promise<{ dir: string | null }>;
   storage(): Promise<StudioStorageReport>;
   cleanStorage(): Promise<{ removedBytes: number; removedFiles: number }>;
+  recents(): Promise<StudioRecentProject[]>;
+  openProjectDir(dir: string): Promise<{ ok: true; project: Project; log: ProjectLog; dir: string } | { ok: false; message: string }>;
   importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo; kind?: 'video' | 'audio' | 'image'; analysis?: StudioMediaAnalysis }>>;
   renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
   onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;

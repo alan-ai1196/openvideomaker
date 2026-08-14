@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { StudioProvider, useStudio } from './studio/context';
 import { I18nProvider, useI18n } from './i18n/context';
 import { TopBar } from './components/TopBar';
@@ -7,6 +7,7 @@ import { Preview } from './components/Preview';
 import { Inspector } from './components/Inspector';
 import { Timeline } from './components/Timeline';
 import { StatusBar } from './components/StatusBar';
+import { HomeView } from './components/HomeView';
 import { Toast } from './components/controls';
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
 function Studio() {
   const controller = useStudio();
   const { t } = useI18n();
+  const [homeVisible, setHomeVisible] = useState(false);
 
   // Desktop: confirm what the local backend can actually run, so
   // capability flags (localGeneration) stay honest, never optimistic.
@@ -98,9 +100,17 @@ function Studio() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [controller]);
 
+  if (homeVisible) {
+    return (
+      <div className="studio">
+        <HomeView onClose={() => setHomeVisible(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="studio">
-      <TopBar />
+      <TopBar onHome={() => setHomeVisible(true)} />
       <LeftPanel />
       <Preview />
       <Inspector />

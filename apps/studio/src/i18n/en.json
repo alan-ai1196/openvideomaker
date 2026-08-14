@@ -1,5 +1,12 @@
 {
   "app.name": "OpenVideoMaker Studio",
+  "home.open": "Home",
+  "home.subtitle": "What do you want to make?",
+  "home.recents": "Recent projects",
+  "home.recents.hint": "Projects you save in the desktop app appear here.",
+  "home.templates": "Start from a template",
+  "home.import": "Import media",
+  "home.continue": "Continue editing",
   "topbar.undo": "Undo",
   "topbar.redo": "Redo",
   "topbar.export": "Export",

@@ -177,6 +177,13 @@ export const GridIcon = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+export const HomeIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M3 10.5 L8 6.2 L13 10.5 V15.5 H3 Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <rect x="6.4" y="12.6" width="3.2" height="2.9" rx="0.4" />
+  </Icon>
+);
+
 export const XIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}>
     <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" />

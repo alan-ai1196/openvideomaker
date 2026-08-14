@@ -419,6 +419,27 @@ report.mcpCommand = (await window.locator('.device-mcp-command').count()) > 0 ? 
 report.saveToast = (await window.locator('.toast').count()) > 0 ? await window.locator('.toast').textContent() : null;
 report.saveMcpHintStill = (await window.locator('.device-mcp-hint').count()) > 0 ? await window.locator('.device-mcp-hint').first().textContent() : null;
 
+// Home: recent projects + template quick starts over the same project.
+await window.locator('.topbar .icon-button[title="Home"]').click();
+await window.waitForTimeout(400);
+report.homeVisible = await window.locator('.home-view').count();
+report.homeRecentRows = await window.locator('.home-recent').count();
+report.homeRecentNames = await window.locator('.home-recent-name').allTextContents();
+report.homeTemplateButtons = await window.locator('.home-template').count();
+await window.locator('.home-recent').first().click();
+await window.waitForTimeout(2000);
+report.homeClosedAfterRecent = await window.locator('.home-view').count();
+report.projectNameAfterRecent = await window.locator('.project-name').textContent();
+report.recentLoadToast = (await window.locator('.toast').count()) > 0 ? await window.locator('.toast').textContent() : null;
+const lanesBeforeHomeTemplate = await window.locator('.lane').count();
+await window.locator('.topbar .icon-button[title="Home"]').click();
+await window.waitForTimeout(300);
+await window.locator('.home-template', { hasText: 'Vertical Short' }).click();
+await window.waitForTimeout(500);
+report.homeClosedAfterTemplate = await window.locator('.home-view').count();
+report.lanesAfterHomeTemplate = await window.locator('.lane').count();
+report.homeTemplateAddedLanes = report.lanesAfterHomeTemplate - lanesBeforeHomeTemplate;
+
 mkdirSync('.research/screenshots', { recursive: true });
 await window.screenshot({ path: '.research/screenshots/desktop-studio.png' });
 report.errors = errors;
@@ -528,6 +549,14 @@ if (report.cleanButtonEnabled !== true) throw new Error('clean button should be 
 if (report.cleanButtonAfter !== false) throw new Error('clean button should disable after clearing: ' + JSON.stringify({ after: report.cleanButtonAfter, row: report.partialsRowAfter }));
 if (!(report.mcpCommand ?? '').includes('ovm mcp --project')) throw new Error('MCP command missing: ' + report.mcpCommand);
 if (!(report.mcpCommand ?? '').includes('desktop-check-project')) throw new Error('MCP command lacks the project dir: ' + report.mcpCommand);
+if (report.homeVisible !== 1) throw new Error('home view missing: ' + report.homeVisible);
+if (report.homeRecentRows < 1) throw new Error('recent projects missing from home: ' + report.homeRecentRows);
+if (!(report.homeRecentNames ?? []).some((n) => n === report.projectName)) throw new Error('saved project not in recents: ' + JSON.stringify(report.homeRecentNames));
+if (report.homeTemplateButtons !== 5) throw new Error('home template buttons missing: ' + report.homeTemplateButtons);
+if (report.homeClosedAfterRecent !== 0) throw new Error('home did not close after opening a recent: ' + report.homeClosedAfterRecent + ' toast=' + report.recentLoadToast);
+if (report.projectNameAfterRecent !== report.projectName) throw new Error('recent project did not load the saved project: ' + report.projectNameAfterRecent);
+if (report.homeClosedAfterTemplate !== 0) throw new Error('home did not close after a template quick start: ' + report.homeClosedAfterTemplate);
+if (report.homeTemplateAddedLanes !== 2) throw new Error('home template quick start should add two tracks: ' + report.homeTemplateAddedLanes);
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');
 if (errors.length > 0) throw new Error('page errors: ' + errors.join(' | '));
 console.log('DESKTOP WINDOW OK');

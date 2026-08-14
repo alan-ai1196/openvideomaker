@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 38). This file is the single living status source; it
+Updated: 2026-08-14 (round 39). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -474,6 +474,23 @@ describes the repository truth and is updated whenever that truth changes.
   restoration trades pixel fidelity for perceived detail, documented
   in the analyzer). Registry entry `gh/xinntao/Real-ESRGAN-x4plus`
   marked `verified` with dated evidence.
+- **Studio home + recent projects**: a Home view (top-bar Home button)
+  answers 'What do you want to make?' - the five templates as quick
+  starts, Import media, Continue editing, and a real Recent projects
+  list (desktop). The main process keeps a persistent `recents.json`
+  in the OVM home (recorded on every save/open, deduped, newest
+  first) with `ovm:recents` + `ovm:open-project-dir` IPC (a
+  recents entry has the same trust as a fresh dialog choice, so no
+  dialog is needed to reopen it); the Studio re-fetches recents when
+  the home opens and loads a recent project through the same
+  loadProject path as the open dialog - everything stays ordinary
+  editable state. Opening a recent only light-refreshes (project dir +
+  recents), never re-probing devices/storage (the storage walk over a
+  large torch venv was slow enough to matter - found and fixed).
+  Verified in the desktop app: home shows the just-saved project,
+  clicking it closes home and loads the saved state, and a template
+  quick start adds its two tracks and returns to the editor; the
+  browser Studio shows the honest empty-recents state.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

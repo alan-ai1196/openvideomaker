@@ -325,7 +325,19 @@ the runner protocol verified on a downscaled 1080x1920 face frame
 bicubic, edge energy 3.85 vs reference 3.69; PSNR deliberately not
 claimed for a GAN restoration model). Registry entry
 `gh/xinntao/Real-ESRGAN-x4plus` is `verified` with dated evidence.
+The Studio has a Home view (top-bar Home button): 'What do you want
+to make?' with the five template quick starts, Import media, Continue
+editing, and a real Recent projects list - the main process persists
+`recents.json` in the OVM home on every save/open (deduped, newest
+first) and exposes `ovm:recents` + `ovm:open-project-dir` (a recents
+entry has the same trust as a fresh dialog choice); the home
+re-fetches recents on open, loads recents through the same
+loadProject path as the open dialog, and opening a recent only
+light-refreshes (no heavy device/storage re-probes - the storage walk
+over a large torch venv proved slow enough to matter). Verified in
+the desktop check: the just-saved project appears, clicking it closes
+home and loads the saved state, and a template quick start adds its
+two tracks and returns to the editor.
 Next: code signing, auto-update, macOS/Linux packaging runs, media
-intelligence Level 4, Studio home/recent projects, and further
-verified runners.
+intelligence Level 4, and further verified runners.
 See `docs/STATUS.md`.

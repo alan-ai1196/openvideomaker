@@ -4,7 +4,7 @@ import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
 import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
 import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type EditPlan, type EditScript, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
-import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult, type StudioDoctorReport, type StudioStorageReport } from './desktop';
+import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult, type StudioDoctorReport, type StudioRecentProject, type StudioStorageReport } from './desktop';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
 import { createWelcomeSession } from './demo';
@@ -64,6 +64,7 @@ export class StudioController {
   /** The probed device graph + recommendations (Device Center). */
   #deviceReport: StudioDoctorReport | null = null;
   #storageReport: StudioStorageReport | null = null;
+  #recents: StudioRecentProject[] = [];
   /** The project folder the desktop app has open (for the Developer section). */
   #projectDir: string | null = null;
 
@@ -157,6 +158,11 @@ export class StudioController {
   /** OVM-managed storage usage (desktop); null until probed. */
   get storageReport(): StudioStorageReport | null {
     return this.#storageReport;
+  }
+
+  /** Recently used projects (desktop; honest empty list in the browser). */
+  get recents(): StudioRecentProject[] {
+    return this.#recents;
   }
 
   /** The desktop project folder (null until the project is saved/opened there). */
@@ -268,6 +274,37 @@ export class StudioController {
     else if (job.desktopId) void bridge.cancelModelInstall(job.desktopId);
   }
 
+  /** Open a recent project folder (desktop): load it through the bridge. */
+  async openRecentProject(dir: string): Promise<MutationResult> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
+    try {
+      const result = await bridge.openProjectDir(dir);
+      if (!result.ok) return { ok: false, code: 'desktop', message: result.message };
+      this.loadProject(result.project, result.log);
+      this.#projectDir = result.dir;
+      // Light refresh only: the heavy device/storage probes were already
+      // taken at startup and do not change when a project loads.
+      try {
+        const info = await bridge.projectInfo();
+        this.#projectDir = info.dir ?? result.dir;
+      } catch {
+        // Keep result.dir.
+      }
+      try {
+        const recents = await bridge.recents();
+        this.#recents = Array.isArray(recents) ? recents : [];
+      } catch {
+        // Keep the previous list.
+      }
+      this.#emit();
+      return { ok: true };
+    } catch (err) {
+      this.reportError((err as Error).message, 'desktop');
+      return { ok: false, code: 'desktop', message: (err as Error).message };
+    }
+  }
+
   /** Refresh the OVM-managed storage usage report. */
   async refreshStorage(): Promise<void> {
     const bridge = getDesktopBridge();
@@ -280,7 +317,20 @@ export class StudioController {
     }
   }
 
-  /** Remove interrupted model downloads (resumable .part files) - nothing else. */
+  /** Refresh the recently-used project list (desktop). */
+  async refreshRecents(): Promise<void> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return;
+    try {
+      const recents = await bridge.recents();
+      this.#recents = Array.isArray(recents) ? recents : [];
+      this.#emit();
+    } catch {
+      this.#recents = [];
+    }
+  }
+
+    /** Remove interrupted model downloads (resumable .part files) - nothing else. */
   async cleanInterruptedDownloads(): Promise<{ removedBytes: number } | null> {
     const bridge = getDesktopBridge();
     if (!bridge) return null;
@@ -321,6 +371,12 @@ export class StudioController {
         this.#storageReport = await bridge.storage();
       } catch {
         this.#storageReport = null;
+      }
+      try {
+        const recents = await bridge.recents();
+        this.#recents = Array.isArray(recents) ? recents : [];
+      } catch {
+        this.#recents = [];
       }
       this.#emit();
     } catch {

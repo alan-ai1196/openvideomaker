@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 43). This file is the single living status source; it
+Updated: 2026-08-14 (round 44). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -553,6 +553,19 @@ describes the repository truth and is updated whenever that truth changes.
   the committed position equals the target exactly, and the guide
   clears after drop; the ui/agent/long-project/export browser checks
   and the desktop gate all stay green.
+- **Site refreshed to the repository truth**: the public site now says
+  SIX verified integrations (LatentSync, IS-Net and Real-ESRGAN added
+  to the verified pills; MuseTalk shown as blocked with its concrete
+  Windows mmpose/chumpy reason; RMBG-2.0's license noted), the editor
+  section advertises reframe/crop and media intelligence, and the docs
+  page gained media-intelligence + device/storage cards and the two
+  newer verification cards with their measured evidence. All four
+  screenshots were re-captured from the CURRENT Studio plus a new Model
+  Center shot (5 images, zero broken). `site:deploy` now runs
+  `pnpm dlx wrangler@4` (the bare wrangler binary was not on PATH).
+  Redeployed and verified live over HTTPS: the home serves the new
+  copy, /docs/ says 'Six verified integrations', and
+  /images/models.png serves (200, image/png).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

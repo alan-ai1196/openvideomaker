@@ -182,8 +182,10 @@ until the desktop core exists. `@openvideomaker/cli` provides
 `ovm doctor | models | render | mcp`, delegating to the same
 packages. The marketing site (`apps/site`, Astro) is live at
 `https://openvideomaker.heartboat.me` (Cloudflare Workers static
-assets, custom domain; real Studio screenshots, honest status copy);
-deploy with `pnpm site:deploy`, verify with `pnpm site:check`.
+assets, custom domain; real Studio screenshots, honest status copy
+kept current with the six verified integrations and the newest
+editor features; deploy with `pnpm site:deploy` - which runs
+`pnpm dlx wrangler@4` - verify with `pnpm site:check`).
 Scripts are durable project data (ordered speech lines linked to
 characters, six typed operations); `planScriptPlacements` is the
 single timing plan - `syncTextClipsFromScript` places text clips

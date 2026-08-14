@@ -164,6 +164,7 @@ section .sub { color: var(--ink-soft); max-width: 640px; margin: 0 0 28px; }
 }
 
 .pill.verified { border-color: #2e8b57; color: #2e8b57; }
+.pill.blocked { border-color: #b8860b; color: #b8860b; }
 
 code {
   font-family: var(--mono);

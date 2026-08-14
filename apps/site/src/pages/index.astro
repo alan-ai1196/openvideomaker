@@ -49,7 +49,9 @@ import Base from '../layouts/Base.astro';
         </p>
         <div class="grid">
           <div class="card"><h3>Editable timeline</h3><p>Move, trim, split and ripple-edit clips with snapping, zoom and keyboard shortcuts - every change is a typed, undoable operation.</p></div>
-          <div class="card"><h3>Transcripts that belong to you</h3><p>Time-aligned transcripts live in the project: click a line to jump, correct the text, sync captions with one click.</p></div>
+          <div class="card"><h3>Reframe in one step</h3><p>Flip a 16:9 edit to 9:16 with center crops on every clip, then adjust any crop per clip in the inspector. The preview shows exactly what renders.</p></div>
+          <div class="card"><h3>Media intelligence</h3><p>Shots, silence and speech structure come from ffmpeg - split at shots, remove silences, or generate a highlights short from the best moments.</p></div>
+          <div class="card"><h3>Transcripts that belong to you</h3><p>Time-aligned transcripts live in the project: click a line to jump, correct the text, search and sync captions with one click.</p></div>
           <div class="card"><h3>Characters you reuse</h3><p>Create a character once - identity, voice and performance style - and use it across scenes. Voice consent is recorded, not assumed.</p></div>
           <div class="card"><h3>Agent proposals you review</h3><p>The editing agent proposes changes with a preview of the exact operations. Apply as one undoable step, or reject.</p></div>
         </div>
@@ -82,19 +84,31 @@ import Base from '../layouts/Base.astro';
         <h2>Local AI, verified honestly</h2>
         <p class="sub">
           Models run locally in isolated runtimes - your media never leaves the machine. Trust
-          states describe real evidence: three integrations are verified end to end today; the
+          states describe real evidence: six integrations are verified end to end today; the
           rest are catalogued but honestly marked unverified until they are exercised.
         </p>
         <div>
           <span class="pill verified">Kokoro TTS - verified</span>
           <span class="pill verified">Whisper Large v3 - verified (CUDA)</span>
           <span class="pill verified">Paraformer (Mandarin ASR) - verified</span>
+          <span class="pill verified">LatentSync 1.5 lip sync - verified</span>
+          <span class="pill verified">IS-Net background removal - verified</span>
+          <span class="pill verified">Real-ESRGAN x4 upscale - verified</span>
           <span class="pill">FLUX.1 schnell</span>
-          <span class="pill">LatentSync</span>
-          <span class="pill">MuseTalk</span>
+          <span class="pill blocked">MuseTalk - blocked on Windows (mmpose)</span>
           <span class="pill">LTX-Video</span>
           <span class="pill">Wan2.2</span>
-          <span class="pill">RMBG-2.0</span>
+          <span class="pill">RMBG-2.0 - non-commercial license noted</span>
+        </div>
+        <div class="split" style="margin-top: 32px">
+          <div>
+            <h3 style="margin-top: 0">The Model Center</h3>
+            <p style="color: var(--ink-soft)">
+              Browse capabilities, licenses and trust states. Installation runs as a visible,
+              cancellable job, and each card shows the real installed state from the content store.
+            </p>
+          </div>
+          <img src="/images/models.png" alt="OpenVideoMaker Model Center with verified model cards" width="800" height="500" loading="lazy" />
         </div>
         <div class="grid" style="margin-top: 32px">
           <div class="card"><h3>Isolated runtimes</h3><p>Every model runs in its own uv-managed Python environment - never your global Python, never a shared venv.</p></div>

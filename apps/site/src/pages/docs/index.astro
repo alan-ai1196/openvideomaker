@@ -23,13 +23,15 @@ import Base from '../../layouts/Base.astro';
         </p>
 
         <div class="grid">
-          <div class="card"><h3>Studio</h3><p>A React editor: design system (dark + light), editable timeline (move/trim/split/ripple delete, snapping, zoom, shortcuts), real media import and preview, inspector, undo/redo, English + Simplified Chinese.</p></div>
+          <div class="card"><h3>Studio</h3><p>A React editor: design system (dark + light), a Home view with templates and recent projects, editable timeline (move/trim/split/ripple delete, snapping, zoom, shortcuts), real media import and preview (stills and crops render exactly like the final render), inspector with per-clip crop editing, reframe-to-vertical, undo/redo, English + Simplified Chinese.</p></div>
           <div class="card"><h3>Video IR + operations</h3><p>A durable, versioned project model (assets, sequences, tracks, clips, captions, characters, transcripts, provenance) mutated only through ~48 typed operations with invariant checks.</p></div>
           <div class="card"><h3>Persistence</h3><p>SQLite project folders: snapshot + append-only operation log, incremental saves, corruption repair, relocation safety.</p></div>
           <div class="card"><h3>Rendering</h3><p>Render plans from the Video IR to FFmpeg with probed encoders (NVENC and friends, hardware-to-software fallback), cancellation, classified errors. Runs locally - the browser Studio never pretends to render.</p></div>
           <div class="card"><h3>Model runtime</h3><p>Capability-first registry with honest trust states, a content-addressed resumable downloader, a language-neutral runner protocol with uv-isolated runtimes, and generation jobs that land results in projects with full provenance.</p></div>
           <div class="card"><h3>Transcripts + characters</h3><p>Durable editable transcripts (seek, correct, sync captions) and a Character Studio with voices, consent records and performance defaults - all typed, undoable operations.</p></div>
           <div class="card"><h3>Script-first editing</h3><p>Durable scripts with ordered speech lines; one placement plan drives both text clips and generated speech, and a line's real spoken duration becomes its timing.</p></div>
+          <div class="card"><h3>Media intelligence</h3><p>Model-free Levels 1-3: shot boundaries, keyframes and silence regions on import; per-shot speech/motion classification; lexical transcript topics and search. The structure drives real edits - split at shots, remove silences, and a deterministic 'create a short' planner that assembles spread highlights (with timed captions) onto a new track.</p></div>
+          <div class="card"><h3>Device + storage management</h3><p>The Device Center shows the probed device graph (GPU, encoders, runtimes) with recommendations, and OVM-managed disk usage with a safe 'clear interrupted downloads' action that never touches models or generated outputs.</p></div>
           <div class="card"><h3>Agent editing</h3><p>EditPlan/EditScript proposals compiled to typed operations, previewed on scratch copies, applied as one undoable agent transaction. No eval. An LLM planner turns a natural goal into a validated script through any OpenAI-compatible endpoint (configured explicitly; the deterministic planner is the default).</p></div>
           <div class="card"><h3>MCP + CLI</h3><p>An MCP server (spec 2025-06-18, stdio) with semantic tools over the same operation layer - attach it to any saved project with <code>--project</code> - and the <code>ovm</code> CLI: doctor, models, render, mcp.</p></div>
           <div class="card"><h3>Desktop app</h3><p>An Electron shell over the SAME Studio with SQLite project folders, device probing, local rendering, verified model installation, and real local AI generation (TTS voiceover, ASR transcription, and the Redub flow: lip-sync a clip to new speech on a new track) through a narrow sandboxed bridge, with a Job Center that keeps every long-running task visible and cancellable - results stay fully editable with provenance. Builds into a real Windows installer.</p></div>
@@ -38,12 +40,14 @@ import Base from '../../layouts/Base.astro';
 
       <section class="alt">
         <span class="tag">Verification evidence</span>
-        <h2>Four verified integrations</h2>
+        <h2>Six verified integrations</h2>
         <div class="grid">
           <div class="card"><h3>Kokoro TTS</h3><p>Weights through the artifact store, loaded in an isolated uv runtime, TTS through the runner protocol - output confirmed with ffprobe.</p></div>
           <div class="card"><h3>Whisper Large v3</h3><p>CTranslate2 weights, CUDA float16 on an RTX 3090 (no system CUDA toolkit - the adapter registers the cublas wheel), 8/8 word overlap transcribing Kokoro-synthesized speech.</p></div>
           <div class="card"><h3>Paraformer (Mandarin)</h3><p>ModelScope weights, funasr on CPU, 14/14 character overlap on Windows-synthesized Mandarin speech.</p></div>
           <div class="card"><h3>LatentSync 1.5</h3><p>Lip sync through the runner protocol on an RTX 3090 (CUDA fp16): a 5.1s 1080x1920 video with a detected face whose mouth region changed 7.9x the frame average while the rest stayed intact - all artifacts pinned, no runtime downloads.</p></div>
+          <div class="card"><h3>IS-Net (rembg)</h3><p>Background removal through the runner protocol on a real 1080x1920 face frame: subject alpha 0.81 vs 0.0005 in the background corners (~1s, CPU). The cutout lands as a provenance-carrying image asset on a new track.</p></div>
+          <div class="card"><h3>Real-ESRGAN x4plus</h3><p>4x upscaling through the runner protocol on a downscaled 1080x1920 frame (~14.2s CPU): Laplacian sharpness 70.1 vs 10.5 for bicubic and edge energy approaching the true reference - PSNR deliberately not claimed for a GAN restoration model.</p></div>
         </div>
       </section>
 
@@ -51,8 +55,9 @@ import Base from '../../layouts/Base.astro';
         <span class="tag">Next</span>
         <h2>What's being built</h2>
         <ul style="color: var(--ink-soft); font-size: 15px; line-height: 2">
-          <li>MuseTalk and further avatar runner integrations</li>
-          <li>App icons, code signing, auto-update; macOS / Linux packaging</li>
+          <li>Further avatar runner integrations (MuseTalk is assessed and blocked: its v1.5 path needs mmpose, whose chumpy dependency does not build on Windows py3.12 in isolated runtimes)</li>
+          <li>Code signing, auto-update; macOS / Linux packaging runs</li>
+          <li>Media intelligence Level 4 (summaries, entities, narrative)</li>
         </ul>
       </section>
     </div>

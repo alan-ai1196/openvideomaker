@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 23). This file is the single living status source; it
+Updated: 2026-08-14 (round 24). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -264,6 +264,16 @@ describes the repository truth and is updated whenever that truth changes.
   full lip-sync run sees it RUNNING with a progress bar + cancel
   button and then Completed, and the browser Studio shows the honest
   empty state.
+- **Model install in the desktop app**: the Model Center's Install
+  button is real - `ovm:model-install` IPC runs the content store's
+  verified, resumable install (progress events + cancellation), the
+  store gained `installedModels()` (manifest-pinned revision list),
+  and cards read the live installed state ('Installed' for the four
+  verified models). Installs are ordinary Job Center jobs ('Install'
+  kind) with progress and cancel; entries without a verified file
+  manifest stay honestly disabled. Verified in the desktop app
+  (kokoro/whisper read Installed, the bridge reports the store's
+  manifest set, zero errors).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
@@ -271,8 +281,7 @@ describes the repository truth and is updated whenever that truth changes.
 
 1. More verified runner integrations (MuseTalk/avatars next).
 2. The LLM planner behind the agent proposal contract.
-3. Model install in the desktop app (Model Center Install becomes
-   real) and the Device Center; installer packaging; long-project
+3. The Device Center; installer packaging; long-project
    performance hardening.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,

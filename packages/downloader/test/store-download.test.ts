@@ -150,6 +150,12 @@ describe('ModelStore + installModel', () => {
     const casFiles = readdirSync(join(store.dir, 'files', sha256(smallContent).slice(0, 2)));
     expect(casFiles).toHaveLength(1);
     expect(readFileSync(store.filePath(entry.id, 'main', 'small.bin'))).toEqual(smallContent);
+    // installedModels lists the pinned manifest; unknown stores are empty.
+    const installed = store.installedModels();
+    expect(installed).toHaveLength(1);
+    expect(installed[0]?.modelId).toBe(entry.id);
+    expect(installed[0]?.revision).toBe('main');
+    expect(new ModelStore(join(dir, 'empty-store')).installedModels()).toEqual([]);
   });
 
   it('rejects corrupted downloads via sha256', async () => {

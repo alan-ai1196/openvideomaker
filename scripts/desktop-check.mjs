@@ -91,6 +91,12 @@ await window.waitForTimeout(300);
 const kokoroCard = window.locator('.model-card', { hasText: 'Kokoro TTS' });
 report.kokoroGenerateEnabled = !(await kokoroCard.locator('.button-secondary').isDisabled());
 report.kokoroGenerateLabel = await kokoroCard.locator('.button-secondary').textContent();
+// Model install: the locally installed model reads 'Installed' and the
+// bridge reports the store's manifest-pinned set.
+report.kokoroInstallLabel = await kokoroCard.locator('.button-primary').textContent();
+report.installedModelsBridge = await window.evaluate(() => window.ovm?.installedModels() ?? null);
+const whisperCard = window.locator('.model-card', { hasText: 'Whisper' });
+report.whisperInstallLabel = await whisperCard.locator('.button-primary').textContent();
 
 // Transcript panel: after importing real media, a transcribe affordance
 // appears for the media without a transcript (enabled in desktop mode).
@@ -196,6 +202,12 @@ if (!(report.localNote ?? '').includes('FFmpeg')) throw new Error('local render 
 if (report.characterGenerateEnabled !== true) throw new Error('character generate affordance not live');
 if (!(report.characterGenerateLabel ?? '').includes('Generate')) throw new Error('character generate label missing: ' + report.characterGenerateLabel);
 if (report.kokoroGenerateEnabled !== true) throw new Error('kokoro generate affordance not live');
+if ((report.kokoroInstallLabel ?? '').trim() !== 'Installed') throw new Error('kokoro install state wrong: ' + report.kokoroInstallLabel);
+if ((report.whisperInstallLabel ?? '').trim() !== 'Installed') throw new Error('whisper install state wrong: ' + report.whisperInstallLabel);
+const installedIds = (report.installedModelsBridge ?? []).map((m) => m.modelId);
+if (!installedIds.includes('hf/hexgrad/Kokoro-82M') || !installedIds.includes('hf/openai/whisper-large-v3')) {
+  throw new Error('installed models missing from the bridge: ' + JSON.stringify(installedIds));
+}
 if (!(report.voiceoverDone ?? '').includes('timeline')) throw new Error('voiceover generation did not complete: ' + report.voiceoverDone);
 if (report.assetCountAfterVoiceover !== 5) throw new Error('voiceover asset missing from the media panel: ' + report.assetCountAfterVoiceover);
 if (report.assetCountAfterImport !== 6) throw new Error('desktop media import failed: ' + report.assetCountAfterImport);

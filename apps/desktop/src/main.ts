@@ -32,6 +32,7 @@ const studioDist = resolve(here, '../../studio/dist');
 let currentProjectDir: string | null = null;
 let generationService: DesktopGenerationService | null = null;
 const activeRenders = new Map<string, RenderJob>();
+const activeInstalls = new Map<string, AbortController>();
 
 // Privileged before app ready: the renderer may stream local media files
 // through this protocol. It never serves arbitrary files - see the
@@ -256,6 +257,33 @@ function registerIpc(): void {
 
   ipcMain.handle('ovm:generate-cancel', (_event, payload: { jobId?: unknown }) => {
     if (generationService && typeof payload?.jobId === 'string') return { ok: generationService.cancel(payload.jobId) };
+    return { ok: false };
+  });
+
+  ipcMain.handle('ovm:model-installed', () => (generationService ? generationService.installedModels() : []));
+
+  ipcMain.handle('ovm:model-install', async (event, payload) => {
+    if (!generationService) return { state: 'failed', error: 'generation service unavailable on this computer' };
+    const modelId = payload?.modelId;
+    if (typeof modelId !== 'string' || modelId.length === 0) return { state: 'failed', error: 'invalid install request' };
+    const controller = new AbortController();
+    activeInstalls.set(modelId, controller);
+    try {
+      return await generationService.installModel(modelId, (d) => {
+        if (!event.sender.isDestroyed()) event.sender.send('ovm:model-install-progress', { modelId, ...d });
+      }, controller.signal);
+    } catch (err) {
+      return { state: 'failed', error: (err as Error).message };
+    } finally {
+      activeInstalls.delete(modelId);
+    }
+  });
+
+  ipcMain.handle('ovm:model-install-cancel', (_event, payload: { modelId?: unknown }) => {
+    if (typeof payload?.modelId === 'string') {
+      activeInstalls.get(payload.modelId)?.abort();
+      return { ok: true };
+    }
     return { ok: false };
   });
 }

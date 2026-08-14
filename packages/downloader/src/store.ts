@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { createReadStream, existsSync, mkdirSync, readFileSync, renameSync, statSync, statfsSync, writeFileSync, rmSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, statfsSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { DownloadError, type ModelManifest } from './types.js';
 
@@ -65,6 +65,25 @@ export class ModelStore {
     const manifestFile = manifestPath(this.dir, modelId, revision);
     if (!existsSync(manifestFile)) return null;
     return JSON.parse(readFileSync(manifestFile, 'utf8')) as ModelManifest;
+  }
+
+  /** Every installed model (manifest-pinned revision + install time). */
+  installedModels(): Array<{ modelId: string; revision: string; installedAt: string }> {
+    const root = join(this.dir, 'manifests');
+    if (!existsSync(root)) return [];
+    const out: Array<{ modelId: string; revision: string; installedAt: string }> = [];
+    for (const dirEntry of readdirSync(root)) {
+      for (const file of readdirSync(join(root, dirEntry))) {
+        if (!file.endsWith('.json')) continue;
+        try {
+          const manifest = JSON.parse(readFileSync(join(root, dirEntry, file), 'utf8')) as ModelManifest;
+          out.push({ modelId: manifest.modelId, revision: manifest.revision, installedAt: manifest.installedAt });
+        } catch {
+          // A corrupt manifest is skipped; installs re-pin cleanly.
+        }
+      }
+    }
+    return out;
   }
 
   /** Resolve a stored model file to its content-addressed path. */

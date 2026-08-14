@@ -37,7 +37,7 @@ export function JobCenter() {
             ) : null}
             {job.error ? <p className="job-error">{job.error}</p> : null}
             <footer className="job-foot">
-              <span className="job-kind">{job.kind === 'generate' ? 'AI' : 'Render'}</span>
+              <span className="job-kind">{job.kind === 'generate' ? 'AI' : job.kind === 'render' ? 'Render' : 'Install'}</span>
               {running ? (
                 <button type="button" className="button button-secondary" onClick={() => controller.cancelJob(job.id)}>
                   {t('jobs.cancel')}

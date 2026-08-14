@@ -26,6 +26,14 @@ const bridge = {
     return () => ipcRenderer.removeListener('ovm:generate-progress', handler);
   },
   generationCapabilities: () => ipcRenderer.invoke('ovm:generation-capabilities'),
+  installedModels: () => ipcRenderer.invoke('ovm:model-installed'),
+  installModel: (modelId) => ipcRenderer.invoke('ovm:model-install', { modelId }),
+  cancelModelInstall: (modelId) => ipcRenderer.invoke('ovm:model-install-cancel', { modelId }),
+  onModelInstallProgress: (listener) => {
+    const handler = (_event, progress) => listener(progress);
+    ipcRenderer.on('ovm:model-install-progress', handler);
+    return () => ipcRenderer.removeListener('ovm:model-install-progress', handler);
+  },
   capabilities: () => ipcRenderer.invoke('ovm:capabilities'),
   openProject: () => ipcRenderer.invoke('ovm:open-project'),
   saveProject: (project, log) => ipcRenderer.invoke('ovm:save-project', { project, log }),

@@ -18,7 +18,7 @@ export interface MutationResult {
 /** One visible unit of long-running work for the Job Center. */
 export interface StudioJob {
   id: string;
-  kind: 'generate' | 'render';
+  kind: 'generate' | 'render' | 'install';
   label: string;
   state: 'preparing' | 'running' | 'completed' | 'failed' | 'cancelled';
   progress: number;
@@ -59,6 +59,8 @@ export class StudioController {
   /** Visible long-running work (the Job Center): generations and renders. */
   #jobs = new Map<string, StudioJob>();
   #jobSeq = 0;
+  /** Model ids installed in the local content store (manifest-pinned). */
+  #installedModels = new Set<string>();
 
   private constructor(session: ProjectSession) {
     this.#session = session;
@@ -146,6 +148,48 @@ export class StudioController {
     return this.localGeneration && this.#generationModels.some((m) => m.capability === capability);
   }
 
+  /** Model ids installed in the local content store. */
+  get installedModels(): ReadonlySet<string> {
+    return this.#installedModels;
+  }
+
+  /** Install a model's files locally (resumable, verified, cancellable, visible in the Job Center). */
+  async installModel(modelId: string): Promise<MutationResult> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return { ok: false, code: 'desktop', message: 'desktop bridge unavailable' };
+    const jobId = this.#beginJob('install', 'Install ' + modelId);
+    this.#patchJob(jobId, { desktopId: modelId });
+    const unsubscribe = bridge.onModelInstallProgress((progress) => {
+      if (progress.modelId !== modelId) return;
+      const state: StudioJob['state'] = progress.state === 'completed' ? 'completed'
+        : progress.state === 'failed' ? 'failed'
+          : progress.state === 'cancelled' ? 'cancelled'
+            : 'running';
+      this.#patchJob(jobId, {
+        state,
+        progress: progress.totalBytes ? Math.min(1, progress.bytes / progress.totalBytes) : progress.progress,
+        stage: progress.stage,
+        ...(state === 'completed' || state === 'failed' || state === 'cancelled' ? { finishedAt: new Date().toISOString() } : {}),
+      });
+    });
+    try {
+      const result = await bridge.installModel(modelId);
+      if (result.state === 'completed') {
+        this.#installedModels.add(modelId);
+        this.#finishJob(jobId, 'completed');
+        return { ok: true };
+      }
+      this.#finishJob(jobId, result.state === 'cancelled' ? 'cancelled' : 'failed', result.error);
+      return { ok: false, code: 'install', message: result.error ?? 'model install did not complete' };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.#finishJob(jobId, 'failed', message);
+      return { ok: false, code: 'install', message };
+    } finally {
+      unsubscribe();
+    }
+  }
+
   /** Visible long-running work for the Job Center, newest first. */
   get jobs(): StudioJob[] {
     return [...this.#jobs.values()].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
@@ -195,7 +239,8 @@ export class StudioController {
     const bridge = getDesktopBridge();
     if (!bridge) return;
     if (job.kind === 'generate') void bridge.cancelGenerate(job.desktopId ?? job.id);
-    else void bridge.cancelRender(job.desktopId ?? job.id);
+    else if (job.kind === 'render') void bridge.cancelRender(job.desktopId ?? job.id);
+    else if (job.desktopId) void bridge.cancelModelInstall(job.desktopId);
   }
 
   /** Ask the desktop main process what it can actually run; updates capability flags honestly. */
@@ -203,13 +248,14 @@ export class StudioController {
     const bridge = getDesktopBridge();
     if (!bridge) return;
     try {
-      const [caps, gen] = await Promise.all([bridge.capabilities(), bridge.generationCapabilities()]);
+      const [caps, gen, installed] = await Promise.all([bridge.capabilities(), bridge.generationCapabilities(), bridge.installedModels()]);
       this.#desktopRuntime = {
         localRender: caps.localRender === true,
         localGeneration: caps.localGeneration === true,
         localPersistence: caps.localPersistence === true,
       };
       this.#generationModels = Array.isArray(gen.models) ? gen.models : [];
+      this.#installedModels = new Set((Array.isArray(installed) ? installed : []).map((i) => i.modelId));
       this.#emit();
     } catch {
       // Bridge vanished or the main process rejected the call; the flags stay honestly false.

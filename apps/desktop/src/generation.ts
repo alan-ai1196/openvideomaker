@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { ModelStore } from '@openvideomaker/downloader';
+import { installModel as downloaderInstallModel, ModelStore } from '@openvideomaker/downloader';
 import { Registry } from '@openvideomaker/registry';
 import { GenerationRunner, GenerationError, type GenerationJob } from '@openvideomaker/jobs';
 import { probeMediaPath } from '@openvideomaker/media';
@@ -105,6 +105,33 @@ export class DesktopGenerationService {
     if (!job) return false;
     job.cancel();
     return true;
+  }
+
+  /** Every installed model from the content store (manifest-pinned). */
+  installedModels(): Array<{ modelId: string; revision: string; installedAt: string }> {
+    return this.runner.store.installedModels();
+  }
+
+  /** Install a model's files through the content store (resumable, verified). */
+  async installModel(
+    modelId: string,
+    onProgress: (d: { state: string; stage: string; progress: number; bytes: number; totalBytes: number | null }) => void,
+    signal?: AbortSignal,
+  ): Promise<{ state: string; error?: string }> {
+    const entry = this.runner.registry.byId(modelId);
+    if (!entry) throw new GenerationError('jobs.model-unknown', 'no registry entry for ' + modelId);
+    const job = await downloaderInstallModel(this.runner.store, entry, {
+      signal,
+      onProgress: (download) =>
+        onProgress({
+          state: download.state,
+          stage: download.stage,
+          progress: download.totalBytes ? Math.min(1, download.bytes / download.totalBytes) : 0,
+          bytes: download.bytes,
+          totalBytes: download.totalBytes,
+        }),
+    });
+    return { state: job.state, ...(job.error ? { error: job.error } : {}) };
   }
 }
 

@@ -210,5 +210,10 @@ unit of work visible with progress and cancellation: generations and
 renders register uniform jobs (the render path gained
 ovm:render-cancel IPC), generation jobs adopt the backend job id from
 the first progress event so cancel reaches the real job, and failed
-or cancelled work never touches the project.
+or cancelled work never touches the project. Model installation is
+real too: the Model Center's Install button runs the content store's
+verified resumable install through ovm:model-install IPC (progress +
+cancel, an ordinary Job Center job), the store's installedModels()
+feeds the live 'Installed' card state, and entries without a verified
+file manifest stay honestly disabled.
 Next: the LLM planner behind the proposal contract. See `docs/STATUS.md`.

@@ -70,6 +70,12 @@ function ModelCard({ entry }: { entry: ModelEntry }) {
     await controller.generateModelSample(entry.id, (p) => setProgress(p));
     setGenerating(false);
   };
+  const installed = controller.installedModels.has(entry.id);
+  const installing = controller.jobs.some((job) => job.kind === 'install' && job.desktopId === entry.id && (job.state === 'preparing' || job.state === 'running'));
+  const installable = (entry.files?.length ?? 0) > 0;
+  const install = async (): Promise<void> => {
+    await controller.installModel(entry.id);
+  };
   return (
     <article className="model-card">
       <div className="model-card-head">
@@ -86,8 +92,22 @@ function ModelCard({ entry }: { entry: ModelEntry }) {
         </span>
       </div>
       <div className="model-card-actions">
-        <button type="button" className="button button-primary" disabled title={t('modelcenter.install.disabled')}>
-          {t('modelcenter.install')}
+        <button
+          type="button"
+          className="button button-primary"
+          disabled={installed || installing || !installable || !controller.localGeneration}
+          title={
+            installed
+              ? t('modelcenter.installed')
+              : installing
+                ? t('modelcenter.installing')
+                : !installable
+                  ? t('modelcenter.install.disabled.unverified')
+                  : t('modelcenter.install.disabled')
+          }
+          onClick={() => void install()}
+        >
+          {installed ? t('modelcenter.installed') : installing ? t('modelcenter.installing') : t('modelcenter.install')}
         </button>
         <button
           type="button"

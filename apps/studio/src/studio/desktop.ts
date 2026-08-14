@@ -70,6 +70,10 @@ export interface StudioDesktopBridge {
   renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
   onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;
   cancelRender(jobId: string): Promise<{ ok: boolean }>;
+  installedModels(): Promise<Array<{ modelId: string; revision: string; installedAt: string }>>;
+  installModel(modelId: string): Promise<{ state: string; error?: string }>;
+  cancelModelInstall(modelId: string): Promise<{ ok: boolean }>;
+  onModelInstallProgress(listener: (progress: { modelId: string; state: string; stage: string; progress: number; bytes: number; totalBytes: number | null }) => void): () => void;
   generate(request: DesktopGenerateRequest): Promise<DesktopGenerateResult>;
   cancelGenerate(jobId: string): Promise<{ ok: boolean }>;
   onGenerateProgress(listener: (progress: DesktopGenerateProgress) => void): () => void;

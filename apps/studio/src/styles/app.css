@@ -2316,6 +2316,37 @@ button.asset-item:hover {
   font-size: 11px;
 }
 
+.agent-short {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.agent-short .field-label {
+  flex: 1 1 100%;
+}
+
+.agent-short-duration {
+  height: 26px;
+  font-size: 11px;
+  color: var(--text-primary);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 6px;
+}
+
+.agent-short .button {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
 .agent-errors {
   flex-basis: 100%;
   margin: 0;

@@ -358,8 +358,20 @@ a one-click reset, and core rejects exhausted crops (left+right or
 top+bottom >= 1) via the clip.crop-exhausted invariant. Verified:
 2 new core tests and the desktop check (Inspector edit 34 -> 45,
 preview viewport follows, reset clears it, Ctrl+Z restores it, the
-imported still previews as an image).
+imported still previews as an image). The 'Create a short' agent flow
+is real: `@openvideomaker/media/highlights` (pure, model-free) ranks
+Level-2 classified shots by speech/motion/spoken words and picks
+spread, duration-capped highlight ranges, and
+`@openvideomaker/agent` buildShortEditScript/buildShortProposal turn
+them into a declarative EditScript (a new Highlights video track,
+back-to-back inserts at real source inPoints, captions that keep
+true transcript timing). The Studio Agent panel's 'Create a short
+from this clip' card (15/30/60s) is honestly hidden unless the
+selected clip has shot analysis, and the proposal uses the same
+preview/apply (one undoable transaction)/reject pipeline as every
+agent edit - the source timeline is never modified. Verified: 7
+media + 4 agent tests and the desktop check (proposal 'Create a
+3.0s short...', apply adds the Highlights track + 2 spread clips).
 Next: code signing, auto-update, macOS/Linux packaging runs, media
-intelligence Level 4 + the 'create a short from a long video' agent
-flow, and further verified runners.
+intelligence Level 4, and further verified runners.
 See `docs/STATUS.md`.

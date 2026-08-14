@@ -1,6 +1,8 @@
 import { applyProjectTemplate, attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, reframeToVertical as reframeToVerticalCommand, removeRangesFromClip, rippleDeleteClip, splitClipAt, splitClipAtTimes, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TemplateId, type TransactionScope } from '@openvideomaker/core';
 import type { MediaInfo } from '@openvideomaker/schema';
-import { applyProposal, type EditProposal } from '@openvideomaker/agent';
+import { applyProposal, buildShortProposal, type EditProposal } from '@openvideomaker/agent';
+import { alignTranscriptToShots, classifyShots, shotsWithSpeech } from '@openvideomaker/media/shot-analysis';
+import { planHighlights } from '@openvideomaker/media/highlights';
 import { Registry } from '@openvideomaker/registry';
 import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
 import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type EditPlan, type EditScript, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
@@ -561,6 +563,41 @@ export class StudioController {
       this.#lastError = { code: e.code ?? 'unknown', message: e.message ?? String(err) };
       this.#emit();
     }
+  }
+
+  /** Whether the selected clip has enough media intelligence for a short. */
+  get shortPlannerAvailable(): boolean {
+    const clip = this.#selectedClip();
+    if (!clip) return false;
+    const analysis = this.mediaCache.get(clip.assetId).analysis;
+    return !!(analysis && analysis.shots && analysis.shots.length >= 2);
+  }
+
+  /**
+   * Build a highlights-short proposal from the selected clip's Level-1/2
+   * analysis (shots, speech, motion) and the durable transcript. Pure
+   * planning - the project is untouched until the user applies the
+   * proposal through the same preview/apply pipeline as any agent edit.
+   */
+  createShortProposal(targetDurationUs = 30_000_000): { ok: true; plan: EditPlan; script: EditScript } | { ok: false; message: string } {
+    const clip = this.#selectedClip();
+    if (!clip) return { ok: false, message: 'select a media clip first' };
+    const analysis = this.mediaCache.get(clip.assetId).analysis;
+    const shots = analysis?.shots;
+    if (!shots || shots.length < 2) return { ok: false, message: 'the clip has no shot analysis' };
+    const sequence = this.activeSequence();
+    if (!sequence) return { ok: false, message: 'no active sequence' };
+    const transcript = Object.values(this.project.transcripts).find((tr) => tr.assetId === clip.assetId);
+    const spans = transcript
+      ? transcript.segments.map((segment) => ({ startUs: segment.startUs, endUs: segment.endUs, text: segment.text }))
+      : [];
+    const aligned = alignTranscriptToShots(shots, spans);
+    const speech = shotsWithSpeech(shots, analysis.audioRegions ?? []);
+    const classified = classifyShots(shots, { motion: analysis.motionPerShot ?? [], speech, texts: aligned.map((a) => a.text) });
+    const ranges = planHighlights(classified, { targetDurationUs, spansByShot: aligned.map((a) => a.spans) });
+    if (ranges.length === 0) return { ok: false, message: 'no highlights found' };
+    const proposal = buildShortProposal({ sequenceId: sequence.id, assetId: clip.assetId, speed: clip.speed, ranges, sourceClipId: clip.id });
+    return { ok: true, plan: proposal.plan, script: proposal.script };
   }
 
   /** Apply a reviewed agent proposal; the edit lands as one undoable transaction. */

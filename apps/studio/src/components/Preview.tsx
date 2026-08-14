@@ -149,17 +149,17 @@ export function Preview() {
           {cropped && mediaSrc ? (
             <div className="preview-crop" style={{ left: fittedBox!.x, top: fittedBox!.y, width: fittedBox!.w, height: fittedBox!.h }}>
               {isImage ? (
-                <img className="preview-media preview-image visible" style={cropStyle} src={mediaSrc} alt="" />
+                <img className="preview-media preview-image visible" style={cropStyle} src={mediaSrc} alt="" data-clip-id={videoActive.clip.id} />
               ) : (
-                <video ref={videoRef} className="preview-media preview-video visible" style={cropStyle} playsInline />
+                <video ref={videoRef} className="preview-media preview-video visible" style={cropStyle} playsInline data-clip-id={videoActive.clip.id} />
               )}
             </div>
           ) : null}
           {!cropped ? (
             isImage ? (
-              <img className={'preview-media preview-image' + (videoActive ? ' visible' : '')} src={mediaSrc} alt="" />
+              <img className={'preview-media preview-image' + (videoActive ? ' visible' : '')} src={mediaSrc} alt="" data-clip-id={videoActive?.clip.id} />
             ) : (
-              <video ref={videoRef} className={'preview-video' + (videoActive ? ' visible' : '')} playsInline />
+              <video ref={videoRef} className={'preview-video' + (videoActive ? ' visible' : '')} playsInline data-clip-id={videoActive?.clip.id} />
             )
           ) : null}
           <audio ref={audioRef} />

@@ -16,6 +16,10 @@
     "./topics": {
       "types": "./dist/topics.d.ts",
       "import": "./dist/topics.js"
+    },
+    "./highlights": {
+      "types": "./dist/highlights.d.ts",
+      "import": "./dist/highlights.js"
     }
   },
   "scripts": {

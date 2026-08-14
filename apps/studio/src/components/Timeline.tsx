@@ -313,6 +313,7 @@ export function Timeline() {
                     <div
                       className={'clip clip-kind-' + clip.kind + (selected ? ' selected' : '') + (clip.enabled ? '' : ' disabled')}
                       key={clip.id}
+                      data-clip-id={clip.id}
                       style={{ left: pos.left, width: pos.width }}
                       onPointerDown={(e) => startClipDrag(e, clip.id, track.id)}
                       role="button"

@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 41). This file is the single living status source; it
+Updated: 2026-08-14 (round 42). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -522,14 +522,32 @@ describes the repository truth and is updated whenever that truth changes.
   preview viewport follows the edit, resets the crop (viewport gone,
   values 0), Ctrl+Z restores it, and asserts the imported still
   previews as an image.
+- **'Create a short' agent flow**: media intelligence now drives whole
+  edits - `@openvideomaker/media/highlights` (pure, model-free) ranks the
+  Level-2 classified shots by speech/motion/spoken words and picks a
+  spread, duration-capped set of highlight ranges (deterministic; the
+  same source always yields the same ranges), and `@openvideomaker/agent`
+  `buildShortEditScript`/`buildShortProposal` turn them into a declarative
+  EditScript: one new Highlights video track with back-to-back media
+  inserts at the real source inPoints, plus caption clips whose segments
+  keep their true transcript timing. The Studio Agent panel gains a
+  'Create a short from this clip' card (15/30/60s target; honestly hidden
+  unless the selected clip has shot analysis - a still or browser mode
+  shows nothing). The proposal flows through the SAME preview/apply
+  (one undoable transaction)/reject pipeline as every agent edit, and the
+  source timeline is never modified. Verified: 7 new media tests
+  (ranking, spread gap, duration cap, determinism, merges, fallback) +
+  4 new agent tests (compile, speed mapping, clean preview, one undoable
+  apply), and the desktop Playwright check clicks through the REAL flow
+  on the 3-scene fixture (proposal 'Create a 3.0s short from the best
+  moments', apply adds the Highlights track + 2 spread highlight clips).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. Code signing, auto-update; macOS/Linux packaging runs
-2. Media intelligence Level 4 (summaries, entities, narrative) and
-   the 'create a short from a long video' agent flow
+2. Media intelligence Level 4 (summaries, entities, narrative)
 3. More verified runner integrations (avatars/video next; MuseTalk
    documented as blocked on mmpose/chumpy)
 4. Desktop slices: auto-update wiring, onboarding; site copy refresh

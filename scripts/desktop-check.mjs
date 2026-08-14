@@ -370,6 +370,32 @@ if (fullLlm) {
   report.lanesAfterLlm = await window.locator('.lane').count();
 }
 
+// Short creation: the deterministic planner turns the selected clip's
+// Level-1/2 analysis (shots/speech/motion) into a highlight proposal
+// through the same preview/apply pipeline as any agent edit. The source
+// timeline stays untouched; the short lands on its own track.
+// (The cutout loop left the still selected - the still has no analysis,
+// so the affordance is honestly hidden there; select the analyzed video.)
+await window.locator('.clip-kind-media').first().click();
+await window.waitForTimeout(250);
+report.shortButtonPresent = await window.locator('.agent-short').count();
+report.shortButtonEnabled = report.shortButtonPresent > 0 ? !(await window.locator('.agent-short .button-primary').isDisabled()) : null;
+if (report.shortButtonEnabled) {
+  const lanesBeforeShort = await window.locator('.lane').count();
+  const clipsBeforeShort = await window.locator('.clip-kind-media').count();
+  await window.locator('.agent-short .button-primary').click();
+  await window.waitForSelector('.agent-card:has-text("short")', { timeout: 5000 });
+  report.shortProposalGoal = await window.locator('.agent-goal').last().textContent();
+  report.shortApplyEnabled = !(await window.locator('.agent-card').last().locator('.button-primary').isDisabled());
+  await window.locator('.agent-card').last().locator('.button-primary').click();
+  await window.waitForTimeout(500);
+  report.lanesAfterShort = await window.locator('.lane').count();
+  report.mediaClipsAfterShort = await window.locator('.clip-kind-media').count();
+  report.shortAddedLanes = report.lanesAfterShort - lanesBeforeShort;
+  report.shortAddedClips = report.mediaClipsAfterShort - clipsBeforeShort;
+  report.highlightsLane = await window.locator('.track-header-name', { hasText: 'Highlights' }).count();
+}
+
 // Product templates: presets that build ordinary editable tracks and
 // settings through the core operation layer (nothing locked in).
 await window.locator('.rail-button[title="Templates"]').click();
@@ -392,15 +418,17 @@ report.templateVerticalLane = await window.locator('.lane', { hasText: 'Captions
 // viewport frames the kept region like the render plan) and every media
 // clip's crop is adjustable in the Inspector through ordinary typed ops.
 // Clips can overlap in time; the preview shows the TOPMOST active clip,
-// which may differ from the selected one. Only accept a clip when the
-// viewport's implied crop matches the Inspector's slider values - then
-// selection and preview provably refer to the same clip.
+// which may differ from the selected one. Clips carry data-clip-id and
+// the preview media element exposes the ACTIVE clip's id, so accept a
+// clip only when selection and preview provably refer to the same clip
+// (crop values alone are ambiguous - reframed clips share them).
 let cropClipIndex = -1;
 const clipTotalForCrop = await window.locator('.clip-kind-media').count();
 const rulerBox = await window.locator('.ruler').boundingBox();
 report.cropLoopTrace = [];
 for (let i = 0; i < clipTotalForCrop; i += 1) {
   const clipBox = await window.locator('.clip-kind-media').nth(i).boundingBox();
+  const selectedId = await window.locator('.clip-kind-media').nth(i).getAttribute('data-clip-id');
   await window.locator('.clip-kind-media').nth(i).click();
   // Selecting does not seek; click the ruler at the clip's center so the
   // playhead lands inside it and the preview shows that clip's framing.
@@ -410,20 +438,14 @@ for (let i = 0; i < clipTotalForCrop; i += 1) {
   await window.waitForTimeout(150);
   const viewportCount = await window.locator('.preview-crop').count();
   const editorCount = await window.locator('.inspector-crop input[type="range"]').count();
-  const innerStyle = viewportCount > 0 ? await window.locator('.preview-crop .preview-media').first().getAttribute('style') : null;
-  const sliderVals = editorCount > 0 ? await window.locator('.inspector-crop input[type="range"]').evaluateAll((els) => els.map((e) => e.value)) : null;
-  report.cropLoopTrace.push({ i, viewportCount, editorCount, sliderVals, innerStyle });
+  const activeId = viewportCount > 0
+    ? await window.locator('.preview-crop .preview-media').first().getAttribute('data-clip-id')
+    : await window.locator('.preview-video, .preview-image').first().getAttribute('data-clip-id');
+  report.cropLoopTrace.push({ i, selectedId, activeId, viewportCount, editorCount });
   if (viewportCount === 0) continue;
   // Audio-only media clips show the preview but never offer crop editing.
   if (editorCount === 0) continue;
-  const widthPct = parseFloat(/width:\s*([\d.]+)%/.exec(innerStyle ?? '')?.[1] ?? '0');
-  // React serializes the style's left/top/right/bottom as the inset
-  // shorthand; parse either form.
-  const inset = /inset:\s*([-\d.]+)%\s+(?:auto|[-\d.]+%)\s+(?:auto|[-\d.]+%)\s+([-\d.]+)%/.exec(innerStyle ?? '');
-  const leftPct = inset ? parseFloat(inset[2]) : parseFloat(/left:\s*(-?[\d.]+)%/.exec(innerStyle ?? '')?.[1] ?? '0');
-  const impliedLeft = widthPct > 0 ? -leftPct / widthPct : -1;
-  const sliderLeft = Number(sliderVals?.[0] ?? '0') / 100;
-  if (Math.abs(impliedLeft - sliderLeft) < 0.02) {
+  if (activeId === selectedId) {
     cropClipIndex = i;
     break;
   }
@@ -620,6 +642,13 @@ if (fullLipSync) {
   if (report.jobCancelVisible !== true) throw new Error('job cancel button missing');
   if (report.lipSyncAddedLane !== 1) throw new Error('lip-sync track missing: ' + report.lipSyncAddedLane);
 }
+if (report.shortButtonPresent !== 1) throw new Error('short creation affordance missing: ' + report.shortButtonPresent);
+if (report.shortButtonEnabled !== true) throw new Error('short creation button not live');
+if (!(report.shortProposalGoal ?? '').includes('short')) throw new Error('short proposal missing: ' + report.shortProposalGoal);
+if (report.shortApplyEnabled !== true) throw new Error('short proposal not applyable');
+if (report.shortAddedLanes !== 1) throw new Error('short should add one Highlights track: ' + report.shortAddedLanes);
+if (report.shortAddedClips !== 2) throw new Error('short should assemble two highlight clips (spread by the 1.5s gap): ' + report.shortAddedClips);
+if (report.highlightsLane !== 1) throw new Error('Highlights lane missing: ' + report.highlightsLane);
 if (fullLlm) {
   if (report.llmPlannerAdvertised !== true) throw new Error('llm planner not advertised when configured');
   if (report.agentAiVisible !== 1) throw new Error('agent AI plan section missing');

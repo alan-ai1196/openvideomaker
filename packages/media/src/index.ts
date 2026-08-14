@@ -6,3 +6,4 @@ export * from './waveform.js';
 export * from './intelligence.js';
 export * from './shotAnalysis.js';
 export * from './topics.js';
+export * from './highlights.js';

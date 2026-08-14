@@ -6,6 +6,8 @@ export interface CachedAnalysis {
   shots: Array<{ startUs: number; endUs: number }>;
   keyframeAtUs: number[];
   audioRegions: Array<{ startUs: number; endUs: number; silent: boolean }>;
+  /** Level 2: per-shot mean inter-frame luma difference (0-255). */
+  motionPerShot?: number[];
 }
 
 interface CachedMedia {

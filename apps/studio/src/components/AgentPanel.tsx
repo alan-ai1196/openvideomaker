@@ -18,6 +18,7 @@ export function AgentPanel() {
   const [goal, setGoal] = useState('');
   const [planning, setPlanning] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
+  const [shortDuration, setShortDuration] = useState(30);
 
   const suggest = (): void => {
     setProposals(suggestDemoEdits(controller.project).map((s) => createProposal(controller.project, s.plan, s.script)));
@@ -64,6 +65,36 @@ export function AgentPanel() {
             {planning ? t('agent.ai.planning') : t('agent.ai.plan')}
           </button>
           {planError ? <p className="agent-errors">{planError}</p> : null}
+        </div>
+      ) : null}
+      {controller.shortPlannerAvailable ? (
+        <div className="agent-short">
+          <span className="field-label">{t('agent.short.title')}</span>
+          <select
+            className="agent-short-duration"
+            value={shortDuration}
+            aria-label={t('agent.short.duration')}
+            onChange={(e) => setShortDuration(Number(e.target.value))}
+          >
+            <option value={15}>15s</option>
+            <option value={30}>30s</option>
+            <option value={60}>60s</option>
+          </select>
+          <button
+            type="button"
+            className="button button-primary"
+            onClick={() => {
+              const result = controller.createShortProposal(shortDuration * 1_000_000);
+              if (result.ok) {
+                setProposals((list) => [...list, createProposal(controller.project, result.plan, result.script)]);
+                setPreviewId(null);
+              } else {
+                setPlanError(result.message);
+              }
+            }}
+          >
+            {t('agent.short.create')}
+          </button>
         </div>
       ) : null}
       <button type="button" className="button button-primary" onClick={suggest}>

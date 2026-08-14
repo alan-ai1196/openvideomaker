@@ -48,7 +48,17 @@ claimed here: the per-shot text is verbatim transcript overlap, and
 speech/action classification is documented heuristics - no model, no
 summarization.
 
-Level 3: entities/topics/semantic search - not implemented.
+Level 3 (round 35, honest lexical subset): transcript search and
+keyword topics - deterministic, model-free tokenization (latin words
+minus stopwords + CJK character bigrams), term-frequency keyword
+ranking with segment timestamps, and token-overlap search with a
+substring fallback (`@openvideomaker/media/topics`, pure, shipped as
+a subpath so the browser bundle stays ffmpeg-free). The Studio
+Transcript panel gains a search box (ranked hits that seek the
+playhead) and per-transcript keyword chips. Entity extraction and
+semantic (embedding) search are NOT claimed - they need a model and
+remain future work; the scorers are swappable behind the same result
+shapes.
 
 Level 4: project narrative representation - not implemented; the
 agent/EditPlan layer (a later round) will consume it.

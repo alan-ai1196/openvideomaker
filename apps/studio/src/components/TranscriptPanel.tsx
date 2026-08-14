@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { usToSeconds, type AssetId, type SegmentId, type TranscriptId } from '@openvideomaker/schema';
+import { extractKeywords, searchTranscript } from '@openvideomaker/media/topics';
 import { useStudio } from '../studio/context';
 import { useI18n } from '../i18n/context';
 import type { MessageKey } from '../i18n/strings';
@@ -16,7 +17,11 @@ export function TranscriptPanel() {
   const { t } = useI18n();
   const [editing, setEditing] = useState<{ transcriptId: TranscriptId; segmentId: SegmentId } | null>(null);
   const [draft, setDraft] = useState('');
+  const [query, setQuery] = useState('');
   const transcripts = Object.values(controller.project.transcripts);
+  const allSegments = transcripts.flatMap((transcript) =>
+    transcript.segments.map((segment) => ({ ...segment, transcriptId: transcript.id })),
+  );
   const candidates = Object.values(controller.project.assets).filter((asset) =>
     (asset.kind === 'video' || asset.kind === 'audio') &&
     asset.source.kind === 'file' &&
@@ -28,8 +33,31 @@ export function TranscriptPanel() {
     setEditing(null);
   };
 
+  const hits = query.trim().length > 0 ? searchTranscript(allSegments, query, { limit: 12 }) : [];
   return (
     <div className="transcript-list">
+      <div className="transcript-tools">
+        <input
+          className="transcript-search"
+          type="search"
+          value={query}
+          placeholder={t('transcript.search.placeholder')}
+          aria-label={t('transcript.search.placeholder')}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        {hits.length > 0 ? (
+          <ul className="transcript-hits">
+            {hits.map((hit) => (
+              <li key={(hit.segmentId ?? '') + hit.startUs}>
+                <button type="button" className="transcript-hit" onClick={() => controller.setPlayhead(hit.startUs)}>
+                  <span className="transcript-hit-time">{usToSeconds(hit.startUs).toFixed(1)}s</span>
+                  <span className="transcript-hit-text">{hit.text}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
       {candidates.length > 0 ? (
         <section className="transcribe-card">
           <header className="transcribe-head">
@@ -48,6 +76,7 @@ export function TranscriptPanel() {
       ) : null}
       {transcripts.map((transcript) => {
         const asset = controller.project.assets[transcript.assetId];
+        const keywords = extractKeywords(transcript.segments, { limit: 6 });
         return (
           <section key={transcript.id} className="transcript-card">
             <header className="transcript-head">
@@ -58,6 +87,21 @@ export function TranscriptPanel() {
                 {t('transcript.syncCaptions')}
               </button>
             </header>
+            {keywords.length > 0 ? (
+              <div className="transcript-keywords">
+                {keywords.map((keyword) => (
+                  <button
+                    key={keyword.term}
+                    type="button"
+                    className="transcript-keyword"
+                    title={t('transcript.keywords.hint')}
+                    onClick={() => setQuery(keyword.term)}
+                  >
+                    {keyword.term}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <ul className="transcript-segments">
               {transcript.segments.map((segment) => (
                 <li key={segment.id} className="transcript-segment">

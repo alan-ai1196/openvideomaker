@@ -12,6 +12,10 @@
     "./shot-analysis": {
       "types": "./dist/shotAnalysis.d.ts",
       "import": "./dist/shotAnalysis.js"
+    },
+    "./topics": {
+      "types": "./dist/topics.d.ts",
+      "import": "./dist/topics.js"
     }
   },
   "scripts": {

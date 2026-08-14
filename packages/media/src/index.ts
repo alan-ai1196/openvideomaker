@@ -5,3 +5,4 @@ export * from './thumbnails.js';
 export * from './waveform.js';
 export * from './intelligence.js';
 export * from './shotAnalysis.js';
+export * from './topics.js';

@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 34). This file is the single living status source; it
+Updated: 2026-08-14 (round 35). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -423,6 +423,19 @@ describes the repository truth and is updated whenever that truth changes.
   14.6 - Electron's default would differ by 100+) with graphite corners
   (rgb 36/40/48) and the accent-blue play area (rgb 56/92/138). The
   packaged app still passes the full packaged-check after re-packaging.
+- **Media intelligence Level 3 (honest lexical subset)**: transcript
+  search and keyword topics in `@openvideomaker/media/topics` - pure,
+  model-free tokenization (latin words minus stopwords + CJK character
+  bigrams), term-frequency keyword ranking with segment timestamps, and
+  token-overlap search with a substring fallback so queries never
+  silently return nothing (6 new media tests). The Studio Transcript
+  panel gains a search box (ranked hits seek the playhead) and
+  per-transcript keyword chips that fill the query. Entity extraction
+  and semantic (embedding) search are explicitly NOT claimed - they
+  need models; the scorers stay swappable behind the same result
+  shapes. Verified in the desktop app: searching the demo transcript
+  for 'videos' returns the matching line and seeking lands exactly at
+  00:00:02:00, keyword chips render from the transcript, zero errors.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

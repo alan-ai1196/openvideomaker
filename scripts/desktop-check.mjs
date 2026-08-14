@@ -191,6 +191,29 @@ await window.locator('.rail-button[title="Media"]').click();
 await window.waitForTimeout(300);
 report.assetCountAfterScriptSpeech = await window.locator('.asset-item').count();
 
+// Transcript search + keyword topics (media intelligence Level 3,
+// lexical): search what was said and jump straight to the line; the
+// demo transcript's segments are frequency-keyworded into chips.
+await window.locator('.rail-button[title="Transcript"]').click();
+await window.waitForTimeout(300);
+report.transcriptSearchPresent = await window.locator('.transcript-search').count();
+report.transcriptKeywordChips = await window.locator('.transcript-keyword').count();
+await window.locator('.transcript-search').fill('videos');
+await window.waitForTimeout(300);
+report.transcriptHitCount = await window.locator('.transcript-hit').count();
+if (report.transcriptHitCount > 0) {
+  await window.locator('.transcript-hit').first().click();
+  await window.waitForTimeout(200);
+}
+report.timeAfterSearchSeek = await window.locator('.transport-time').textContent();
+// Put the playhead back at 0 so the later video import lands first on
+// the timeline (the check relies on that order).
+await window.locator('.transcript-time').first().click();
+await window.waitForTimeout(200);
+report.timeAfterSearchReset = await window.locator('.transport-time').textContent();
+await window.locator('.rail-button[title="Media"]').click();
+await window.waitForTimeout(300);
+
 // Redub: import a real video, place it, select the clip, and verify the
 // lip-sync affordance is live in the desktop app.
 await app.evaluate(({ dialog }, filePath) => {
@@ -397,6 +420,11 @@ if (report.scriptSpeechEnabled !== true) throw new Error('script speech affordan
 if (!(report.scriptSpeechAfter ?? '').includes('✓')) throw new Error('script speech did not complete: ' + report.scriptSpeechAfter);
 if (!(report.scriptLineStartAfter ?? '')) throw new Error('line did not gain a real start time');
 if (report.assetCountAfterScriptSpeech !== 7) throw new Error('script speech asset missing from the media panel: ' + report.assetCountAfterScriptSpeech);
+if (report.transcriptSearchPresent !== 1) throw new Error('transcript search missing: ' + report.transcriptSearchPresent);
+if (report.transcriptKeywordChips < 1) throw new Error('transcript keyword chips missing: ' + report.transcriptKeywordChips);
+if (report.transcriptHitCount < 1) throw new Error('transcript search found nothing for a demo word: ' + report.transcriptHitCount);
+if (report.timeAfterSearchSeek !== '00:00:02:00') throw new Error('search hit did not seek to 2.0s: ' + report.timeAfterSearchSeek);
+if (report.timeAfterSearchReset !== '00:00:00:00') throw new Error('segment click did not reset the playhead to 0: ' + report.timeAfterSearchReset);
 if (report.assetCountAfterVideoImport !== 8) throw new Error('video import failed: ' + report.assetCountAfterVideoImport);
 if (report.redubSectionVisible !== 1) throw new Error('redub section missing from the inspector');
 if (report.shotMarks < 2) throw new Error('shot markers missing from the clip: ' + report.shotMarks);

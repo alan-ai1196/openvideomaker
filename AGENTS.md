@@ -292,6 +292,15 @@ triangle and a timeline playhead (single SVG source in
 the NSIS installer/uninstaller, macOS and Linux, and the dev window).
 Verified against the PACKAGED exe by `scripts/icon-check.mjs` (shell
 icon matches the source PNG; graphite corners + accent-blue play area).
+Media intelligence Level 3 ships as the honest lexical subset:
+`@openvideomaker/media/topics` (pure; latin words minus stopwords +
+CJK bigrams; TF-ranked keywords with segment timestamps; token-overlap
+search with a substring fallback) powers the Transcript panel's search
+box (ranked hits seek the playhead) and per-transcript keyword chips;
+entity extraction and embedding search are NOT claimed - they need
+models, and the scorers stay swappable. Verified: 6 media tests and
+the desktop check (searching the demo transcript for 'videos' seeks
+00:00:02:00; keyword chips render; zero errors).
 Next: code signing, auto-update, macOS/Linux packaging runs, media
-intelligence Levels 3-4, and further verified runners.
+intelligence Level 4, and further verified runners.
 See `docs/STATUS.md`.

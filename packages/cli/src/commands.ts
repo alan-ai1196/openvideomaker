@@ -7,6 +7,7 @@ import { buildRenderPlan, render } from '@openvideomaker/render';
 import { COMMON_FPS, ProjectSchema } from '@openvideomaker/schema';
 import { McpServer } from '@openvideomaker/mcp';
 import { attachStdio } from '@openvideomaker/mcp';
+import { openProjectForMcp } from '@openvideomaker/mcp';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const registryDataDir = resolve(repoRoot, 'packages/registry/src/data');
@@ -114,13 +115,23 @@ export async function runRender(args: string[]): Promise<number> {
   return 1;
 }
 
-export function runMcp(): number {
+export function runMcp(args: string[] = []): number {
   const registry = loadRegistryFromDir(registryDataDir);
   if (registry.errors.length > 0) {
     console.error('registry invalid: ' + registry.errors.join('; '));
     return 1;
   }
-  const server = new McpServer({ registry });
+  const projectIndex = args.indexOf('--project');
+  let session;
+  if (projectIndex >= 0) {
+    try {
+      session = openProjectForMcp(args[projectIndex + 1] ?? '');
+    } catch (err) {
+      console.error('ovm mcp: ' + (err as Error).message);
+      return 2;
+    }
+  }
+  const server = new McpServer({ registry, ...(session ? { session } : {}) });
   attachStdio(server);
   return 0;
 }
@@ -136,7 +147,7 @@ export async function runOvm(argv: string[]): Promise<number> {
     case 'render':
       return runRender(rest);
     case 'mcp':
-      return runMcp();
+      return runMcp(rest);
     default:
       console.error('usage: ovm <doctor|models|render|mcp> ...');
       return command ? 2 : 0;

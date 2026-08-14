@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 26). This file is the single living status source; it
+Updated: 2026-08-14 (round 27). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -302,14 +302,25 @@ describes the repository truth and is updated whenever that truth changes.
   says diagnostics run in the desktop app. Playwright-verified in the
   desktop app (RTX 3090 row, ffmpeg encoders, recommendations, raw
   report, zero errors) and in the browser (honest empty state).
+- **Local MCP server for the open project**: `ovm-mcp`/`ovm mcp` gain
+  `--project <folder|.ovm.json>` - the server binds an EXISTING saved
+  project (shared `openProjectForMcp` loader: SQLite folders and .ovm.json
+  exports) so agents see exactly what the Studio saved, with project
+  tools/resources reading the real state. The desktop app's Device Center
+  gained a Developer section: once the project is saved it shows the
+  exact connection command (`ovm mcp --project "<dir>"`) with a copy
+  button, and an honest 'save first' hint before that. Verified: the
+  mcp-check now runs a second server against a real saved project
+  (name + media preserved through --project), and the Playwright
+  desktop check saves through the UI and asserts the command contains
+  the saved folder.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. More verified runner integrations (MuseTalk/avatars next).
-2. Installer packaging; long-project performance hardening; a local
-   MCP server in the desktop app.
+2. Installer packaging; long-project performance hardening.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

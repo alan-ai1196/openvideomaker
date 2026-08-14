@@ -63,6 +63,8 @@ export class StudioController {
   #installedModels = new Set<string>();
   /** The probed device graph + recommendations (Device Center). */
   #deviceReport: StudioDoctorReport | null = null;
+  /** The project folder the desktop app has open (for the Developer section). */
+  #projectDir: string | null = null;
 
   private constructor(session: ProjectSession) {
     this.#session = session;
@@ -149,6 +151,11 @@ export class StudioController {
   /** The probed device graph for the Device Center (desktop only). */
   get deviceReport(): StudioDoctorReport | null {
     return this.#deviceReport;
+  }
+
+  /** The desktop project folder (null until the project is saved/opened there). */
+  get projectDir(): string | null {
+    return this.#projectDir;
   }
 
   get generationModels(): Array<{ capability: string; modelId: string }> {
@@ -274,6 +281,11 @@ export class StudioController {
       } catch {
         this.#deviceReport = null;
       }
+      try {
+        this.#projectDir = (await bridge.projectInfo()).dir;
+      } catch {
+        this.#projectDir = null;
+      }
       this.#emit();
     } catch {
       // Bridge vanished or the main process rejected the call; the flags stay honestly false.
@@ -309,7 +321,10 @@ export class StudioController {
     try {
       const loaded = await bridge.openProject();
       if (!loaded) return { ok: false, code: 'cancelled', message: 'open cancelled' };
-      return this.loadProject(loaded.project, loaded.log);
+      const result = this.loadProject(loaded.project, loaded.log);
+      this.#projectDir = (await bridge.projectInfo().catch(() => ({ dir: null }))).dir;
+      this.#emit();
+      return result;
     } catch (err) {
       return { ok: false, code: 'desktop', message: (err as Error).message };
     }
@@ -392,6 +407,8 @@ export class StudioController {
     try {
       const result = await bridge.saveProject(this.#session.project as Project, this.#session.exportLog());
       if (!result.ok) return { ok: false, code: 'desktop', message: result.reason ?? 'save failed' };
+      this.#projectDir = result.dir ?? null;
+      this.#emit();
       return { ok: true };
     } catch (err) {
       return { ok: false, code: 'desktop', message: (err as Error).message };

@@ -192,6 +192,8 @@ function registerIpc(): void {
     return { graph, recommendations: doctorRecommendations(graph), report: formatDoctor(graph) };
   });
 
+  ipcMain.handle('ovm:project-info', () => ({ dir: currentProjectDir }));
+
   ipcMain.handle('ovm:import-media', async () => {
     const result = await dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],

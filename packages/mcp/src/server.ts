@@ -36,8 +36,9 @@ export class McpServer {
   #resources = new Map<string, McpResource>();
   readonly info: McpServerInfo;
 
-  constructor(options: { registry: Registry; info?: McpServerInfo }) {
+  constructor(options: { registry: Registry; info?: McpServerInfo; session?: ProjectSession }) {
     this.#registry = options.registry;
+    this.#session = options.session ?? null;
     this.info = options.info ?? { name: 'openvideomaker', version: '0.1.0' };
     this.#registerTools();
     this.#resources.set('project://current', {

@@ -224,6 +224,10 @@ file manifest stay honestly disabled. The Device Center (Devices tab)
 surfaces the probed device graph with ovm doctor's logic: friendly
 first ('Your PC is ready for local AI.'), details + recommendations
 behind progressive disclosure, the raw report for developers, and an
-honest 'runs in the desktop app' state in the browser.
-Next: installer packaging, a local MCP server in the desktop app, and
-long-project hardening. See `docs/STATUS.md`.
+honest 'runs in the desktop app' state in the browser. The MCP server
+attaches to real projects: ovm-mcp / ovm mcp accept --project (a saved
+project folder or a .ovm.json export) through the shared
+openProjectForMcp loader, and the Device Center's Developer section
+shows the exact connection command for the desktop's saved project
+(copy button; honest 'save first' hint before that).
+Next: installer packaging and long-project hardening. See `docs/STATUS.md`.

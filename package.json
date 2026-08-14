@@ -32,7 +32,9 @@
     "@openvideomaker/registry": "workspace:*",
     "@openvideomaker/downloader": "workspace:*",
     "@openvideomaker/runners": "workspace:*",
-    "@openvideomaker/media": "workspace:*"
+    "@openvideomaker/media": "workspace:*",
+    "@openvideomaker/core": "workspace:*",
+    "@openvideomaker/persistence": "workspace:*"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

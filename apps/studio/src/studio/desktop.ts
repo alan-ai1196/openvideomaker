@@ -93,6 +93,7 @@ export interface StudioDesktopBridge {
   openProject(): Promise<{ project: Project; log: ProjectLog } | null>;
   saveProject(project: Project, log: ProjectLog): Promise<{ ok: boolean; appended?: number; dir?: string; reason?: string }>;
   runDoctor(): Promise<StudioDoctorReport>;
+  projectInfo(): Promise<{ dir: string | null }>;
   importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo }>>;
   renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
   onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;

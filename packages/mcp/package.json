@@ -22,6 +22,7 @@
   "dependencies": {
     "@openvideomaker/core": "workspace:*",
     "@openvideomaker/schema": "workspace:*",
+    "@openvideomaker/persistence": "workspace:*",
     "@openvideomaker/agent": "workspace:*",
     "@openvideomaker/registry": "workspace:*",
     "zod": "^4.4.3"

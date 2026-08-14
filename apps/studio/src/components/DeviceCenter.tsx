@@ -85,6 +85,26 @@ export function DeviceCenter() {
         <summary>{t('devices.raw')}</summary>
         <pre className="device-report">{report.report}</pre>
       </details>
+      {controller.capabilities.localPersistence ? (
+        <section className="device-card">
+          <h3 className="device-section">{t('devices.section.developer')}</h3>
+          {controller.projectDir ? (
+            <div className="device-mcp">
+              <p className="device-mcp-hint">{t('devices.mcp.hint')}</p>
+              <code className="device-mcp-command">ovm mcp --project "{controller.projectDir}"</code>
+              <button
+                type="button"
+                className="button button-secondary"
+                onClick={() => void navigator.clipboard?.writeText('ovm mcp --project "' + controller.projectDir + '"')}
+              >
+                {t('devices.mcp.copy')}
+              </button>
+            </div>
+          ) : (
+            <p className="device-mcp-hint">{t('devices.mcp.unsaved')}</p>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

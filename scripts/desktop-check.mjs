@@ -245,6 +245,15 @@ report.deviceGpuRows = await window.locator('.device-row', { hasText: '3090' }).
 report.deviceFfmpegRow = await window.locator('.device-row', { hasText: 'ffmpeg' }).first().textContent();
 report.deviceRecommendations = await window.locator('.device-notes li').count();
 report.deviceRawAvailable = await window.locator('.device-report').count();
+// Developer section: saving the project unlocks the MCP command.
+report.mcpUnsavedHint = await window.locator('.device-mcp-hint').count();
+const savedDir = resolve('.research/desktop-check-project');
+await app.evaluate(({ dialog }, dir) => {
+  dialog.showSaveDialog = async () => ({ canceled: false, filePath: dir });
+}, savedDir);
+await window.locator('.topbar .icon-button[title="Save project file"]').first().click();
+await window.waitForTimeout(800);
+report.mcpCommand = await window.locator('.device-mcp-command').textContent();
 
 mkdirSync('.research/screenshots', { recursive: true });
 await window.screenshot({ path: '.research/screenshots/desktop-studio.png' });
@@ -315,6 +324,8 @@ if (report.deviceGpuRows < 1) throw new Error('GPU row missing from the Device C
 if (!(report.deviceFfmpegRow ?? '').includes('8')) throw new Error('ffmpeg row missing: ' + report.deviceFfmpegRow);
 if (report.deviceRecommendations < 1) throw new Error('device recommendations missing');
 if (report.deviceRawAvailable !== 1) throw new Error('raw report missing');
+if (!(report.mcpCommand ?? '').includes('ovm mcp --project')) throw new Error('MCP command missing: ' + report.mcpCommand);
+if (!(report.mcpCommand ?? '').includes('desktop-check-project')) throw new Error('MCP command lacks the project dir: ' + report.mcpCommand);
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');
 if (errors.length > 0) throw new Error('page errors: ' + errors.join(' | '));
 console.log('DESKTOP WINDOW OK');

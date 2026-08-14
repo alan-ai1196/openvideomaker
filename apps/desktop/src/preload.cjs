@@ -39,6 +39,7 @@ const bridge = {
   openProject: () => ipcRenderer.invoke('ovm:open-project'),
   saveProject: (project, log) => ipcRenderer.invoke('ovm:save-project', { project, log }),
   runDoctor: () => ipcRenderer.invoke('ovm:doctor'),
+  projectInfo: () => ipcRenderer.invoke('ovm:project-info'),
 };
 
 contextBridge.exposeInMainWorld('ovm', bridge);

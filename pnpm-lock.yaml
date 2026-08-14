@@ -8,12 +8,18 @@ importers:
 
   .:
     devDependencies:
+      '@openvideomaker/core':
+        specifier: workspace:*
+        version: link:packages/core
       '@openvideomaker/downloader':
         specifier: workspace:*
         version: link:packages/downloader
       '@openvideomaker/media':
         specifier: workspace:*
         version: link:packages/media
+      '@openvideomaker/persistence':
+        specifier: workspace:*
+        version: link:packages/persistence
       '@openvideomaker/registry':
         specifier: workspace:*
         version: link:packages/registry
@@ -263,6 +269,9 @@ importers:
       '@openvideomaker/core':
         specifier: workspace:*
         version: link:../core
+      '@openvideomaker/persistence':
+        specifier: workspace:*
+        version: link:../persistence
       '@openvideomaker/registry':
         specifier: workspace:*
         version: link:../registry

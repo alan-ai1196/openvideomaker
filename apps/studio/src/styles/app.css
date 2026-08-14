@@ -1789,6 +1789,40 @@ button.asset-item:hover {
   cursor: pointer;
 }
 
+.device-mcp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.device-mcp-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.device-mcp-command {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.device-mcp .button {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
 .device-report {
   margin: 8px 0 0;
   padding: 8px;

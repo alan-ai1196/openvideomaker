@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 40). This file is the single living status source; it
+Updated: 2026-08-14 (round 41). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -506,18 +506,33 @@ describes the repository truth and is updated whenever that truth changes.
   output (the render pipeline applies the crop), and the desktop
   Playwright check clicks the card and asserts the status bar reads
   1080x1920.
+- **Crop is first-class in the editing workflow**: the `clip.crop`
+  operation reframing writes is now REAL everywhere - the preview
+  stage frames the cropped region exactly like the render pipeline (a
+  fitted-source crop viewport driven by the same fractions the render
+  plan turns into crop filters), stills preview as images (image clips
+  were invisible in the preview before - cutout results now show), and
+  the Inspector gains a four-slider crop editor with per-side clamping
+  (opposing sides can never consume the whole frame) plus a one-click
+  reset. Core rejects exhausted crops (left+right or top+bottom >= 1)
+  with a new `clip.crop-exhausted` invariant. Verified: 2 new core
+  tests (exhausted crops rejected, aggressive crops accepted), the
+  reframe render E2E still green, and the desktop Playwright check
+  edits the crop through the Inspector (slider 34 -> 45), asserts the
+  preview viewport follows the edit, resets the crop (viewport gone,
+  values 0), Ctrl+Z restores it, and asserts the imported still
+  previews as an image.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. Code signing, auto-update; macOS/Linux packaging runs
-2. Media intelligence Level 4 (summaries, entities, narrative)
+2. Media intelligence Level 4 (summaries, entities, narrative) and
+   the 'create a short from a long video' agent flow
 3. More verified runner integrations (avatars/video next; MuseTalk
    documented as blocked on mmpose/chumpy)
-4. Reframe refinements: per-clip crop review after reframing and
-   non-center subject framing
-5. Desktop slices: auto-update wiring, onboarding; site copy refresh
+4. Desktop slices: auto-update wiring, onboarding; site copy refresh
    for newer features
 
 ## Known environment notes

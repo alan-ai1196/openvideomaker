@@ -329,6 +329,9 @@ for (let i = 0; i < mediaClipTotal; i += 1) {
   }
 }
 report.cutoutClipIndex = cutoutIndex;
+// The still itself previews as an image (not a video element): stills
+// are first-class preview media now.
+report.stillPreviewVisible = await window.locator('.preview-image.visible').count();
 if (cutoutIndex >= 0) {
   report.cutoutButtonEnabled = !(await window.locator('.inspector-cutout .button-secondary').isDisabled());
   report.cutoutButtonLabel = await window.locator('.inspector-cutout .button-secondary').textContent();
@@ -384,6 +387,72 @@ await window.locator('.template-reframe').click();
 await window.waitForTimeout(400);
 report.statusbarResolutionAfterReframe = await window.locator('.statusbar-resolution').textContent();
 report.templateVerticalLane = await window.locator('.lane', { hasText: 'Captions' }).count();
+
+// Crop is first-class: the reframed crop shows in the preview (the crop
+// viewport frames the kept region like the render plan) and every media
+// clip's crop is adjustable in the Inspector through ordinary typed ops.
+// Clips can overlap in time; the preview shows the TOPMOST active clip,
+// which may differ from the selected one. Only accept a clip when the
+// viewport's implied crop matches the Inspector's slider values - then
+// selection and preview provably refer to the same clip.
+let cropClipIndex = -1;
+const clipTotalForCrop = await window.locator('.clip-kind-media').count();
+const rulerBox = await window.locator('.ruler').boundingBox();
+report.cropLoopTrace = [];
+for (let i = 0; i < clipTotalForCrop; i += 1) {
+  const clipBox = await window.locator('.clip-kind-media').nth(i).boundingBox();
+  await window.locator('.clip-kind-media').nth(i).click();
+  // Selecting does not seek; click the ruler at the clip's center so the
+  // playhead lands inside it and the preview shows that clip's framing.
+  if (clipBox && rulerBox) {
+    await window.mouse.click(clipBox.x + clipBox.width / 2, rulerBox.y + rulerBox.height / 2);
+  }
+  await window.waitForTimeout(150);
+  const viewportCount = await window.locator('.preview-crop').count();
+  const editorCount = await window.locator('.inspector-crop input[type="range"]').count();
+  const innerStyle = viewportCount > 0 ? await window.locator('.preview-crop .preview-media').first().getAttribute('style') : null;
+  const sliderVals = editorCount > 0 ? await window.locator('.inspector-crop input[type="range"]').evaluateAll((els) => els.map((e) => e.value)) : null;
+  report.cropLoopTrace.push({ i, viewportCount, editorCount, sliderVals, innerStyle });
+  if (viewportCount === 0) continue;
+  // Audio-only media clips show the preview but never offer crop editing.
+  if (editorCount === 0) continue;
+  const widthPct = parseFloat(/width:\s*([\d.]+)%/.exec(innerStyle ?? '')?.[1] ?? '0');
+  // React serializes the style's left/top/right/bottom as the inset
+  // shorthand; parse either form.
+  const inset = /inset:\s*([-\d.]+)%\s+(?:auto|[-\d.]+%)\s+(?:auto|[-\d.]+%)\s+([-\d.]+)%/.exec(innerStyle ?? '');
+  const leftPct = inset ? parseFloat(inset[2]) : parseFloat(/left:\s*(-?[\d.]+)%/.exec(innerStyle ?? '')?.[1] ?? '0');
+  const impliedLeft = widthPct > 0 ? -leftPct / widthPct : -1;
+  const sliderLeft = Number(sliderVals?.[0] ?? '0') / 100;
+  if (Math.abs(impliedLeft - sliderLeft) < 0.02) {
+    cropClipIndex = i;
+    break;
+  }
+}
+report.cropClipIndex = cropClipIndex;
+if (cropClipIndex >= 0) {
+  report.cropEditorPresent = await window.locator('.inspector-crop').count();
+  report.cropSliders = await window.locator('.inspector-crop input[type="range"]').count();
+  report.cropViewportAfterSelect = await window.locator('.preview-crop').count();
+  report.cropValuesBefore = await window.locator('.inspector-crop input[type="range"]').evaluateAll((els) => els.map((e) => e.value));
+  await window.locator('.inspector-crop input[type="range"]').first().evaluate((el) => {
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    setter.call(el, '45');
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await window.waitForTimeout(250);
+  report.cropViewportAfterEdit = await window.locator('.preview-crop').count();
+  report.cropValuesAfterEdit = await window.locator('.inspector-crop input[type="range"]').evaluateAll((els) => els.map((e) => e.value));
+  report.cropViewportStyle = report.cropViewportAfterEdit > 0 ? await window.locator('.preview-crop').first().getAttribute('style') : null;
+  report.cropResetEnabled = !(await window.locator('.inspector-crop-reset').isDisabled());
+  await window.locator('.inspector-crop-reset').click();
+  await window.waitForTimeout(400);
+  report.cropViewportAfterReset = await window.locator('.preview-crop').count();
+  report.cropValuesAfterReset = await window.locator('.inspector-crop input[type="range"]').evaluateAll((els) => els.map((e) => e.value));
+  report.cropToastsAfterReset = await window.locator('.toast').allTextContents();
+  await window.keyboard.press('Control+z');
+  await window.waitForTimeout(250);
+  report.cropViewportAfterUndo = await window.locator('.preview-crop').count();
+}
 
 // Device Center: the probed device graph rendered friendly-first.
 await window.locator('.rail-button[title="Devices"]').click();
@@ -516,7 +585,18 @@ if (report.templateVerticalLane !== 1) throw new Error('caption track missing af
 if (!(report.statusbarResolutionAfterTemplate ?? '').includes('1080x1920')) throw new Error('template did not switch to vertical resolution: ' + report.statusbarResolutionAfterTemplate);
 if (report.reframeButtonPresent !== 1) throw new Error('reframe button missing: ' + report.reframeButtonPresent);
 if (!(report.statusbarResolutionAfterReframe ?? '').includes('1080x1920')) throw new Error('reframe did not keep vertical resolution: ' + report.statusbarResolutionAfterReframe);
+if (report.cropClipIndex < 0) throw new Error('no reframed clip matches selection and preview: ' + JSON.stringify(report.cropLoopTrace));
+if (report.cropEditorPresent !== 1) throw new Error('crop editor missing from the inspector: ' + report.cropEditorPresent);
+if (report.cropSliders !== 4) throw new Error('crop sliders missing: ' + report.cropSliders);
+if (report.cropViewportAfterSelect !== 1) throw new Error('preview does not show the reframed crop: ' + report.cropViewportAfterSelect);
+if (report.cropViewportAfterEdit !== 1) throw new Error('crop edit lost the preview crop: ' + report.cropViewportAfterEdit);
+if (report.cropValuesAfterEdit[0] !== '45') throw new Error('crop slider edit did not apply: ' + JSON.stringify({ before: report.cropValuesBefore, after: report.cropValuesAfterEdit }));
+if (!(report.cropViewportStyle ?? '').includes('width:')) throw new Error('crop viewport style missing: ' + report.cropViewportStyle);
+if (report.cropResetEnabled !== true) throw new Error('crop reset not enabled: ' + report.cropResetEnabled);
+if (report.cropViewportAfterReset !== 0) throw new Error('crop reset did not clear the crop: viewport=' + report.cropViewportAfterReset + ' values=' + JSON.stringify(report.cropValuesAfterReset) + ' toasts=' + JSON.stringify(report.cropToastsAfterReset));
+if (report.cropViewportAfterUndo !== 1) throw new Error('undo did not restore the reframed crop: ' + report.cropViewportAfterUndo);
 if (report.assetCountAfterImageImport !== 9) throw new Error('image import failed: ' + report.assetCountAfterImageImport);
+if (report.stillPreviewVisible !== 1) throw new Error('the imported still does not preview as an image: ' + report.stillPreviewVisible);
 if (report.cutoutClipIndex < 0) throw new Error('no media clip offers the background-removal affordance (image kind not flowing through the bridge?)');
 if (report.cutoutButtonEnabled !== true) throw new Error('cutout button not live');
 if (!(report.cutoutButtonLabel ?? '').includes('Remove background')) throw new Error('cutout label missing: ' + report.cutoutButtonLabel);

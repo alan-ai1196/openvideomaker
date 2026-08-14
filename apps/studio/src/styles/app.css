@@ -530,6 +530,16 @@
   gap: var(--space-2);
 }
 
+/* Four crop-side sliders side by side, compact enough for the Inspector. */
+.crop-sides {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: var(--space-2);
+}
+
+.crop-sides .field {
+  min-width: 0;
+}
+
 .field-check {
   display: flex;
   align-items: center;
@@ -1144,6 +1154,31 @@ button.asset-item:hover {
 
 .preview-video.visible {
   opacity: 1;
+}
+
+.preview-media {
+  position: absolute;
+}
+
+.preview-image {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+  pointer-events: none;
+}
+
+.preview-image.visible {
+  opacity: 1;
+}
+
+/* Crop framing: the fitted source rectangle, cropped so the kept region
+   fills it exactly (mirrors the render plan's crop filter mapping). */
+.preview-crop {
+  position: absolute;
+  overflow: hidden;
 }
 
 .preview-overlay {

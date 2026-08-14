@@ -188,6 +188,9 @@ function checkClipContent(
       return;
     }
     const media = asset.media;
+    if (clip.crop && (clip.crop.left + clip.crop.right >= 1 || clip.crop.top + clip.crop.bottom >= 1)) {
+      push('clip.crop-exhausted', 'crop removes the entire source frame', clipPath + '.crop');
+    }
     if (media) {
       // Still images have no intrinsic duration: the clip decides how
       // long the still is held, so the source can never be exceeded.

@@ -117,6 +117,9 @@ export function Inspector() {
 
   const cutoutAsset = clip?.kind === 'media' ? controller.project.assets[clip.assetId] : undefined;
   const cutoutEnabled = cutoutAsset?.kind === 'image' && cutoutAsset.source.kind === 'file' && controller.generationAvailable('media.background_remove');
+  // Crop framing only makes sense for media whose asset has a frame
+  // (video or still) - audio-only media clips never offer it.
+  const cropEditable = clip?.kind === 'media' && (cutoutAsset?.kind === 'image' || cutoutAsset?.media?.hasVideo === true);
 
   useEffect(() => {
     if (clip) {
@@ -318,6 +321,45 @@ export function Inspector() {
           }}
         />
       </label>
+
+      {cropEditable ? (
+        <div className="field inspector-crop">
+          <span className="field-label" title={t('inspector.crop.hint')}>{t('inspector.crop')}</span>
+          <div className="field-row crop-sides">
+            {([
+              ['left', t('inspector.crop.left')],
+              ['top', t('inspector.crop.top')],
+              ['right', t('inspector.crop.right')],
+              ['bottom', t('inspector.crop.bottom')],
+            ] as const).map(([side, label]) => (
+              <label key={side} className="field">
+                <span className="field-label">{label}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={80}
+                  step={1}
+                  value={Math.round((clip.crop?.[side] ?? 0) * 100)}
+                  onChange={(e) => {
+                    const current = clip.crop ?? { left: 0, top: 0, right: 0, bottom: 0 };
+                    const opposing = side === 'left' ? current.right : side === 'right' ? current.left : side === 'top' ? current.bottom : current.top;
+                    const value = Math.min(Number(e.target.value) / 100, Math.max(0, 0.99 - opposing));
+                    controller.mutate((tx) => tx.setClipCrop({ sequenceId, clipId: clip.id, crop: { ...current, [side]: value } }));
+                  }}
+                />
+              </label>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="button button-secondary inspector-crop-reset"
+            disabled={!clip.crop}
+            onClick={() => controller.mutate((tx) => tx.setClipCrop({ sequenceId, clipId: clip.id, crop: null }))}
+          >
+            {t('inspector.crop.reset')}
+          </button>
+        </div>
+      ) : null}
 
       {clip.audio ? (
         <label className="field">

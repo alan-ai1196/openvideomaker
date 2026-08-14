@@ -348,8 +348,18 @@ fps). Verified three ways: 3 core tests, the re-runnable
 `scripts/reframe-check.mjs` (reframes a 16:9 project and REALLY
 renders it - ffprobe confirms 1080x1920; the render pipeline applies
 the crop), and the desktop check (after the card click the status bar reads
-1080x1920).
+1080x1920). Crop is now first-class in the editing workflow: the
+preview stage frames the cropped region exactly like the render
+pipeline (a fitted-source crop viewport driven by the same clip.crop
+fractions the render plan turns into crop filters), stills preview
+as images (image clips were invisible in the preview before), the
+Inspector has a four-slider crop editor with per-side clamping plus
+a one-click reset, and core rejects exhausted crops (left+right or
+top+bottom >= 1) via the clip.crop-exhausted invariant. Verified:
+2 new core tests and the desktop check (Inspector edit 34 -> 45,
+preview viewport follows, reset clears it, Ctrl+Z restores it, the
+imported still previews as an image).
 Next: code signing, auto-update, macOS/Linux packaging runs, media
-intelligence Level 4, reframe refinements (per-clip crop review,
-non-center framing), and further verified runners.
+intelligence Level 4 + the 'create a short from a long video' agent
+flow, and further verified runners.
 See `docs/STATUS.md`.

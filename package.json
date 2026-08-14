@@ -21,7 +21,8 @@
     "site:deploy": "pnpm --filter @openvideomaker/site build && wrangler deploy --config apps/site/wrangler.jsonc",
     "desktop:dev": "pnpm --filter @openvideomaker/desktop dev",
     "desktop:smoke": "pnpm --filter @openvideomaker/desktop smoke",
-    "desktop:check": "node scripts/desktop-check.mjs"
+    "desktop:check": "node scripts/desktop-check.mjs",
+    "desktop:package": "pnpm --filter @openvideomaker/studio build && pnpm --filter @openvideomaker/desktop build && pnpm --filter @openvideomaker/desktop package"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

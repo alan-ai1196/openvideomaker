@@ -29,7 +29,13 @@ import {
  */
 
 const here = dirname(fileURLToPath(import.meta.url));
-const studioDist = resolve(here, '../../studio/dist');
+// Packaged apps carry the Studio build + registry data + runner adapters
+// in their resources (electron-builder extraResources); in development
+// they resolve from the repository layout.
+const resourcesRoot = app.isPackaged ? process.resourcesPath : resolve(here, '../../..');
+const studioDist = app.isPackaged ? join(resourcesRoot, 'studio') : resolve(here, '../../studio/dist');
+const packagedRegistryPath = join(resourcesRoot, 'registry/index.json');
+const packagedRunnersDir = join(resourcesRoot, 'runners');
 let currentProjectDir: string | null = null;
 let generationService: DesktopGenerationService | null = null;
 const activeRenders = new Map<string, RenderJob>();
@@ -105,9 +111,9 @@ function registerMediaProtocol(): void {
  */
 function buildGenerationService(): void {
   try {
-    const root = process.env.OVM_ROOT ?? resolve(here, '../../..');
-    const registryPath = join(root, 'packages/registry/src/data/index.json');
-    const runnersDir = join(root, 'runners');
+    const root = process.env.OVM_ROOT ?? resourcesRoot;
+    const registryPath = app.isPackaged ? packagedRegistryPath : join(root, 'packages/registry/src/data/index.json');
+    const runnersDir = app.isPackaged ? packagedRunnersDir : join(root, 'runners');
     if (!existsSync(registryPath) || !existsSync(runnersDir)) {
       console.warn('desktop: generation service unavailable (registry or runners not found)');
       return;

@@ -32,7 +32,7 @@ import Base from '../../layouts/Base.astro';
           <div class="card"><h3>Script-first editing</h3><p>Durable scripts with ordered speech lines; one placement plan drives both text clips and generated speech, and a line's real spoken duration becomes its timing.</p></div>
           <div class="card"><h3>Agent editing</h3><p>EditPlan/EditScript proposals compiled to typed operations, previewed on scratch copies, applied as one undoable agent transaction. No eval. An LLM planner turns a natural goal into a validated script through any OpenAI-compatible endpoint (configured explicitly; the deterministic planner is the default).</p></div>
           <div class="card"><h3>MCP + CLI</h3><p>An MCP server (spec 2025-06-18, stdio) with semantic tools over the same operation layer - attach it to any saved project with <code>--project</code> - and the <code>ovm</code> CLI: doctor, models, render, mcp.</p></div>
-          <div class="card"><h3>Desktop app</h3><p>An Electron shell over the SAME Studio with SQLite project folders, device probing, local rendering, verified model installation, and real local AI generation (TTS voiceover, ASR transcription, and the Redub flow: lip-sync a clip to new speech on a new track) through a narrow sandboxed bridge, with a Job Center that keeps every long-running task visible and cancellable - results stay fully editable with provenance.</p></div>
+          <div class="card"><h3>Desktop app</h3><p>An Electron shell over the SAME Studio with SQLite project folders, device probing, local rendering, verified model installation, and real local AI generation (TTS voiceover, ASR transcription, and the Redub flow: lip-sync a clip to new speech on a new track) through a narrow sandboxed bridge, with a Job Center that keeps every long-running task visible and cancellable - results stay fully editable with provenance. Builds into a real Windows installer.</p></div>
         </div>
       </section>
 
@@ -52,8 +52,7 @@ import Base from '../../layouts/Base.astro';
         <h2>What's being built</h2>
         <ul style="color: var(--ink-soft); font-size: 15px; line-height: 2">
           <li>MuseTalk and further avatar runner integrations</li>
-          <li>The Device Center, desktop packaging and a local MCP server</li>
-          <li>Long-project performance and reliability hardening</li>
+          <li>App icons, code signing, auto-update; macOS / Linux packaging</li>
         </ul>
       </section>
     </div>

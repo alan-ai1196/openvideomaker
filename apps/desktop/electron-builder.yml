@@ -1,0 +1,29 @@
+appId: me.heartboat.openvideomaker
+productName: OpenVideoMaker
+directories:
+  output: release
+files:
+  - dist/**/*
+extraResources:
+  - from: ../studio/dist
+    to: studio
+  - from: ../../packages/registry/src/data/index.json
+    to: registry/index.json
+  - from: ../../runners
+    to: runners
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+win:
+  target:
+    - nsis
+  artifactName: OpenVideoMaker-${version}-setup.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  category: public.app-category.video
+linux:
+  target:
+    - AppImage
+  category: AudioVideo

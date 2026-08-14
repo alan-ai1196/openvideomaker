@@ -233,5 +233,11 @@ shows the exact connection command for the desktop's saved project
 DOM nodes to the visible window (long projects stay responsive:
 1500 clips load in ~0.7s with ~18 nodes rendered; verified by the
 long-project Playwright check, including selection and seeking far
-into the timeline).
-Next: installer packaging. See `docs/STATUS.md`.
+into the timeline). Installer packaging is real: pnpm desktop:package
+builds an NSIS setup + unpacked app carrying the Studio dist, registry
+data and runner adapters in resources (packaged path resolution +
+userData homes for models/runtimes); the packaged binary passes the
+full smoke (render + real TTS/ASR) and the Playwright packaged-check
+(real window, live bridge, installed models, zero errors).
+Next: app icons, code signing, auto-update, macOS/Linux packaging,
+and more verified runners (MuseTalk). See `docs/STATUS.md`.

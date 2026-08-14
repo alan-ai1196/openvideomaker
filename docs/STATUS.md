@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 28). This file is the single living status source; it
+Updated: 2026-08-14 (round 29). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -322,13 +322,23 @@ describes the repository truth and is updated whenever that truth changes.
   browser, scrolls far into it (virtualized at both ends), selects a
   clip, seeks the playhead at 1:06:12, and asserts zero errors; all
   existing Playwright checks still pass.
+- **Installer packaging**: electron-builder produces a real
+  distributable (`pnpm desktop:package`): an NSIS setup exe + unpacked
+  build carrying the Studio dist, the registry data and the runner
+  adapters in the app resources, with packaged path resolution
+  (resourcesPath) and the userData home for models/runtimes. Verified
+  against the PACKAGED binary: the headless smoke renders + runs real
+  Kokoro TTS + Whisper ASR inside the distributable (4
+  capability/model pairs ready), and a Playwright packaged-check
+  launches the installed exe and sees the real Studio window, live
+  bridge and all four installed models with zero page errors.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. More verified runner integrations (MuseTalk/avatars next).
-2. Installer packaging.
+2. App icons, code signing, auto-update; macOS/Linux packaging
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

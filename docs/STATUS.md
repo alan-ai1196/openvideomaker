@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 29). This file is the single living status source; it
+Updated: 2026-08-14 (round 30). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -332,13 +332,37 @@ describes the repository truth and is updated whenever that truth changes.
   capability/model pairs ready), and a Playwright packaged-check
   launches the installed exe and sees the real Studio window, live
   bridge and all four installed models with zero page errors.
+- **Media intelligence Level 1**: deterministic, model-free structure
+  derived on desktop import - shot boundaries (ffmpeg scene-change),
+  per-shot keyframe points, and audio silence regions
+  (`@openvideomaker/media` analyzeMedia/detectShots/detectAudioRegions,
+  3 new tests against synthesized multi-scene + silence fixtures). The
+  Studio renders shot markers inside media clips and a clickable shot
+  list in the Inspector (click seeks the playhead); analysis is
+  session-scoped presentation data, never durable state. Verified in
+  the desktop app (3 scenes detected on the imported test video,
+  shot click seeks to 00:00:01:15, zero errors). This is the first
+  rung of the media understanding hierarchy for future agent edits.
+- **MuseTalk assessed and honestly deferred**: the v1.5 inference path
+  requires mmpose (rtmpose landmarks), whose chumpy dependency does
+  not build on Windows py3.12 in isolated uv runtimes (dry-run
+  executed). The registry entry now carries the FULLY measured file
+  manifest (unet 3.4GB, whisper-tiny, face-parse, face-alignment, SD
+  VAE - sha256s from official hubs) so installation is ready, the
+  evidence text states the exact blocker, and
+  docs/research/musetalk-mmpose-blocker.md records the analysis; no
+  runner is shipped, so the Studio honestly reports 'no runner
+  adapter' instead of pretending support.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. More verified runner integrations (MuseTalk/avatars next).
+1. More verified runner integrations (avatars/video next; MuseTalk
+   documented as blocked on mmpose/chumpy).
 2. App icons, code signing, auto-update; macOS/Linux packaging
+3. Media intelligence Levels 2-4 (summaries, entities, narrative) and
+   silence removal / shot-based editing commands
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

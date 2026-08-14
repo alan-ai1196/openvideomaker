@@ -43,6 +43,8 @@
   "inspector.caption.segments": "Caption segments",
   "inspector.asset": "Source asset",
   "inspector.gain": "Gain",
+  "inspector.shots": "Shots",
+  "inspector.shots.hint": "Click a shot to jump the playhead there",
   "inspector.ai.actions": "AI actions",
   "inspector.lipsync": "Lip sync",
   "inspector.lipsync.disabled": "Lip sync needs the desktop app with a local lip-sync model",

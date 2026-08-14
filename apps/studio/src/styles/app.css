@@ -851,6 +851,46 @@
   pointer-events: none;
 }
 
+.clip-shots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.clip-shot-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--accent);
+  opacity: 0.55;
+}
+
+.shot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.shot-item {
+  font-size: 10px;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.shot-item:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .clip-captions {
   position: absolute;
   left: var(--space-2);

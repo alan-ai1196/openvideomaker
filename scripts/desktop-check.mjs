@@ -18,10 +18,15 @@ execFileSync('ffmpeg', [
 // click-through (OVM_CHECK_LIPSYNC=1) needs a face, so it uses a trimmed
 // upstream demo clip when the research clone is present.
 const lipSyncVideo = resolve('.research/desktop-check-video.mp4');
+// Three distinct scenes so media intelligence (shot detection on import)
+// produces visible shot markers.
 execFileSync('ffmpeg', [
   '-hide_banner', '-loglevel', 'error', '-y',
-  '-f', 'lavfi', '-i', 'testsrc2=size=320x180:rate=25',
-  '-t', '2', '-c:v', 'libx264', lipSyncVideo,
+  '-f', 'lavfi', '-i', 'color=c=red:s=320x180:d=1.5',
+  '-f', 'lavfi', '-i', 'color=c=blue:s=320x180:d=1.5',
+  '-f', 'lavfi', '-i', 'color=c=green:s=320x180:d=1.5',
+  '-filter_complex', '[0:v][1:v][2:v]concat=n=3:v=1[outv]',
+  '-map', '[outv]', '-c:v', 'libx264', '-r', '25', lipSyncVideo,
 ], { stdio: 'inherit' });
 const upstreamDemo = resolve('.research/upstream/latentsync/assets/demo1_video.mp4');
 const fullLipSync = process.env.OVM_CHECK_LIPSYNC === '1' && existsSync(upstreamDemo);
@@ -184,6 +189,15 @@ await window.waitForTimeout(400);
 await window.locator('.clip-kind-media').first().click();
 await window.waitForTimeout(300);
 report.redubSectionVisible = await window.locator('.inspector-ai').count();
+// Media intelligence: the imported 3-scene video shows shot markers on
+// the clip and a clickable shot list in the inspector.
+report.shotMarks = await window.locator('.clip-kind-media .clip-shot-mark').count();
+report.shotItems = await window.locator('.shot-item').count();
+if (report.shotItems > 0) {
+  await window.locator('.shot-item').nth(1).click();
+  await window.waitForTimeout(200);
+}
+report.timeAfterShotSeek = await window.locator('.transport-time').textContent();
 report.redubAudioOptions = await window.locator('.inspector-redub-audio option').allTextContents();
 await window.locator('.inspector-redub-audio').selectOption({ index: 1 });
 await window.waitForTimeout(150);
@@ -296,6 +310,9 @@ if (!(report.scriptLineStartAfter ?? '')) throw new Error('line did not gain a r
 if (report.assetCountAfterScriptSpeech !== 7) throw new Error('script speech asset missing from the media panel: ' + report.assetCountAfterScriptSpeech);
 if (report.assetCountAfterVideoImport !== 8) throw new Error('video import failed: ' + report.assetCountAfterVideoImport);
 if (report.redubSectionVisible !== 1) throw new Error('redub section missing from the inspector');
+if (report.shotMarks < 2) throw new Error('shot markers missing from the clip: ' + report.shotMarks);
+if (report.shotItems < 3) throw new Error('shot list missing from the inspector: ' + report.shotItems);
+if (report.timeAfterShotSeek === '00:00:00:00') throw new Error('shot click did not seek the playhead');
 if (!(report.redubAudioOptions ?? []).some((o) => o.includes('voiceover'))) throw new Error('voiceover missing from redub audio options: ' + JSON.stringify(report.redubAudioOptions));
 if (report.redubButtonEnabled !== true) throw new Error('lip sync button not live');
 if (!(report.redubButtonLabel ?? '').includes('Lip sync')) throw new Error('lip sync label missing: ' + report.redubButtonLabel);

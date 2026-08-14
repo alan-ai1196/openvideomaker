@@ -2,11 +2,18 @@ import type { AssetId, RationalFps } from '@openvideomaker/schema';
 import { extractBrowserThumbnails } from './browserThumbs';
 import { extractBrowserWaveform } from './browserWaveform';
 
+export interface CachedAnalysis {
+  shots: Array<{ startUs: number; endUs: number }>;
+  keyframeAtUs: number[];
+  audioRegions: Array<{ startUs: number; endUs: number; silent: boolean }>;
+}
+
 interface CachedMedia {
   objectUrl?: string;
   thumbnails?: string[];
   peaks?: number[];
   peaksPerSecond?: number;
+  analysis?: CachedAnalysis;
 }
 
 /**
@@ -43,6 +50,14 @@ export class MediaCache {
   registerPath(assetId: AssetId, path: string): void {
     const entry = this.#entries.get(assetId) ?? {};
     entry.objectUrl = 'ovm-media://local/' + encodeURIComponent(path);
+    this.#entries.set(assetId, entry);
+    this.#emit();
+  }
+
+  /** Media intelligence Level 1 analysis (session-scoped presentation data). */
+  setAnalysis(assetId: AssetId, analysis: CachedAnalysis | undefined): void {
+    const entry = this.#entries.get(assetId) ?? {};
+    entry.analysis = analysis;
     this.#entries.set(assetId, entry);
     this.#emit();
   }

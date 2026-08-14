@@ -18,6 +18,8 @@ function ClipVisuals({ controller, clip }: { controller: ReturnType<typeof useSt
   const cached = controller.mediaCache.get(clip.assetId);
   const thumbs = cached.thumbnails;
   const peaks = cached.peaks;
+  const analysis = cached.analysis;
+  const visibleDurationUs = clip.duration / clip.speed;
   return (
     <>
       {thumbs && thumbs.length > 0 ? (
@@ -28,6 +30,15 @@ function ClipVisuals({ controller, clip }: { controller: ReturnType<typeof useSt
         </span>
       ) : null}
       {peaks && peaks.length > 0 ? <ClipWaveform peaks={peaks} /> : null}
+      {analysis && analysis.shots.length > 1 ? (
+        <span className="clip-shots" aria-hidden="true">
+          {analysis.shots.slice(1).map((shot, index) => {
+            const offsetUs = shot.startUs - clip.inPoint;
+            if (offsetUs <= 0 || offsetUs >= visibleDurationUs) return null;
+            return <span key={index} className="clip-shot-mark" style={{ left: (offsetUs / visibleDurationUs) * 100 + '%' }} />;
+          })}
+        </span>
+      ) : null}
     </>
   );
 }

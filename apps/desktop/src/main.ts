@@ -7,7 +7,7 @@ import { attachAsrResult, generatedAsset, importedAsset, mediaClip, ProjectSessi
 import { LlmPlanner } from '@openvideomaker/agent';
 import { ProjectStore } from '@openvideomaker/persistence';
 import { doctorRecommendations, formatDoctor, probeDeviceGraph } from '@openvideomaker/devices';
-import { probeMediaPath, runTool } from '@openvideomaker/media';
+import { analyzeMedia, probeMediaPath, runTool } from '@openvideomaker/media';
 import { buildRenderPlan, RenderJob, runRenderJob } from '@openvideomaker/render';
 import type { GenerationJob } from '@openvideomaker/jobs';
 import type { Project, ProjectLog } from '@openvideomaker/schema';
@@ -207,11 +207,26 @@ function registerIpc(): void {
       filters: [{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'webm', 'm4v', 'mp3', 'wav', 'aac', 'flac', 'ogg', 'png', 'jpg', 'jpeg', 'webp'] }],
     });
     if (result.canceled || result.filePaths.length === 0) return [];
-    const imported: Array<{ path: string; name: string; media: unknown }> = [];
+    const imported: Array<{ path: string; name: string; media: unknown; analysis?: unknown }> = [];
     for (const filePath of result.filePaths) {
       try {
         const probe = await probeMediaPath(filePath);
-        imported.push({ path: filePath, name: filePath.split(/[\\/]/).pop() ?? filePath, media: probe.media });
+        const item: { path: string; name: string; media: unknown; analysis?: unknown } = {
+          path: filePath,
+          name: filePath.split(/[\\/]/).pop() ?? filePath,
+          media: probe.media,
+        };
+        // Media intelligence Level 1: shots, keyframe points and audio
+        // regions derived on import (best-effort; failures never block
+        // the import itself).
+        try {
+          if (probe.media.hasVideo || probe.media.hasAudio) {
+            item.analysis = await analyzeMedia(filePath, { durationUs: probe.media.durationUs });
+          }
+        } catch {
+          // Analysis is optional presentation data.
+        }
+        imported.push(item);
         allowMediaPath(filePath);
       } catch {
         // Unprobeable files are skipped, not fatal.

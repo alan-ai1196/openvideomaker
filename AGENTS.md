@@ -238,6 +238,15 @@ builds an NSIS setup + unpacked app carrying the Studio dist, registry
 data and runner adapters in resources (packaged path resolution +
 userData homes for models/runtimes); the packaged binary passes the
 full smoke (render + real TTS/ASR) and the Playwright packaged-check
-(real window, live bridge, installed models, zero errors).
+(real window, live bridge, installed models, zero errors). Media
+intelligence Level 1 runs on desktop import (shot boundaries,
+keyframe points, silence regions - ffmpeg-derived, model-free,
+session-scoped): clips show shot markers and the Inspector lists
+clickable shots. MuseTalk is assessed and honestly deferred: its v1.5
+path needs mmpose whose chumpy dependency does not build on Windows
+py3.12 in isolated uv runtimes (registry manifest fully pinned, blocker
+documented in docs/research/musetalk-mmpose-blocker.md, no runner
+shipped).
 Next: app icons, code signing, auto-update, macOS/Linux packaging,
-and more verified runners (MuseTalk). See `docs/STATUS.md`.
+media intelligence Levels 2-4, and further verified runners.
+See `docs/STATUS.md`.

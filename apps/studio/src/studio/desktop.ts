@@ -45,6 +45,14 @@ export interface DesktopGenerateResult {
   error: string | null;
 }
 
+/** Media intelligence Level 1 analysis, as the Studio consumes it. */
+export interface StudioMediaAnalysis {
+  durationUs: number;
+  shots: Array<{ startUs: number; endUs: number }>;
+  keyframeAtUs: number[];
+  audioRegions: Array<{ startUs: number; endUs: number; silent: boolean }>;
+}
+
 /** The probed device graph, as the Device Center consumes it (from ovm-doctor's logic). */
 export interface StudioDeviceGraph {
   probedAt: string;
@@ -94,7 +102,7 @@ export interface StudioDesktopBridge {
   saveProject(project: Project, log: ProjectLog): Promise<{ ok: boolean; appended?: number; dir?: string; reason?: string }>;
   runDoctor(): Promise<StudioDoctorReport>;
   projectInfo(): Promise<{ dir: string | null }>;
-  importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo }>>;
+  importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo; analysis?: StudioMediaAnalysis }>>;
   renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
   onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;
   cancelRender(jobId: string): Promise<{ ok: boolean }>;

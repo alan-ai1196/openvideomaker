@@ -342,6 +342,7 @@ export class StudioController {
         const result = this.mutate((tx) => tx.importAsset({ asset }));
         if (!result.ok) return result;
         this.#mediaCache.registerPath(asset.id, item.path);
+        this.#mediaCache.setAnalysis(asset.id, item.analysis);
       }
       return { ok: true };
     } catch (err) {

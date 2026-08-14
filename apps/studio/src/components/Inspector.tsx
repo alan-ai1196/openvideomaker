@@ -17,6 +17,34 @@ function findSelectedClip(controller: ReturnType<typeof useStudio>): Clip | unde
   return undefined;
 }
 
+/** Media intelligence Level 1: clickable shot list for the selected clip. */
+function ShotsSection({ controller, clip }: { controller: ReturnType<typeof useStudio>; clip: Extract<Clip, { kind: 'media' }> }) {
+  const { t } = useI18n();
+  const cached = controller.mediaCache.get(clip.assetId);
+  const shots = cached.analysis?.shots;
+  if (!shots || shots.length < 2) return null;
+  const visibleDurationUs = clip.duration / clip.speed;
+  return (
+    <div className="field">
+      <span className="field-label">{t('inspector.shots')} ({shots.length})</span>
+      <ul className="shot-list">
+        {shots.map((shot, index) => {
+          const offsetUs = shot.startUs - clip.inPoint;
+          if (offsetUs < 0 || offsetUs > visibleDurationUs) return null;
+          const atUs = Math.round(clip.start + offsetUs * clip.speed);
+          return (
+            <li key={index}>
+              <button type="button" className="shot-item" title={t('inspector.shots.hint')} onClick={() => controller.setPlayhead(atUs)}>
+                {(shot.startUs / 1_000_000).toFixed(1)}s
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function usToSecondsInput(us: number): string {
   return (us / 1_000_000).toFixed(3);
 }
@@ -89,6 +117,7 @@ export function Inspector() {
       {clip.kind === 'media' ? (
         <div className="inspector-name">{controller.project.assets[clip.assetId]?.name ?? clip.assetId}</div>
       ) : null}
+      {clip.kind === 'media' ? <ShotsSection controller={controller} clip={clip} /> : null}
       {clip.kind === 'text' ? (
         <label className="field">
           <span className="field-label">{t('inspector.text.content')}</span>

@@ -345,7 +345,7 @@
     ],
     "runner": {
       "kind": "local-python",
-      "notes": "musetalk adapter"
+      "notes": "musetalk adapter (runners/musetalk)"
     },
     "hardware": [
       {
@@ -375,20 +375,96 @@
       "id": "creativeml-openrail-m",
       "name": "CreativeML OpenRAIL-M",
       "url": "https://huggingface.co/TMElyralab/MuseTalk",
-      "note": "OpenRAIL licenses carry behavioral use restrictions; review before commercial use."
+      "note": "Weights are OpenRAIL-M; the upstream code is MIT. OpenRAIL licenses carry behavioral use restrictions; review before commercial use."
     },
     "sources": [
       {
         "kind": "hf",
         "repo": "TMElyralab/MuseTalk"
+      },
+      {
+        "kind": "hf",
+        "repo": "openai/whisper-tiny"
+      },
+      {
+        "kind": "hf",
+        "repo": "ManyOtherFunctions/face-parse-bisent"
+      },
+      {
+        "kind": "hf",
+        "repo": "stabilityai/sd-vae-ft-mse"
+      },
+      {
+        "kind": "http",
+        "baseUrl": "https://www.adrianbulat.com",
+        "files": {
+          "facealign/s3fd-619a316812.pth": "https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth",
+          "facealign/2DFAN4-cd938726ad.zip": "https://www.adrianbulat.com/downloads/python-fan/2DFAN4-cd938726ad.zip"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": "musetalkV15/unet.pth",
+        "sha256": "7ebf6c98c181e20838e4c0054e96e944ac60d5d692cc01db42839fe11b787007",
+        "sizeBytes": 3400074924
+      },
+      {
+        "path": "musetalkV15/musetalk.json",
+        "sha256": "5b6923aee04d71692e0e9846c471e0a4ea07a4f686d39545e472bd4ba17e1b47",
+        "sizeBytes": 748
+      },
+      {
+        "path": "whisper/config.json",
+        "sha256": "ffdccec4f3211f4c63310f2b7098f309fe70f3952cedc5e4d11e43f5b2379b98",
+        "sizeBytes": 1983
+      },
+      {
+        "path": "whisper/pytorch_model.bin",
+        "sha256": "9607f98a2b22d9e229ae43c52ecea79dcede9e0c5cfae67e8da6eda86d8aac1d",
+        "sizeBytes": 151095027
+      },
+      {
+        "path": "whisper/preprocessor_config.json",
+        "sha256": "9b5cd03a36fbb8a627c64d98a5b5b126ead95a77720723944487311f0110b666",
+        "sizeBytes": 184990
+      },
+      {
+        "path": "faceparse/79999_iter.pth",
+        "sha256": "468e13ca13a9b43cc0881a9f99083a430e9c0a38abd935431d1c28ee94b26567"
+      },
+      {
+        "path": "faceparse/resnet18-5c106cde.pth",
+        "sha256": "5c106cde386e87d4033832f2996f5493238eda96ccf559d1d62760c4de0613f8",
+        "sizeBytes": 46827520
+      },
+      {
+        "path": "facealign/s3fd-619a316812.pth",
+        "sha256": "619a31681264d3f7f7fc7a16a42cbbe8b23f31a256f75a366e5a1bcd59b33543",
+        "sizeBytes": 89843225
+      },
+      {
+        "path": "facealign/2DFAN4-cd938726ad.zip",
+        "sha256": "cd938726adb1f15f361263cce2db9cb820c42585fa8796ec72ce19107f369a46",
+        "sizeBytes": 96316515
+      },
+      {
+        "path": "vae/config.json",
+        "sha256": "92d3dfb746fca211a2c9e019e285f8597412211728dce3c5bcf4eda0f2d62e7e",
+        "sizeBytes": 547
+      },
+      {
+        "path": "vae/diffusion_pytorch_model.safetensors",
+        "sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815",
+        "sizeBytes": 334643276
       }
     ],
     "limitations": [
-      "Best with frontal faces; visual quality varies with pose and lighting."
+      "Best with frontal faces; visual quality varies with pose and lighting. No OpenVideoMaker runner yet: v1.5 inference requires mmpose, whose chumpy dependency does not build on Windows py3.12 in isolated runtimes (see docs/research/musetalk-mmpose-blocker.md)."
     ],
     "verification": {
       "trust": "unverified",
-      "evidence": "Registry metadata (id, license) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker."
+      "evidence": "Registry metadata (id, license) checked against the Hugging Face API on 2026-08-13; the full file manifest is pinned from official hubs (measured sha256s) so installation is ready; inference not exercised because the mmpose dependency chain is blocked (research note documents the exact blocker)."
     },
     "updatePolicy": {
       "kind": "registry-pr",

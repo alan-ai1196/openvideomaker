@@ -48,6 +48,8 @@
   "inspector.caption.segments": "字幕片段",
   "inspector.asset": "源素材",
   "inspector.gain": "增益",
+  "inspector.shots": "镜头",
+  "inspector.shots.hint": "点击镜头即可跳转播放头",
   "inspector.ai.actions": "AI 操作",
   "inspector.lipsync": "对口型",
   "inspector.lipsync.disabled": "对口型需要在桌面应用中使用本地唇形同步模型",

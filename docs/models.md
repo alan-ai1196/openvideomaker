@@ -64,13 +64,13 @@ a runner slice verifies it.
 
 - **Id:** `hf/TMElyralab/MuseTalk` - **Trust:** unverified
 - **Upstream:** [TMElyralab/MuseTalk](https://github.com/TMElyralab/MuseTalk)
-- **License:** CreativeML OpenRAIL-M (https://huggingface.co/TMElyralab/MuseTalk) - OpenRAIL licenses carry behavioral use restrictions; review before commercial use.
+- **License:** CreativeML OpenRAIL-M (https://huggingface.co/TMElyralab/MuseTalk) - Weights are OpenRAIL-M; the upstream code is MIT. OpenRAIL licenses carry behavioral use restrictions; review before commercial use.
 - **Capabilities:** avatar.lip_sync
-- **Runner:** local-python (musetalk adapter)
+- **Runner:** local-python (musetalk adapter (runners/musetalk))
 - **Hardware:** cuda/expected, cpu/unavailable, mlx/unavailable, rocm/untested
 - **Memory:** GPU required; community reports vary by resolution.
-- **Limitations:** Best with frontal faces; visual quality varies with pose and lighting.
-- **Evidence:** Registry metadata (id, license) checked against the Hugging Face API on 2026-08-13; inference not yet exercised by OpenVideoMaker.
+- **Limitations:** Best with frontal faces; visual quality varies with pose and lighting. No OpenVideoMaker runner yet: v1.5 inference requires mmpose, whose chumpy dependency does not build on Windows py3.12 in isolated runtimes (see docs/research/musetalk-mmpose-blocker.md).
+- **Evidence:** Registry metadata (id, license) checked against the Hugging Face API on 2026-08-13; the full file manifest is pinned from official hubs (measured sha256s) so installation is ready; inference not exercised because the mmpose dependency chain is blocked (research note documents the exact blocker).
 
 ## Video Generation (2)
 

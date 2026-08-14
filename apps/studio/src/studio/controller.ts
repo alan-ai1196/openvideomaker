@@ -1,4 +1,4 @@
-import { applyProjectTemplate, attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, removeRangesFromClip, rippleDeleteClip, splitClipAt, splitClipAtTimes, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TemplateId, type TransactionScope } from '@openvideomaker/core';
+import { applyProjectTemplate, attachAsrResult, characterDraft, generatedAsset, importedAsset, insertClipAt, mediaClip, planScriptPlacements, ProjectSession, reframeToVertical as reframeToVerticalCommand, removeRangesFromClip, rippleDeleteClip, splitClipAt, splitClipAtTimes, syncCaptionsFromTranscript, syncTextClipsFromScript, type OvmError, type Project, type TemplateId, type TransactionScope } from '@openvideomaker/core';
 import type { MediaInfo } from '@openvideomaker/schema';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
@@ -801,6 +801,18 @@ export class StudioController {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Reframe the active sequence to vertical (default 1080x1920): the
+   * project settings change and every media clip is center-cropped to
+   * the new aspect ratio, in one undoable transaction.
+   */
+  reframeToVertical(): MutationResult {
+    const result = reframeToVerticalCommand(this.#session);
+    if (!result) return { ok: false, code: 'op.not-found', message: 'no active sequence to reframe' };
+    this.#emit();
+    return { ok: true };
   }
 
   /**

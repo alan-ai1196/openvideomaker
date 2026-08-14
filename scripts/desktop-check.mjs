@@ -378,6 +378,11 @@ await window.locator('.template-card', { hasText: 'Vertical Short' }).locator('.
 await window.waitForTimeout(400);
 report.lanesAfterTemplate = await window.locator('.lane').count();
 report.templateAddedLanes = report.lanesAfterTemplate - lanesBeforeTemplate;
+report.statusbarResolutionAfterTemplate = await window.locator('.statusbar-resolution').textContent();
+report.reframeButtonPresent = await window.locator('.template-reframe').count();
+await window.locator('.template-reframe').click();
+await window.waitForTimeout(400);
+report.statusbarResolutionAfterReframe = await window.locator('.statusbar-resolution').textContent();
 report.templateVerticalLane = await window.locator('.lane', { hasText: 'Captions' }).count();
 
 // Device Center: the probed device graph rendered friendly-first.
@@ -398,12 +403,19 @@ report.cleanButtonPresent = await window.locator('.device-clean').count();
 report.cleanButtonEnabled = report.cleanButtonPresent > 0 ? !(await window.locator('.device-clean').isDisabled()) : null;
 if (report.cleanButtonEnabled) {
   await window.locator('.device-clean').click();
-  await window.waitForFunction(() => {
-    const row = document.querySelector('.device-row');
-    const rows = Array.from(document.querySelectorAll('.device-row') ?? []);
-    const partialRow = rows.find((r) => (r.textContent ?? '').includes('Interrupted downloads'));
-    return (partialRow?.textContent ?? '').includes('0 B');
-  }, null, { timeout: 15000 });
+  // The clean triggers a SECOND full storage walk (models + all runtime
+  // venvs, ~150k files) before the UI refreshes; give it real time.
+  try {
+    await window.waitForFunction(() => {
+      const rows = Array.from(document.querySelectorAll('.device-row') ?? []);
+      const partialRow = rows.find((r) => (r.textContent ?? '').includes('Interrupted downloads'));
+      return (partialRow?.textContent ?? '').includes('0 B');
+    }, null, { timeout: 60000 });
+  } catch (err) {
+    const rowCount = await window.locator('.device-row', { hasText: 'Interrupted downloads' }).count();
+    const rowText = rowCount > 0 ? await window.locator('.device-row', { hasText: 'Interrupted downloads' }).textContent() : '(row gone)';
+    throw new Error('storage clean did not reach 0 B within 60s; row=' + rowText + '; ' + (err?.message ?? err));
+  }
   report.cleanButtonAfter = !(await window.locator('.device-clean').isDisabled());
   report.partialsRowAfter = await window.locator('.device-row', { hasText: 'Interrupted downloads' }).textContent();
 }
@@ -497,10 +509,13 @@ if (report.shotEditingSkipped) {
   if (report.mediaClipsAfterSplit !== report.mediaClipsAfterRemoveSilence + 1) throw new Error('split at shots should add one piece: ' + JSON.stringify({ before: report.mediaClipsAfterRemoveSilence, after: report.mediaClipsAfterSplit }));
   if (report.mediaClipsAfterUndo !== report.mediaClipsAfterRemoveSilence) throw new Error('undo should restore the pre-split piece count: ' + JSON.stringify({ expected: report.mediaClipsAfterRemoveSilence, got: report.mediaClipsAfterUndo }));
 }
-if (report.templateCards !== 5) throw new Error('template cards missing: ' + report.templateCards);
+if (report.templateCards !== 6) throw new Error('template cards missing (expected reframe card + 5 presets): ' + report.templateCards);
 if (!(report.templateNames ?? []).some((n) => n.includes('Talking Video'))) throw new Error('talking video template missing: ' + JSON.stringify(report.templateNames));
 if (report.templateAddedLanes !== 2) throw new Error('vertical short template should add two tracks: ' + report.templateAddedLanes);
 if (report.templateVerticalLane !== 1) throw new Error('caption track missing after template: ' + report.templateVerticalLane);
+if (!(report.statusbarResolutionAfterTemplate ?? '').includes('1080x1920')) throw new Error('template did not switch to vertical resolution: ' + report.statusbarResolutionAfterTemplate);
+if (report.reframeButtonPresent !== 1) throw new Error('reframe button missing: ' + report.reframeButtonPresent);
+if (!(report.statusbarResolutionAfterReframe ?? '').includes('1080x1920')) throw new Error('reframe did not keep vertical resolution: ' + report.statusbarResolutionAfterReframe);
 if (report.assetCountAfterImageImport !== 9) throw new Error('image import failed: ' + report.assetCountAfterImageImport);
 if (report.cutoutClipIndex < 0) throw new Error('no media clip offers the background-removal affordance (image kind not flowing through the bridge?)');
 if (report.cutoutButtonEnabled !== true) throw new Error('cutout button not live');

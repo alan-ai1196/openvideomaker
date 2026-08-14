@@ -23,6 +23,9 @@ importers:
       '@openvideomaker/registry':
         specifier: workspace:*
         version: link:packages/registry
+      '@openvideomaker/render':
+        specifier: workspace:*
+        version: link:packages/render
       '@openvideomaker/runners':
         specifier: workspace:*
         version: link:packages/runners

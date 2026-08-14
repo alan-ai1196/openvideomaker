@@ -14,6 +14,20 @@ export function TemplatesPanel() {
   return (
     <div className="template-list">
       <p className="panel-hint">{t('templates.hint')}</p>
+      <section className="template-card">
+        <header className="template-head">
+          <span className="template-name">{t('templates.reframe')}</span>
+        </header>
+        <p className="template-desc">{t('templates.reframe.desc')}</p>
+        <button
+          type="button"
+          className="button button-secondary template-reframe"
+          title={t('templates.reframe')}
+          onClick={() => controller.reframeToVertical()}
+        >
+          {t('templates.reframe')}
+        </button>
+      </section>
       {PROJECT_TEMPLATES.map((template) => (
         <section key={template.id} className="template-card">
           <header className="template-head">

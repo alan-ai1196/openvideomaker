@@ -27,6 +27,8 @@
   "panel.avatars": "数字人",
   "panel.ai": "AI",
   "panel.templates": "模板",
+  "templates.reframe": "重构为竖屏",
+  "templates.reframe.desc": "把当前剪辑重构为 9:16：项目变为 1080x1920，每个片段居中裁剪以适配——一步即可撤销。",
   "templates.hint": "模板会创建普通、可编辑的轨道、设置和脚本——不会被锁定。",
   "templates.apply": "使用此模板",
   "templates.talking-video": "口播视频",

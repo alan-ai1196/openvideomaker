@@ -337,7 +337,19 @@ light-refreshes (no heavy device/storage re-probes - the storage walk
 over a large torch venv proved slow enough to matter). Verified in
 the desktop check: the just-saved project appears, clicking it closes
 home and loads the saved state, and a template quick start adds its
-two tracks and returns to the editor.
+two tracks and returns to the editor. Reframe-to-vertical lands as
+one core command: `reframeToVertical` sets the project composition
+and center-crops every media clip (16:9 -> 1080x1920 crops ~34% per
+side) through ordinary typed `clip.crop` ops in one undoable,
+replay-deterministic transaction, so every result stays editable and
+re-reframable; the Studio Templates panel gains a 'Reframe to
+vertical' card and the status bar reads the live composition (WxH @
+fps). Verified three ways: 3 core tests, the re-runnable
+`scripts/reframe-check.mjs` (reframes a 16:9 project and REALLY
+renders it - ffprobe confirms 1080x1920; the render pipeline applies
+the crop), and the desktop check (after the card click the status bar reads
+1080x1920).
 Next: code signing, auto-update, macOS/Linux packaging runs, media
-intelligence Level 4, and further verified runners.
+intelligence Level 4, reframe refinements (per-clip crop review,
+non-center framing), and further verified runners.
 See `docs/STATUS.md`.

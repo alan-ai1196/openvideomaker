@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 39). This file is the single living status source; it
+Updated: 2026-08-14 (round 40). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -491,19 +491,34 @@ describes the repository truth and is updated whenever that truth changes.
   clicking it closes home and loads the saved state, and a template
   quick start adds its two tracks and returns to the editor; the
   browser Studio shows the honest empty-recents state.
+- **Reframe to vertical**: one core command reframes the WHOLE project
+  for short-form video - `@openvideomaker/core` `reframeToVertical`
+  (sequence + width/height args) sets the project composition and
+  center-crops every media clip (16:9 -> 1080x1920 crops ~34% per
+  side) through the standard typed operations in ONE undoable,
+  replay-deterministic transaction - crops are ordinary `clip.crop`
+  ops, so every result stays editable and re-reframable. The Studio
+  Templates panel gains a 'Reframe to vertical' card and the status
+  bar now reads the live composition (WxH @ fps). Verified three
+  ways: 3 new core tests (crop fraction, vertical source untouched,
+  undo/redo), the re-runnable `scripts/reframe-check.mjs` renders a
+  reframed 16:9 project for real and ffprobe-confirms the 1080x1920
+  output (the render pipeline applies the crop), and the desktop
+  Playwright check clicks the card and asserts the status bar reads
+  1080x1920.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
-1. More verified runner integrations (avatars/video next; MuseTalk
-   documented as blocked on mmpose/chumpy).
-2. App icons, code signing, auto-update; macOS/Linux packaging
-3. Media intelligence Levels 2-4 (summaries, entities, narrative) and
-   silence removal / shot-based editing commands
-3. Desktop slices: model install, local MCP; Model/Device/Job
-   Centers; installer packaging (bundle registry + runner adapters,
-   userData paths); long-project performance hardening.
+1. Code signing, auto-update; macOS/Linux packaging runs
+2. Media intelligence Level 4 (summaries, entities, narrative)
+3. More verified runner integrations (avatars/video next; MuseTalk
+   documented as blocked on mmpose/chumpy)
+4. Reframe refinements: per-clip crop review after reframing and
+   non-center subject framing
+5. Desktop slices: auto-update wiring, onboarding; site copy refresh
+   for newer features
 
 ## Known environment notes
 

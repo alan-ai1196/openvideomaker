@@ -19,6 +19,8 @@ export function StatusBar() {
         {t('statusbar.zoom')} {Math.round(controller.zoomPxPerSec)}px/s
       </span>
       <span className="statusbar-sep">·</span>
+      <span className="statusbar-resolution">{controller.project.settings.width}x{controller.project.settings.height} @ {fps.num}/{fps.den}fps</span>
+      <span className="statusbar-sep">·</span>
       <span>{formatTimecode(controller.playheadUs, fps)}</span>
     </footer>
   );

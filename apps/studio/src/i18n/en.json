@@ -24,6 +24,8 @@
   "panel.avatars": "Avatars",
   "panel.ai": "AI",
   "panel.templates": "Templates",
+  "templates.reframe": "Reframe to vertical",
+  "templates.reframe.desc": "Reframe the current edit to 9:16: the project becomes 1080x1920 and every clip is center-cropped to fit - one undoable step.",
   "templates.hint": "Templates create ordinary editable tracks, settings and scripts - nothing is locked in.",
   "templates.apply": "Use this template",
   "templates.talking-video": "Talking Video",

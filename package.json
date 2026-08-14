@@ -35,7 +35,8 @@
     "@openvideomaker/runners": "workspace:*",
     "@openvideomaker/media": "workspace:*",
     "@openvideomaker/core": "workspace:*",
-    "@openvideomaker/persistence": "workspace:*"
+    "@openvideomaker/persistence": "workspace:*",
+    "@openvideomaker/render": "workspace:*"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

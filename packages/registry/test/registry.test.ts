@@ -9,7 +9,7 @@ describe('registry data', () => {
 
   it('loads every bundled entry without errors', () => {
     expect(registry.errors).toEqual([]);
-    expect(registry.entries).toHaveLength(10);
+    expect(registry.entries).toHaveLength(11);
   });
 
   it('has unique ids and valid capability references', () => {
@@ -19,7 +19,7 @@ describe('registry data', () => {
 
   it('declares trust states honestly: only entries with real execution evidence are verified', () => {
     const verified = registry.entries.filter((e) => e.verification.trust === 'verified');
-    expect(verified.map((e) => e.id)).toEqual(['hf/hexgrad/Kokoro-82M', 'hf/bytedance/latentsync-1.5', 'ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch', 'gh/danielgatis/rembg-isnet-general-use', 'hf/openai/whisper-large-v3']);
+    expect(verified.map((e) => e.id)).toEqual(['hf/hexgrad/Kokoro-82M', 'hf/bytedance/latentsync-1.5', 'ms/iic/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch', 'gh/xinntao/Real-ESRGAN-x4plus', 'gh/danielgatis/rembg-isnet-general-use', 'hf/openai/whisper-large-v3']);
     for (const entry of verified) {
       expect(entry.verification.verifiedAt).toBeTruthy();
       expect(entry.verification.evidence).toMatch(/Executed/);
@@ -54,7 +54,7 @@ describe('registry data', () => {
     const combined = JSON.parse(readFileSync(resolve('src/data/index.json'), 'utf8'));
     const fromIndex = Registry.fromData(combined);
     expect(fromIndex.errors).toEqual([]);
-    expect(fromIndex.entries).toHaveLength(10);
+    expect(fromIndex.entries).toHaveLength(11);
   });
 
   it('rejects malformed entries loudly', () => {

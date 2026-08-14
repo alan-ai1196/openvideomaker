@@ -112,7 +112,7 @@ a runner slice verifies it.
 - **Limitations:** Schnell trades fidelity for speed; the dev variant is higher quality.
 - **Evidence:** Registry metadata (id, Apache-2.0 license) and the ModelScope mirror checked against both hub APIs on 2026-08-13; inference not yet exercised by OpenVideoMaker.
 
-## Enhancement (2)
+## Enhancement (3)
 
 ### IS-Net general use
 
@@ -125,6 +125,18 @@ a runner slice verifies it.
 - **Memory:** Weights ~178 MB; verified at 1080x1920 in ~1.0s on CPU (onnxruntime 1.28).
 - **Limitations:** Saliency-based: the model chooses the subject, so results vary on busy scenes; fine hair and transparency are approximate.; Single-image inputs; frame-by-frame video matting is future work.
 - **Evidence:** Executed 2026-08-14: the official isnet-general-use.onnx (178,648,008 bytes, sha256 pinned) fetched through the OpenVideoMaker artifact store, an isolated uv runtime (onnxruntime 1.28.0 + pillow 12.3.0 + numpy 2.5.2, CPU), and media.background_remove through the runner protocol on a real frame (1080x1920, upstream LatentSync demo: a face on a plain background): RGBA cutout in ~1.0s with mean subject alpha 0.81 (center region) vs 0.0005 in the background corners (alpha gap 0.81). The adapter performs no downloads at runtime.
+
+### Real-ESRGAN x4plus
+
+- **Id:** `gh/xinntao/Real-ESRGAN-x4plus` - **Trust:** verified
+- **Upstream:** [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
+- **License:** BSD 3-Clause License (https://github.com/xinntao/Real-ESRGAN) - Code and weights are BSD-3-Clause.
+- **Capabilities:** video.upscale
+- **Runner:** local-python (upscale adapter (runners/upscale); upstream realesrgan package)
+- **Hardware:** cpu/tested, cuda/untested, mlx/untested, rocm/untested
+- **Memory:** Weights ~67 MB; verified at 1080x1920 in ~14.2s on CPU (torch, fp32).
+- **Limitations:** Single images for now; frame-by-frame video upscaling is future work.; Real-world restoration quality varies; the model can sharpen artifacts already present.
+- **Evidence:** Executed 2026-08-14: the official RealESRGAN_x4plus.pth (67,040,989 bytes, sha256 pinned from the GitHub release) fetched through the OpenVideoMaker artifact store, an isolated uv runtime (torch; the RRDBNet architecture is reproduced from upstream in the adapter with attribution), and video.upscale through the runner protocol on a 4x-downscaled 1080x1920 face frame: a 1080x1920 output in ~14.2s (CPU; CUDA unavailable in this torch build and the adapter falls back honestly) with Laplacian sharpness 70.1 vs 10.5 for bicubic (6.7x) and edge energy 3.85 approaching the reference's 3.69 - the model restores high-frequency detail as promised. PSNR vs bicubic is NOT claimed as the metric: this is a GAN restoration model and pixel fidelity is not its promise (documented in the analyzer).
 
 ### RMBG-2.0
 

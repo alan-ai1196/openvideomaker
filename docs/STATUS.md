@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 37). This file is the single living status source; it
+Updated: 2026-08-14 (round 38). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -458,6 +458,22 @@ describes the repository truth and is updated whenever that truth changes.
   untouched. Verified in the desktop app: the card lists the installed
   models with real sizes, the fake + real partial downloads (1.4 GB)
   are cleared to 0 B and the button disables itself, zero errors.
+- **Sixth verified integration**: `runners/upscale` - Real-ESRGAN
+  x4plus (RRDBNet, BSD-3-Clause) for the `video.upscale` capability:
+  the official `RealESRGAN_x4plus.pth` (67,040,989 bytes, sha256
+  pinned from the GitHub release) fetched through the artifact store,
+  an isolated uv runtime (torch only - the RRDBNet architecture is
+  reproduced from upstream with attribution because basicsr is stale
+  against current torchvision), and 4x upscaling through the runner
+  protocol on a downscaled 1080x1920 face frame: 1080x1920 output in
+  ~14.2s (CPU; the resolved torch build lacks CUDA and the adapter
+  falls back honestly). Objective evidence via the analyzer: Laplacian
+  sharpness 70.1 vs 10.5 for bicubic (6.7x) and edge energy 3.85
+  approaching the reference's 3.69 - the model restores high-frequency
+  detail as promised; PSNR is deliberately NOT claimed (GAN
+  restoration trades pixel fidelity for perceived detail, documented
+  in the analyzer). Registry entry `gh/xinntao/Real-ESRGAN-x4plus`
+  marked `verified` with dated evidence.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

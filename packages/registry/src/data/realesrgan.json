@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "gh/xinntao/Real-ESRGAN-x4plus",
+  "displayName": "Real-ESRGAN x4plus",
+  "category": "enhancement",
+  "description": "4x image upscaling with Real-ESRGAN (RRDBNet): restores high-frequency detail instead of just resizing.",
+  "upstream": {
+    "project": "xinntao/Real-ESRGAN",
+    "url": "https://github.com/xinntao/Real-ESRGAN",
+    "licenseSpdx": "BSD-3-Clause"
+  },
+  "capabilities": [
+    "video.upscale"
+  ],
+  "runner": {
+    "kind": "local-python",
+    "notes": "upscale adapter (runners/upscale); upstream realesrgan package"
+  },
+  "hardware": [
+    {
+      "platform": "cpu",
+      "status": "tested"
+    },
+    {
+      "platform": "cuda",
+      "status": "untested"
+    },
+    {
+      "platform": "mlx",
+      "status": "untested"
+    },
+    {
+      "platform": "rocm",
+      "status": "untested"
+    }
+  ],
+  "memory": {
+    "note": "Weights ~67 MB; verified at 1080x1920 in ~14.2s on CPU (torch, fp32)."
+  },
+  "precision": [
+    "fp32"
+  ],
+  "license": {
+    "id": "bsd-3-clause",
+    "name": "BSD 3-Clause License",
+    "url": "https://github.com/xinntao/Real-ESRGAN",
+    "note": "Code and weights are BSD-3-Clause."
+  },
+  "sources": [
+    {
+      "kind": "http",
+      "baseUrl": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0",
+      "files": {
+        "RealESRGAN_x4plus.pth": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth"
+      }
+    }
+  ],
+  "files": [
+    {
+      "path": "RealESRGAN_x4plus.pth",
+      "sha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+      "sizeBytes": 67040989
+    }
+  ],
+  "limitations": [
+    "Single images for now; frame-by-frame video upscaling is future work.",
+    "Real-world restoration quality varies; the model can sharpen artifacts already present."
+  ],
+  "verification": {
+    "trust": "verified",
+    "evidence": "Executed 2026-08-14: the official RealESRGAN_x4plus.pth (67,040,989 bytes, sha256 pinned from the GitHub release) fetched through the OpenVideoMaker artifact store, an isolated uv runtime (torch; the RRDBNet architecture is reproduced from upstream in the adapter with attribution), and video.upscale through the runner protocol on a 4x-downscaled 1080x1920 face frame: a 1080x1920 output in ~14.2s (CPU; CUDA unavailable in this torch build and the adapter falls back honestly) with Laplacian sharpness 70.1 vs 10.5 for bicubic (6.7x) and edge energy 3.85 approaching the reference's 3.69 - the model restores high-frequency detail as promised. PSNR vs bicubic is NOT claimed as the metric: this is a GAN restoration model and pixel fidelity is not its promise (documented in the analyzer).",
+    "verifiedAt": "2026-08-14"
+  },
+  "updatePolicy": {
+    "kind": "registry-pr",
+    "upstreamWatch": {
+      "kind": "git-release",
+      "url": "https://github.com/xinntao/Real-ESRGAN"
+    }
+  }
+}

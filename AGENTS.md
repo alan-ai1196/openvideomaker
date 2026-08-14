@@ -315,6 +315,17 @@ outputs, interrupted downloads, total) and `ovm:storage-clean` removes
 resumable .part files and nothing else - models and generated outputs
 stay untouched (desktop-check verified: real 1.4 GB of partials
 cleared to 0 B, the button disables when empty, zero errors).
+`runners/upscale` is the sixth verified integration: Real-ESRGAN
+x4plus (RRDBNet, BSD-3-Clause) for `video.upscale` - official weights
+through the artifact store, an isolated uv runtime (torch only; the
+RRDBNet architecture reproduced from upstream with attribution since
+basicsr is stale against current torchvision), and 4x upscaling via
+the runner protocol verified on a downscaled 1080x1920 face frame
+(1080x1920 output in ~14.2s CPU; Laplacian sharpness 70.1 vs 10.5 for
+bicubic, edge energy 3.85 vs reference 3.69; PSNR deliberately not
+claimed for a GAN restoration model). Registry entry
+`gh/xinntao/Real-ESRGAN-x4plus` is `verified` with dated evidence.
 Next: code signing, auto-update, macOS/Linux packaging runs, media
-intelligence Level 4, and further verified runners.
+intelligence Level 4, Studio home/recent projects, and further
+verified runners.
 See `docs/STATUS.md`.

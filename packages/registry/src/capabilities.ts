@@ -20,6 +20,7 @@ export const CAPABILITIES: Capability[] = [
   { id: 'video.text_to_video', label: 'Text to video', category: 'video-generation', inputs: ['prompt'], outputs: ['video'] },
   { id: 'image.generate', label: 'Image generation', category: 'images', inputs: ['prompt'], outputs: ['image'] },
   { id: 'media.background_remove', label: 'Background removal', category: 'enhancement', inputs: ['image'], outputs: ['image'] },
+  { id: 'video.upscale', label: 'Upscale', category: 'enhancement', inputs: ['image'], outputs: ['image'] },
 ];
 
 export const CATEGORY_LABELS: Record<ModelEntry['category'], string> = {

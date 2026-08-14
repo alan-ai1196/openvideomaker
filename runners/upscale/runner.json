@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "upscale",
+  "version": "0.1.0",
+  "capabilities": [
+    "video.upscale"
+  ],
+  "models": [
+    "gh/xinntao/Real-ESRGAN-x4plus"
+  ],
+  "pythonVersion": "3.12",
+  "entry": "runner.py",
+  "modelFiles": {
+    "model": "RealESRGAN_x4plus.pth"
+  }
+}

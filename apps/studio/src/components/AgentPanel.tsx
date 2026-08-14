@@ -15,10 +15,27 @@ export function AgentPanel() {
   const { t } = useI18n();
   const [proposals, setProposals] = useState<EditProposal[]>([]);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [goal, setGoal] = useState('');
+  const [planning, setPlanning] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
 
   const suggest = (): void => {
     setProposals(suggestDemoEdits(controller.project).map((s) => createProposal(controller.project, s.plan, s.script)));
     setPreviewId(null);
+  };
+
+  const aiPlan = async (): Promise<void> => {
+    setPlanning(true);
+    setPlanError(null);
+    const result = await controller.planWithLlm(goal.trim());
+    setPlanning(false);
+    if (!result.ok) {
+      setPlanError(result.message);
+      return;
+    }
+    setProposals((list) => [...list, createProposal(controller.project, result.plan, result.script)]);
+    setPreviewId(null);
+    setGoal('');
   };
 
   const apply = (proposal: EditProposal): void => {
@@ -29,6 +46,26 @@ export function AgentPanel() {
   return (
     <div className="agent-list">
       <p className="agent-hint">{t('agent.hint')}</p>
+      {controller.llmPlannerAvailable ? (
+        <div className="agent-ai">
+          <input
+            className="agent-goal-input"
+            type="text"
+            value={goal}
+            placeholder={t('agent.ai.goal')}
+            aria-label={t('agent.ai.goal')}
+            disabled={planning}
+            onChange={(e) => setGoal(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && goal.trim() && !planning) void aiPlan();
+            }}
+          />
+          <button type="button" className="button button-primary" disabled={planning || !goal.trim()} onClick={() => void aiPlan()}>
+            {planning ? t('agent.ai.planning') : t('agent.ai.plan')}
+          </button>
+          {planError ? <p className="agent-errors">{planError}</p> : null}
+        </div>
+      ) : null}
       <button type="button" className="button button-primary" onClick={suggest}>
         {t('agent.suggest')}
       </button>

@@ -20,6 +20,7 @@
     "@openvideomaker/media": "workspace:*",
     "@openvideomaker/render": "workspace:*",
     "@openvideomaker/jobs": "workspace:*",
+    "@openvideomaker/agent": "workspace:*",
     "@openvideomaker/downloader": "workspace:*",
     "@openvideomaker/registry": "workspace:*",
     "@openvideomaker/runners": "workspace:*",

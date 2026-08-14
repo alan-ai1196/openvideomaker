@@ -1,4 +1,4 @@
-import type { GenerationInput, GenerationProvenance, MediaInfo, Project, ProjectLog } from '@openvideomaker/schema';
+import type { EditPlan, EditScript, GenerationInput, GenerationProvenance, MediaInfo, Project, ProjectLog } from '@openvideomaker/schema';
 
 /** Render payload shared by the desktop bridge (typed at runtime only). */
 export interface DesktopRenderRequest {
@@ -50,6 +50,7 @@ export interface DesktopRuntimeCapabilities {
   localPersistence: boolean;
   localRender: boolean;
   localGeneration: boolean;
+  llmPlanner?: boolean;
 }
 
 /**
@@ -74,6 +75,10 @@ export interface StudioDesktopBridge {
   installModel(modelId: string): Promise<{ state: string; error?: string }>;
   cancelModelInstall(modelId: string): Promise<{ ok: boolean }>;
   onModelInstallProgress(listener: (progress: { modelId: string; state: string; stage: string; progress: number; bytes: number; totalBytes: number | null }) => void): () => void;
+  agentPlan(goal: string, project: Project, log: ProjectLog): Promise<
+    | { ok: true; plan: EditPlan; script: EditScript }
+    | { ok: false; code: string; message: string }
+  >;
   generate(request: DesktopGenerateRequest): Promise<DesktopGenerateResult>;
   cancelGenerate(jobId: string): Promise<{ ok: boolean }>;
   onGenerateProgress(listener: (progress: DesktopGenerateProgress) => void): () => void;

@@ -3,7 +3,7 @@ import type { MediaInfo } from '@openvideomaker/schema';
 import { applyProposal, type EditProposal } from '@openvideomaker/agent';
 import { Registry } from '@openvideomaker/registry';
 import MODEL_ENTRIES from '@openvideomaker/registry/data.json';
-import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
+import { newCharacterId, newLineId, newScriptId, newTrackId, type Asset, type AssetId, type CharacterId, type CharacterPatch, type ClipId, type EditPlan, type EditScript, type LineId, type ProjectLog, type ScriptId, type ScriptLinePatch, type SegmentId, type TranscriptId, type VoiceConfig } from '@openvideomaker/schema';
 import { getDesktopBridge, type DesktopGenerateProgress, type DesktopGenerateRequest, type DesktopGenerateResult } from './desktop';
 import { probeBrowserFile } from '../media/browserProbe';
 import { MediaCache } from '../media/mediaCache';
@@ -53,7 +53,7 @@ export class StudioController {
   #lastError: { code: string; message: string } | null = null;
   #mediaCache = new MediaCache();
   /** Runtime-confirmed desktop capabilities (generation is false until the main process confirms it). */
-  #desktopRuntime: { localRender: boolean; localGeneration: boolean; localPersistence: boolean } | null = null;
+  #desktopRuntime: { localRender: boolean; localGeneration: boolean; localPersistence: boolean; llmPlanner: boolean } | null = null;
   /** Capability+model pairs the local generation service can actually run (from runner manifests). */
   #generationModels: Array<{ capability: string; modelId: string }> = [];
   /** Visible long-running work (the Job Center): generations and renders. */
@@ -137,6 +137,11 @@ export class StudioController {
 
   get localGeneration(): boolean {
     return this.#desktopRuntime?.localGeneration ?? false;
+  }
+
+  /** Whether the desktop app has a configured LLM planner for agent edits. */
+  get llmPlannerAvailable(): boolean {
+    return this.#desktopRuntime?.llmPlanner ?? false;
   }
 
   get generationModels(): Array<{ capability: string; modelId: string }> {
@@ -253,6 +258,7 @@ export class StudioController {
         localRender: caps.localRender === true,
         localGeneration: caps.localGeneration === true,
         localPersistence: caps.localPersistence === true,
+        llmPlanner: caps.llmPlanner === true,
       };
       this.#generationModels = Array.isArray(gen.models) ? gen.models : [];
       this.#installedModels = new Set((Array.isArray(installed) ? installed : []).map((i) => i.modelId));
@@ -1012,6 +1018,19 @@ export class StudioController {
       return { ok: false, code: 'generation', message };
     }
   }
+  /** Ask the desktop's configured LLM planner for an agent edit (validated + compiled against THIS project). */
+  async planWithLlm(goal: string): Promise<{ ok: true; plan: EditPlan; script: EditScript } | { ok: false; message: string }> {
+    const bridge = getDesktopBridge();
+    if (!bridge) return { ok: false, message: 'desktop bridge unavailable' };
+    try {
+      const result = await bridge.agentPlan(goal, this.#session.project as Project, this.#session.exportLog());
+      if (result.ok) return { ok: true, plan: result.plan, script: result.script };
+      return { ok: false, message: result.message };
+    } catch (err) {
+      return { ok: false, message: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
   /** A short local TTS sample for a model (the Model Center Generate affordance). */
   async generateModelSample(modelId: string, onProgress?: (progress: number, stage: string) => void): Promise<MutationResult & { assetId?: AssetId }> {
     const entry = REGISTRY.byId(modelId);

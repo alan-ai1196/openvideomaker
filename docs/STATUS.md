@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 24). This file is the single living status source; it
+Updated: 2026-08-14 (round 25). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -274,15 +274,32 @@ describes the repository truth and is updated whenever that truth changes.
   manifest stay honestly disabled. Verified in the desktop app
   (kokoro/whisper read Installed, the bridge reports the store's
   manifest set, zero errors).
+- **LLM planner behind the proposal contract**: `LlmPlanner` in the
+  agent package turns a natural goal + a compact, id-complete project
+  description (`describeProjectForPlanner`) into a declarative
+  EditScript through any OpenAI-compatible chat endpoint - the model's
+  ONLY output is data, validated by the EditScript schema (with one
+  repair round using the exact validation error) and compiled against
+  the REAL project by the same deterministic pipeline the demo planner
+  uses. The desktop app exposes it through `ovm:agent-plan` IPC when
+  `OVM_LLM_ENDPOINT`/`OVM_LLM_MODEL` are configured and advertises
+  `llmPlanner` honestly; the Studio Agent panel gains an 'AI plan'
+  input whose proposals flow through the same preview/apply (one
+  undoable transaction)/reject UI. Verified: 4 agent tests against a
+  real local HTTP endpoint (wire path, repair round, clean failure),
+  and the Playwright Electron check runs the whole chain with a
+  scripted endpoint (configured -> advertised -> plan -> apply ->
+  caption track on the timeline) plus the honest unconfigured default
+  (not advertised, section hidden). Real-model verification awaits a
+  configured provider - stated, never implied.
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 
 ## Next (in planned order)
 
 1. More verified runner integrations (MuseTalk/avatars next).
-2. The LLM planner behind the agent proposal contract.
-3. The Device Center; installer packaging; long-project
-   performance hardening.
+2. The Device Center; installer packaging; long-project
+   performance hardening; local MCP server in the desktop app.
 3. Desktop slices: model install, local MCP; Model/Device/Job
    Centers; installer packaging (bundle registry + runner adapters,
    userData paths); long-project performance hardening.

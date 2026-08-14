@@ -26,6 +26,7 @@ const bridge = {
     return () => ipcRenderer.removeListener('ovm:generate-progress', handler);
   },
   generationCapabilities: () => ipcRenderer.invoke('ovm:generation-capabilities'),
+  agentPlan: (goal, project, log) => ipcRenderer.invoke('ovm:agent-plan', { goal, project, log }),
   installedModels: () => ipcRenderer.invoke('ovm:model-installed'),
   installModel: (modelId) => ipcRenderer.invoke('ovm:model-install', { modelId }),
   cancelModelInstall: (modelId) => ipcRenderer.invoke('ovm:model-install-cancel', { modelId }),

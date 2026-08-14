@@ -1,5 +1,6 @@
 import { _electron as electron } from 'playwright';
 import { execFileSync } from 'node:child_process';
+import { createServer } from 'node:http';
 import { existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -31,7 +32,41 @@ if (fullLipSync) {
   ], { stdio: 'inherit' });
 }
 
-const app = await electron.launch({ args: ['.'], cwd: 'apps/desktop' });
+// Opt-in LLM planner verification: a scripted OpenAI-compatible endpoint
+// running on 127.0.0.1, handed to the desktop app through the documented
+// environment configuration. The real wire path (IPC -> planner -> HTTP ->
+// validated EditScript) runs; only the model is scripted.
+const fullLlm = process.env.OVM_CHECK_LLM === '1';
+let llmServer = null;
+let launchEnv = undefined;
+if (fullLlm) {
+  llmServer = createServer((req, res) => {
+    let raw = '';
+    req.on('data', (chunk) => { raw += chunk.toString('utf8'); });
+    req.on('end', () => {
+      const body = JSON.parse(raw);
+      const userText = (body.messages ?? []).filter((m) => m.role === 'user').map((m) => m.content).join(' ');
+      const match = /"(seq_[a-z0-9]+)"/.exec(userText);
+      const sequenceId = match ? match[1] : 'seq_missing';
+      const content = {
+        schemaVersion: 1,
+        goal: 'AI captions from the transcript',
+        steps: [{ op: 'track.create', sequenceId, kind: 'caption', name: 'Captions', as: '$captions' }],
+      };
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(content) } }] }));
+    });
+  });
+  await new Promise((resolvePromise) => llmServer.listen(0, '127.0.0.1', resolvePromise));
+  const llmPort = llmServer.address().port;
+  launchEnv = {
+    ...process.env,
+    OVM_LLM_ENDPOINT: 'http://127.0.0.1:' + llmPort + '/v1/chat/completions',
+    OVM_LLM_MODEL: 'mock-planner',
+  };
+}
+
+const app = await electron.launch({ args: ['.'], cwd: 'apps/desktop', env: launchEnv ?? {} });
 // Stub the native open dialog: media import returns our sample wav.
 await app.evaluate(({ dialog }, filePath) => {
   dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filePath] });
@@ -183,11 +218,30 @@ if (fullLipSync) {
   report.lipSyncDone = 'skipped (OVM_CHECK_LIPSYNC=1 to run the full GPU job)';
 }
 
+// Agent panel: the LLM planner is only advertised when configured. The
+// deterministic planner stays the honest default otherwise.
+await window.locator('.rail-button[title="Agent"]').click();
+await window.waitForTimeout(300);
+report.llmPlannerAdvertised = (report.runtimeCapabilities ?? {}).llmPlanner === true;
+report.agentAiVisible = await window.locator('.agent-ai').count();
+if (fullLlm) {
+  await window.locator('.agent-goal-input').fill('Create a caption track from the transcript');
+  await window.locator('.agent-ai .button-primary').click();
+  await window.waitForSelector('.agent-card', { timeout: 60000 });
+  report.llmProposalGoal = await window.locator('.agent-goal').first().textContent();
+  report.llmApplyEnabled = !(await window.locator('.agent-card .button-primary').first().isDisabled());
+  await window.locator('.agent-card .button-primary').first().click();
+  await window.waitForTimeout(500);
+  report.llmAppliedState = await window.locator('.agent-state').first().textContent();
+  report.lanesAfterLlm = await window.locator('.lane').count();
+}
+
 mkdirSync('.research/screenshots', { recursive: true });
 await window.screenshot({ path: '.research/screenshots/desktop-studio.png' });
 report.errors = errors;
 console.log(JSON.stringify(report, null, 2));
 await app.close();
+if (llmServer) await new Promise((resolvePromise) => llmServer.close(resolvePromise));
 
 if (!report.projectName) throw new Error('studio did not render');
 if (report.bridgeCapabilities?.localPersistence !== true) throw new Error('desktop bridge missing');
@@ -234,6 +288,16 @@ if (fullLipSync) {
   if (report.jobProgressVisible !== true) throw new Error('job progress bar missing');
   if (report.jobCancelVisible !== true) throw new Error('job cancel button missing');
   if (report.lipSyncAddedLane !== 1) throw new Error('lip-sync track missing: ' + report.lipSyncAddedLane);
+}
+if (fullLlm) {
+  if (report.llmPlannerAdvertised !== true) throw new Error('llm planner not advertised when configured');
+  if (report.agentAiVisible !== 1) throw new Error('agent AI plan section missing');
+  if (!(report.llmProposalGoal ?? '').includes('Create a caption track')) throw new Error('LLM proposal missing: ' + report.llmProposalGoal);
+  if (report.llmApplyEnabled !== true) throw new Error('LLM proposal not applyable');
+  if (!(report.llmAppliedState ?? '').includes('Applied')) throw new Error('LLM proposal did not apply: ' + report.llmAppliedState);
+} else {
+  if (report.llmPlannerAdvertised !== false) throw new Error('llm planner must not be advertised without configuration');
+  if (report.agentAiVisible !== 0) throw new Error('agent AI plan section must be hidden without configuration');
 }
 if (report.transcribeEnabled !== true) throw new Error('transcribe affordance not live');
 if (errors.length > 0) throw new Error('page errors: ' + errors.join(' | '));

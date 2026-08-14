@@ -38,6 +38,9 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@openvideomaker/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@openvideomaker/core':
         specifier: workspace:*
         version: link:../../packages/core

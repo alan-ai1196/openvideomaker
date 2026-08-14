@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { attachAsrResult, generatedAsset, importedAsset, mediaClip, ProjectSession } from '@openvideomaker/core';
+import { LlmPlanner } from '@openvideomaker/agent';
 import { ProjectStore } from '@openvideomaker/persistence';
 import { probeDeviceGraph } from '@openvideomaker/devices';
 import { probeMediaPath, runTool } from '@openvideomaker/media';
@@ -33,6 +34,7 @@ let currentProjectDir: string | null = null;
 let generationService: DesktopGenerationService | null = null;
 const activeRenders = new Map<string, RenderJob>();
 const activeInstalls = new Map<string, AbortController>();
+let llmPlanner: LlmPlanner | null = null;
 
 // Privileged before app ready: the renderer may stream local media files
 // through this protocol. It never serves arbitrary files - see the
@@ -129,12 +131,26 @@ function failedGenerate(message: string): DesktopGenerateResult {
   return { jobId: '', state: 'failed', outputs: {}, metadata: {}, provenance: null, error: message };
 }
 
+/**
+ * The LLM editing planner, configured explicitly through environment
+ * (OpenAI-compatible endpoint). When unset, the desktop honestly reports
+ * llmPlanner: false and the Studio keeps the deterministic planner.
+ */
+function buildLlmPlanner(): void {
+  const endpoint = process.env.OVM_LLM_ENDPOINT;
+  const model = process.env.OVM_LLM_MODEL;
+  if (!endpoint || !model) return;
+  llmPlanner = new LlmPlanner({ endpoint, model, apiKey: process.env.OVM_LLM_API_KEY });
+  console.log('desktop: LLM planner configured (' + model + ')');
+}
+
 function registerIpc(): void {
   ipcMain.handle('ovm:capabilities', () => ({
     desktop: true,
     localPersistence: true,
     localRender: true,
     localGeneration: generationService !== null,
+    llmPlanner: llmPlanner !== null,
   }));
 
   ipcMain.handle('ovm:generation-capabilities', () => ({ models: generationService?.capabilities() ?? [] }));
@@ -261,6 +277,22 @@ function registerIpc(): void {
   });
 
   ipcMain.handle('ovm:model-installed', () => (generationService ? generationService.installedModels() : []));
+
+  ipcMain.handle('ovm:agent-plan', async (_event, payload) => {
+    if (!llmPlanner) return { ok: false, code: 'llm.unconfigured', message: 'no LLM endpoint configured (set OVM_LLM_ENDPOINT and OVM_LLM_MODEL)' };
+    const goal = payload?.goal;
+    if (typeof goal !== 'string' || goal.trim().length === 0 || goal.length > 2000) {
+      return { ok: false, code: 'llm.invalid-goal', message: 'a goal between 1 and 2000 characters is required' };
+    }
+    try {
+      // Rebuild the session from the renderer's current project, so the
+      // plan compiles against the SAME state the user sees.
+      const session = ProjectSession.open(payload.project, payload.log);
+      return await llmPlanner.plan(session, goal.trim());
+    } catch (err) {
+      return { ok: false, code: 'llm.failed', message: (err as Error).message };
+    }
+  });
 
   ipcMain.handle('ovm:model-install', async (event, payload) => {
     if (!generationService) return { state: 'failed', error: 'generation service unavailable on this computer' };
@@ -491,6 +523,7 @@ void app.whenReady().then(async () => {
   registerIpc();
   registerMediaProtocol();
   buildGenerationService();
+  buildLlmPlanner();
   if (process.argv.includes('--smoke')) {
     await runSmoke();
     return;

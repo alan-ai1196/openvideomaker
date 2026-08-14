@@ -165,9 +165,14 @@ voiceover generation honestly disabled in browser mode.
 `@openvideomaker/agent` is the agent editing foundation: EditPlan +
 EditScript (restricted declarative steps with $variable bindings, never
 eval) compile to the standard typed operations; previews run on scratch
-copies; proposals apply as one undoable agent transaction. The Studio
-Agent panel honestly runs the deterministic planner today (the LLM
-planner is future work). `@openvideomaker/mcp` exposes that contract
+copies; proposals apply as one undoable agent transaction. The LlmPlanner
+turns a natural goal + a compact id-complete project description into a
+validated EditScript through any OpenAI-compatible endpoint (one repair
+round; the model's only output is data, compiled against the REAL
+project); the desktop app exposes it through ovm:agent-plan IPC when
+OVM_LLM_ENDPOINT/OVM_LLM_MODEL are configured and advertises
+llmPlanner honestly - the Studio Agent panel's 'AI plan' uses the same
+proposal UI, and the deterministic planner remains the honest default. `@openvideomaker/mcp` exposes that contract
 to agents as an MCP server (spec 2025-06-18, stdio): semantic tools
 (project/timeline/transcript/character inspect+create, edit.preview/
 edit.apply, model search) over the SAME operation layer, with
@@ -216,4 +221,5 @@ verified resumable install through ovm:model-install IPC (progress +
 cancel, an ordinary Job Center job), the store's installedModels()
 feeds the live 'Installed' card state, and entries without a verified
 file manifest stay honestly disabled.
-Next: the LLM planner behind the proposal contract. See `docs/STATUS.md`.
+Next: the Device Center, installer packaging, a local MCP server in the
+desktop app, and long-project hardening. See `docs/STATUS.md`.

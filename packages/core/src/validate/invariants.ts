@@ -189,9 +189,13 @@ function checkClipContent(
     }
     const media = asset.media;
     if (media) {
-      const used = clip.inPoint + clip.duration * clip.speed;
-      if (used > media.durationUs) {
-        push('clip.source-exceeds', 'clip consumes more source than the asset provides', clipPath + '.inPoint');
+      // Still images have no intrinsic duration: the clip decides how
+      // long the still is held, so the source can never be exceeded.
+      if (asset.kind !== 'image') {
+        const used = clip.inPoint + clip.duration * clip.speed;
+        if (used > media.durationUs) {
+          push('clip.source-exceeds', 'clip consumes more source than the asset provides', clipPath + '.inPoint');
+        }
       }
       if (track.kind === 'audio' && !media.hasAudio) {
         push('track.kind-mismatch', 'video-only asset on an audio track', clipPath);

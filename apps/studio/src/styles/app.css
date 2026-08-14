@@ -901,6 +901,13 @@
   font-size: 11px;
 }
 
+.inspector-cutout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .shot-text {
   display: block;
   font-size: 10px;

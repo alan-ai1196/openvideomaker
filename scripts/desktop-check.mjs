@@ -14,6 +14,16 @@ execFileSync('ffmpeg', [
   '-ar', '16000', '-ac', '1', sampleWav,
 ], { stdio: 'inherit' });
 
+// Background removal: a still image with a clear subject on a plain
+// background (the cutout affordance targets image clips).
+const sampleImage = resolve('.research/desktop-check-image.png');
+execFileSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error', '-y',
+  '-f', 'lavfi', '-i', 'color=c=white:s=480x360',
+  '-vf', 'drawbox=x=120:y=60:w=240:h=240:color=darkred@1:t=fill',
+  '-frames:v', '1', sampleImage,
+], { stdio: 'inherit' });
+
 // Redub: a real local VIDEO for the lip-sync affordance. The opt-in full
 // click-through (OVM_CHECK_LIPSYNC=1) needs a face, so it uses a trimmed
 // upstream demo clip when the research clone is present.
@@ -265,6 +275,52 @@ if (fullLipSync) {
   report.lipSyncDone = 'skipped (OVM_CHECK_LIPSYNC=1 to run the full GPU job)';
 }
 
+// Background removal: a still image imports as an 'image' asset (the
+// probe kind flows through the bridge), places on the timeline, and is
+// the only clip that offers the cutout affordance. The opt-in
+// OVM_CHECK_RMBG=1 click-through runs the REAL job through the UI
+// (installing the model first if the desktop store lacks it).
+await window.locator('.rail-button[title="Media"]').click();
+await window.waitForTimeout(300);
+await app.evaluate(({ dialog }, filePath) => {
+  dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filePath] });
+}, sampleImage);
+await window.locator('.leftpanel-content .button-primary').click();
+await window.waitForTimeout(1200);
+report.assetCountAfterImageImport = await window.locator('.asset-item').count();
+await window.locator('.asset-item').last().click();
+await window.waitForTimeout(800);
+const mediaClipTotal = await window.locator('.clip-kind-media').count();
+let cutoutIndex = -1;
+for (let i = 0; i < mediaClipTotal; i += 1) {
+  await window.locator('.clip-kind-media').nth(i).click();
+  await window.waitForTimeout(120);
+  if ((await window.locator('.inspector-cutout').count()) > 0) {
+    cutoutIndex = i;
+    break;
+  }
+}
+report.cutoutClipIndex = cutoutIndex;
+if (cutoutIndex >= 0) {
+  report.cutoutButtonEnabled = !(await window.locator('.inspector-cutout .button-secondary').isDisabled());
+  report.cutoutButtonLabel = await window.locator('.inspector-cutout .button-secondary').textContent();
+  if (process.env.OVM_CHECK_RMBG === '1') {
+    const lanesBeforeCutout = await window.locator('.lane').count();
+    await window.locator('.inspector-cutout .button-secondary').click();
+    await window.waitForSelector('.inspector-cutout .inspector-ai-done', { timeout: 900000 });
+    report.cutoutDone = 'completed in the Inspector';
+    await window.locator('.rail-button[title="Jobs"]').click();
+    await window.waitForTimeout(400);
+    await window.waitForSelector('.job-card.job-completed:has-text("Background removal")', { timeout: 30000 });
+    report.cutoutJobVisible = 'completed in the Job Center';
+    await window.locator('.rail-button[title="Media"]').click();
+    await window.waitForTimeout(300);
+    report.assetCountAfterCutout = await window.locator('.asset-item').count();
+    report.lanesAfterCutout = await window.locator('.lane').count();
+    report.cutoutAddedLane = (report.lanesAfterCutout ?? 0) - lanesBeforeCutout;
+  }
+}
+
 // Agent panel: the LLM planner is only advertised when configured. The
 // deterministic planner stays the honest default otherwise.
 await window.locator('.rail-button[title="Agent"]').click();
@@ -355,6 +411,16 @@ if (report.shotEditingSkipped) {
   if (report.mediaClipsAfterRemoveSilence !== report.mediaClipsBeforeActions + 2) throw new Error('remove silences should leave three pieces: ' + JSON.stringify({ before: report.mediaClipsBeforeActions, after: report.mediaClipsAfterRemoveSilence }));
   if (report.mediaClipsAfterSplit !== report.mediaClipsAfterRemoveSilence + 1) throw new Error('split at shots should add one piece: ' + JSON.stringify({ before: report.mediaClipsAfterRemoveSilence, after: report.mediaClipsAfterSplit }));
   if (report.mediaClipsAfterUndo !== report.mediaClipsAfterRemoveSilence) throw new Error('undo should restore the pre-split piece count: ' + JSON.stringify({ expected: report.mediaClipsAfterRemoveSilence, got: report.mediaClipsAfterUndo }));
+}
+if (report.assetCountAfterImageImport !== 9) throw new Error('image import failed: ' + report.assetCountAfterImageImport);
+if (report.cutoutClipIndex < 0) throw new Error('no media clip offers the background-removal affordance (image kind not flowing through the bridge?)');
+if (report.cutoutButtonEnabled !== true) throw new Error('cutout button not live');
+if (!(report.cutoutButtonLabel ?? '').includes('Remove background')) throw new Error('cutout label missing: ' + report.cutoutButtonLabel);
+if (process.env.OVM_CHECK_RMBG === '1') {
+  if (!(report.cutoutDone ?? '').includes('Inspector')) throw new Error('real background removal did not complete: ' + report.cutoutDone);
+  if (!(report.cutoutJobVisible ?? '').includes('Job Center')) throw new Error('cutout job missing from the Job Center');
+  if (report.assetCountAfterCutout !== 10) throw new Error('cutout asset missing from the media panel: ' + report.assetCountAfterCutout);
+  if (report.cutoutAddedLane !== 1) throw new Error('cutout track missing: ' + report.cutoutAddedLane);
 }
 if (!(report.redubAudioOptions ?? []).some((o) => o.includes('voiceover'))) throw new Error('voiceover missing from redub audio options: ' + JSON.stringify(report.redubAudioOptions));
 if (report.redubButtonEnabled !== true) throw new Error('lip sync button not live');

@@ -60,6 +60,9 @@ export function checkMediaClipFitsTrack(clip: MediaClip, asset: Asset | undefine
 export function checkSourceFits(clip: MediaClip, asset: Asset | undefined): void {
   const media = asset?.media;
   if (!media) return;
+  // Still images have no intrinsic duration: the clip decides how long
+  // the still is held, so the source can never be exceeded.
+  if (asset!.kind === 'image') return;
   const used = clip.inPoint + clip.duration * clip.speed;
   if (used > media.durationUs) {
     throw new OperationError(

@@ -338,7 +338,9 @@ export class StudioController {
       const items = await bridge.importMedia();
       if (items.length === 0) return { ok: false, code: 'cancelled', message: 'import cancelled' };
       for (const item of items) {
-        const asset = importedAsset({ kind: mediaKind(item.media), name: item.name, path: item.path, media: item.media });
+        // The probe's kind is authoritative (PNG/JPEG stills are images,
+        // even though ffprobe reports their still stream as video).
+        const asset = importedAsset({ kind: item.kind ?? mediaKind(item.media), name: item.name, path: item.path, media: item.media });
         const result = this.mutate((tx) => tx.importAsset({ asset }));
         if (!result.ok) return result;
         this.#mediaCache.registerPath(asset.id, item.path);
@@ -1117,6 +1119,89 @@ export class StudioController {
         // failed; surface the placement problem instead of hiding it.
         console.error('lip-sync placement failed: ' + (placed.message ?? 'unknown') + ' (' + (placed.code ?? 'no code') + ')');
         this.reportError('synced video imported, but placing it failed: ' + (placed.message ?? 'unknown'), 'generation');
+      }
+      return { ok: true, assetId: asset.id };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.reportError(message, 'generation');
+      return { ok: false, code: 'generation', message };
+    }
+  }
+
+  /**
+   * Remove the background of an IMAGE clip (media.background_remove):
+   * the cutout lands as a provenance-carrying image asset on a new
+   * 'Cutout' track at the source clip's start, so the original stays
+   * intact and everything remains editable. Per-frame video matting is
+   * future work, so the affordance applies to image clips only.
+   */
+  async removeBackgroundFromClip(clipId: ClipId, onProgress?: (progress: number, stage: string) => void): Promise<MutationResult & { assetId?: AssetId }> {
+    const sequence = this.activeSequence();
+    if (!sequence) return { ok: false, code: 'op.not-found', message: 'no active sequence' };
+    let sourceClip: { assetId: AssetId; start: number } | undefined;
+    for (const track of sequence.tracks) {
+      const clip = track.clips.find((c) => c.id === clipId);
+      if (clip?.kind === 'media') { sourceClip = { assetId: clip.assetId, start: clip.start }; break; }
+      if (clip) return { ok: false, code: 'generation', message: 'background removal applies to media clips' };
+    }
+    if (!sourceClip) return { ok: false, code: 'op.not-found', message: 'clip not found' };
+    const imageAsset = this.project.assets[sourceClip.assetId];
+    if (!imageAsset || imageAsset.kind !== 'image') {
+      return { ok: false, code: 'generation', message: 'background removal currently works on image clips' };
+    }
+    if (imageAsset.source.kind !== 'file') {
+      return { ok: false, code: 'generation', message: 'this image has no local file to cut out' };
+    }
+    const modelId = this.#generationModels.find((m) => m.capability === 'media.background_remove')?.modelId;
+    if (!modelId) return { ok: false, code: 'generation', message: 'no local background-removal model is available' };
+    try {
+      const result = await this.#runDesktopGenerate(
+        {
+          capability: 'media.background_remove',
+          modelId,
+          inputs: { image: { path: imageAsset.source.path } },
+          device: 'cpu',
+          provenanceInputs: [{ kind: 'asset', role: 'source', assetId: sourceClip.assetId }],
+        },
+        'Background removal ' + imageAsset.name,
+        (p) => onProgress?.(p.progress, p.stage),
+      );
+      if (result.state !== 'completed' || !result.provenance) {
+        const message = result.error ?? 'background removal did not complete';
+        this.reportError(message, 'generation');
+        return { ok: false, code: 'generation', message };
+      }
+      const output = result.outputs.image;
+      if (!output?.media) {
+        this.reportError('background removal produced no usable image', 'generation');
+        return { ok: false, code: 'generation', message: 'background removal produced no usable image' };
+      }
+      const asset = generatedAsset({
+        kind: 'image',
+        name: imageAsset.name + ' (cutout)',
+        source: { kind: 'file', path: output.path },
+        media: output.media,
+        capability: result.provenance.capability,
+        model: result.provenance.model,
+        runner: result.provenance.runner,
+        settings: result.provenance.settings,
+        inputs: result.provenance.inputs,
+        regenerable: result.provenance.regenerable,
+        device: result.provenance.device,
+        generatedAt: result.provenance.generatedAt,
+      });
+      const imported = this.mutate((tx) => tx.importAsset({ asset }));
+      if (!imported.ok) return imported;
+      this.#mediaCache.registerPath(asset.id, output.path);
+      // A new track keeps the original and the cutout side by side.
+      const trackId = newTrackId();
+      const placed = this.mutate((tx) => {
+        tx.createTrack({ sequenceId: sequence.id, trackId, kind: 'video', name: 'Cutout' });
+        tx.insertClip({ sequenceId: sequence.id, trackId, clip: mediaClip({ trackId, assetId: asset.id, start: sourceClip.start, duration: 3_000_000 }) });
+      });
+      if (!placed.ok) {
+        console.error('cutout placement failed: ' + (placed.message ?? 'unknown') + ' (' + (placed.code ?? 'no code') + ')');
+        this.reportError('cutout imported, but placing it failed: ' + (placed.message ?? 'unknown'), 'generation');
       }
       return { ok: true, assetId: asset.id };
     } catch (err) {

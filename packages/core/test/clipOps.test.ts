@@ -193,3 +193,27 @@ describe('clip.audio', () => {
     ).toThrow(/fades exceed/);
   });
 });
+
+describe('still images on the timeline', () => {
+  it('can be held for any duration - the clip decides, not the source', () => {
+    const { session, sequenceId, trackId } = setupSessionWithAsset();
+    // A still probes with zero intrinsic duration (image formats report
+    // no duration), yet creators hold stills for arbitrary lengths.
+    const still = importedAsset({ kind: 'image', name: 'still.png', path: 'C:/still.png', media: { durationUs: 0, hasVideo: true, hasAudio: false, width: 480, height: 360 } });
+    session.transaction((tx) => tx.importAsset({ asset: still }));
+    const clip = makeVideoClip(trackId, still.id, 0, 60_000_000);
+    session.transaction((tx) => tx.insertClip({ sequenceId, trackId, clip }));
+    expect(session.project.sequences[sequenceId]?.tracks.find((t) => t.id === trackId)?.clips[0]?.duration).toBe(60_000_000);
+    // Trimming longer still holds also, and speed never 'overruns' a still.
+    session.transaction((tx) => tx.trimClip({ sequenceId, clipId: clip.id, duration: 90_000_000 }));
+    session.transaction((tx) => tx.setClipSpeed({ sequenceId, clipId: clip.id, speed: 2 }));
+    expect(session.project.sequences[sequenceId]?.tracks.find((t) => t.id === trackId)?.clips[0]?.duration).toBe(90_000_000);
+  });
+
+  it('still rejects overruns for timed video sources', () => {
+    const { session, sequenceId, trackId, asset } = setupSessionWithAsset();
+    const clip = makeVideoClip(trackId, asset.id, 0, 10_000_000);
+    session.transaction((tx) => tx.insertClip({ sequenceId, trackId, clip }));
+    expect(() => session.transaction((tx) => tx.trimClip({ sequenceId, clipId: clip.id, duration: 61_000_000 }))).toThrow(/exceeds source/);
+  });
+});

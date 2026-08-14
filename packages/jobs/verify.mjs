@@ -6,13 +6,15 @@
  * project (durable JSON) is saved under .research/jobs-out/.
  * Re-runnable; reuses the already-installed models and runtimes.
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { ProjectSession } from '@openvideomaker/core';
 import { ModelStore } from '@openvideomaker/downloader';
 import { Registry } from '@openvideomaker/registry';
 import { attachGeneratedFile, attachGeneratedMedia, attachTranscriptCaptions, GenerationRunner } from '@openvideomaker/jobs';
+import { runTool } from '@openvideomaker/media';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = resolve(here, '../..');
@@ -89,6 +91,50 @@ if (!track) throw new Error('caption track not found');
 if (track.clips.length !== captions.segmentCount) throw new Error('caption clip count mismatch');
 const firstClip = track.clips[0];
 if (!firstClip || firstClip.provenance?.capability !== 'audio.asr') throw new Error('caption clip missing ASR provenance');
+
+console.log('[4/4] background-removal generation job (IS-Net)');
+const cutoutInput = join(outDir, 'cutout-input.png');
+const fixtureMade = await runTool('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error', '-y',
+  '-f', 'lavfi', '-i', 'color=c=white:s=480x360',
+  '-vf', 'drawbox=x=120:y=60:w=240:h=240:color=darkred@1:t=fill',
+  '-frames:v', '1', cutoutInput,
+], { timeoutMs: 120_000 });
+if (fixtureMade.code !== 0) throw new Error('cutout fixture failed: ' + fixtureMade.stderr);
+const rmbg = runner.run({
+  capability: 'media.background_remove',
+  modelId: 'gh/danielgatis/rembg-isnet-general-use',
+  inputs: { image: { path: cutoutInput } },
+  settings: {},
+  outputDir: join(outDir, 'rmbg'),
+  provenanceInputs: [],
+  device: 'cpu',
+});
+rmbg.subscribe((event) => {
+  if (event.state === 'installing' || event.state === 'running' || event.state === 'preparing') process.stdout.write('.');
+});
+await rmbg.finished;
+if (rmbg.state !== 'completed') {
+  console.error('background-removal job failed: ' + rmbg.error);
+  process.exit(1);
+}
+const cutoutAssetId = await attachGeneratedMedia(session, rmbg, 'image', { name: 'Generated Cutout' });
+console.log('\n[4/4] cutout asset ' + cutoutAssetId + ' (' + (rmbg.metadata.width ?? '?') + 'x' + (rmbg.metadata.height ?? '?') + ')');
+const cutoutAsset = session.project.assets[cutoutAssetId];
+if (!cutoutAsset || cutoutAsset.origin.kind !== 'generated') throw new Error('cutout asset missing provenance');
+if (cutoutAsset.kind !== 'image') throw new Error('cutout asset is not an image: ' + cutoutAsset.kind);
+if (cutoutAsset.origin.provenance.capability !== 'media.background_remove') throw new Error('wrong capability on cutout asset');
+if (cutoutAsset.origin.provenance.model.id !== 'gh/danielgatis/rembg-isnet-general-use') throw new Error('wrong model on cutout asset');
+// Objective alpha evidence through the runner's own analyzer (the runtime
+// exists once the job completed; a fresh clone runs it the same way).
+const rmbgPython = join(root, '.research/runtimes/rmbg/Scripts/python.exe');
+if (existsSync(rmbgPython)) {
+  const analyzed = spawnSync(rmbgPython, [join(root, 'runners/rmbg/analyze.py'), rmbg.outputs.image.path, 'synthetic'], { encoding: 'utf8' });
+  if (analyzed.status !== 0) throw new Error('cutout analysis failed: ' + analyzed.stderr);
+  const stats = JSON.parse(analyzed.stdout.trim().split(/\r?\n/).pop());
+  console.log('[4/4] alpha stats: ' + JSON.stringify(stats));
+  if (!(stats.alphaGap > 0.2)) throw new Error('cutout separation too weak: ' + JSON.stringify(stats));
+}
 
 const projectJson = join(outDir, 'project.json');
 writeFileSync(projectJson, JSON.stringify({ project: session.project }, null, 2));

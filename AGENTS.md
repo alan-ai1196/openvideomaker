@@ -270,6 +270,21 @@ runtime; registry entry `gh/danielgatis/rembg-isnet-general-use` is
 `verified` with dated evidence and a re-runnable verify script
 (real face frame or deterministic synthetic fixture + objective alpha
 statistics). RMBG-2.0 remains honestly unverified (license noted).
+Background removal is live in the editing workflow: the Inspector's AI
+actions offer 'Remove background' for selected IMAGE clips (desktop),
+running media.background_remove through the bridge - the cutout lands
+as a provenance-carrying image asset on a new 'Cutout' track at the
+source clip's start (original intact; per-frame video matting is
+documented future work). Desktop imports now keep the probe's kind, so
+stills import as `image` assets, and stills have no intrinsic
+duration (image clips may be held for any length - core invariant +
+checkSourceFits updated, regression-tested); the jobs verification runs the
+capability through the GenerationRunner end to end (subject alpha 0.995
+vs 0.000 background; the cutout lands in the saved project as a
+generated image asset with provenance); the desktop Playwright check
+finds the still as the only clip offering the affordance with a live
+button, and `OVM_CHECK_RMBG=1` clicks through the REAL job (Inspector
+done state, Job Center entry, cutout asset + new track).
 Next: app icons, code signing, auto-update, macOS/Linux packaging,
 media intelligence Levels 3-4, and further verified runners.
 See `docs/STATUS.md`.

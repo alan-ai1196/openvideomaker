@@ -1,6 +1,6 @@
 # OpenVideoMaker — current status
 
-Updated: 2026-08-14 (round 32). This file is the single living status source; it
+Updated: 2026-08-14 (round 33). This file is the single living status source; it
 describes the repository truth and is updated whenever that truth changes.
 
 ## Done
@@ -392,6 +392,25 @@ describes the repository truth and is updated whenever that truth changes.
   subject otherwise) plus `make_fixture.py`/`analyze.py` objective
   alpha measurement. The existing RMBG-2.0 entry stays honestly
   unverified (non-commercial license noted).
+- **Background removal inside the editing workflow**: the verified
+  `media.background_remove` capability is now a real Studio action -
+  select an IMAGE clip and the Inspector's AI actions offer 'Remove
+  background' (desktop-only, honest elsewhere): the cutout lands as a
+  provenance-carrying image asset on a new 'Cutout' track at the source
+  clip's start, so the original stays intact and everything remains
+  editable; per-frame video matting is explicitly future work. The
+  desktop import path now keeps the probe's kind, so PNG/JPEG stills
+  import as `image` assets (previously they would have landed as
+  video), and stills have no intrinsic duration: `checkSourceFits`
+  and the source-exceeds invariant now let image clips be held for any
+  length (regression-tested in core). The jobs verification extended with a real
+  `media.background_remove` job through the GenerationRunner (480x360
+  fixture: subject alpha 0.995 vs 0.000 background; the cutout lands in
+  the saved project as a generated image asset with full provenance).
+  Verified in the desktop app: the imported still is the only clip
+  offering the affordance, the button is live, and the opt-in
+  `OVM_CHECK_RMBG=1` click-through runs the real job through the UI
+  (Inspector done state, Job Center entry, cutout asset + new track).
 - Docs: AGENTS.md, README, architecture docs, ADRs 0001-0009, UX
   principles, SECURITY/CONTRIBUTING/notices.
 

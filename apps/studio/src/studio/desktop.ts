@@ -104,7 +104,7 @@ export interface StudioDesktopBridge {
   saveProject(project: Project, log: ProjectLog): Promise<{ ok: boolean; appended?: number; dir?: string; reason?: string }>;
   runDoctor(): Promise<StudioDoctorReport>;
   projectInfo(): Promise<{ dir: string | null }>;
-  importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo; analysis?: StudioMediaAnalysis }>>;
+  importMedia(): Promise<Array<{ path: string; name: string; media: MediaInfo; kind?: 'video' | 'audio' | 'image'; analysis?: StudioMediaAnalysis }>>;
   renderProject(request: DesktopRenderRequest): Promise<{ state: string; outputPath?: string; error: string | null; jobId?: string }>;
   onRenderProgress(listener: (progress: { jobId?: string; state: string; progress: number }) => void): () => void;
   cancelRender(jobId: string): Promise<{ ok: boolean }>;

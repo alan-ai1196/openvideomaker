@@ -207,14 +207,15 @@ function registerIpc(): void {
       filters: [{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'webm', 'm4v', 'mp3', 'wav', 'aac', 'flac', 'ogg', 'png', 'jpg', 'jpeg', 'webp'] }],
     });
     if (result.canceled || result.filePaths.length === 0) return [];
-    const imported: Array<{ path: string; name: string; media: unknown; analysis?: unknown }> = [];
+    const imported: Array<{ path: string; name: string; media: unknown; kind?: string; analysis?: unknown }> = [];
     for (const filePath of result.filePaths) {
       try {
         const probe = await probeMediaPath(filePath);
-        const item: { path: string; name: string; media: unknown; analysis?: unknown } = {
+        const item: { path: string; name: string; media: unknown; kind?: string; analysis?: unknown } = {
           path: filePath,
           name: filePath.split(/[\\/]/).pop() ?? filePath,
           media: probe.media,
+          kind: probe.kind,
         };
         // Media intelligence Levels 1-2: shots, keyframe points, audio
         // regions and per-shot motion derived on import (best-effort;

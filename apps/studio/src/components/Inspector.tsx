@@ -111,9 +111,16 @@ export function Inspector() {
   const [redubRunning, setRedubRunning] = useState(false);
   const [redubProgress, setRedubProgress] = useState(0);
   const [redubDone, setRedubDone] = useState(false);
+  const [cutoutRunning, setCutoutRunning] = useState(false);
+  const [cutoutProgress, setCutoutProgress] = useState(0);
+  const [cutoutDone, setCutoutDone] = useState(false);
+
+  const cutoutAsset = clip?.kind === 'media' ? controller.project.assets[clip.assetId] : undefined;
+  const cutoutEnabled = cutoutAsset?.kind === 'image' && cutoutAsset.source.kind === 'file' && controller.generationAvailable('media.background_remove');
 
   useEffect(() => {
     if (clip) {
+      setCutoutDone(false);
       setStartDraft(usToSecondsInput(clip.start));
       setDurationDraft(usToSecondsInput(clip.duration));
       setInPointDraft(clip.kind === 'media' ? usToSecondsInput(clip.inPoint) : '');
@@ -194,9 +201,10 @@ export function Inspector() {
       {clip.kind === 'media' && controller.localGeneration ? (
         <div className="inspector-ai">
           <span className="field-label">{t('inspector.ai.actions')}</span>
-          {clip.kind === 'media' && controller.project.assets[clip.assetId]?.source.kind !== 'file' ? (
+          {controller.project.assets[clip.assetId]?.source.kind !== 'file' ? (
             <p className="inspector-ai-hint">{t('inspector.lipsync.nofile')}</p>
-          ) : (
+          ) : null}
+          {controller.project.assets[clip.assetId]?.source.kind === 'file' ? (
             <div className="inspector-redub">
               <select
                 className="inspector-redub-audio"
@@ -235,7 +243,31 @@ export function Inspector() {
               </button>
               {redubDone && !redubRunning ? <span className="inspector-ai-done">{t('inspector.lipsync.done')}</span> : null}
             </div>
-          )}
+          ) : null}
+          {cutoutAsset !== undefined && cutoutAsset.kind === 'image' ? (
+            <div className="inspector-cutout">
+              <button
+                type="button"
+                className="button button-secondary"
+                disabled={cutoutRunning || !cutoutEnabled}
+                title={!controller.generationAvailable('media.background_remove')
+                  ? t('inspector.cutout.disabled')
+                  : cutoutAsset.source.kind !== 'file' ? t('inspector.cutout.nofile') : t('inspector.cutout')}
+                onClick={() => {
+                  setCutoutRunning(true);
+                  setCutoutDone(false);
+                  setCutoutProgress(0);
+                  void controller.removeBackgroundFromClip(clip.id, (progress) => setCutoutProgress(progress)).then((result) => {
+                    setCutoutRunning(false);
+                    if (result.ok) setCutoutDone(true);
+                  });
+                }}
+              >
+                {cutoutRunning ? t('inspector.cutout.running') + ' ' + Math.round(cutoutProgress * 100) + '%' : t('inspector.cutout')}
+              </button>
+              {cutoutDone && !cutoutRunning ? <span className="inspector-ai-done">{t('inspector.cutout.done')}</span> : null}
+            </div>
+          ) : null}
         </div>
       ) : null}
       <div className="field-row">

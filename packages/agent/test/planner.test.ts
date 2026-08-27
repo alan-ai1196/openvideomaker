@@ -2,7 +2,7 @@ import { createServer, type Server } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ProjectSession } from '@openvideomaker/core';
 import { mediaClip, importedAsset } from '@openvideomaker/core';
-import { describeProjectForPlanner, LlmPlanner, createProposal, applyProposal } from '@openvideomaker/agent';
+import { describeProjectForPlanner, LlmPlanner, createProposal, applyProposal, resolveLlmConfigFromEnv, ORCAROUTER_DEFAULT_BASE_URL } from '@openvideomaker/agent';
 import type { EditScript } from '@openvideomaker/schema';
 
 // A real local HTTP endpoint standing in for an OpenAI-compatible
@@ -117,5 +117,33 @@ describe('LlmPlanner', () => {
     const result = await planner.plan(session, 'Never valid');
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.code).toBe('llm.invalid-script');
+  });
+});
+
+describe('resolveLlmConfigFromEnv', () => {
+  it('resolves the OrcaRouter preset with the official default endpoint', () => {
+    const config = resolveLlmConfigFromEnv({ ORCAROUTER_API_KEY: 'orkey', ORCAROUTER_MODEL: 'openai/gpt-4o-mini' });
+    expect(config).toEqual({ provider: 'orcarouter', endpoint: ORCAROUTER_DEFAULT_BASE_URL, model: 'openai/gpt-4o-mini', apiKey: 'orkey' });
+  });
+
+  it('honors an explicit ORCAROUTER_BASE_URL', () => {
+    const config = resolveLlmConfigFromEnv({ ORCAROUTER_API_KEY: 'orkey', ORCAROUTER_MODEL: 'm', ORCAROUTER_BASE_URL: 'https://example.test/v1' });
+    expect(config?.endpoint).toBe('https://example.test/v1');
+  });
+
+  it('prefers the generic preset when both are configured (OrcaRouter never overrides)', () => {
+    const config = resolveLlmConfigFromEnv({
+      OVM_LLM_ENDPOINT: 'https://mine.test/v1/chat/completions',
+      OVM_LLM_MODEL: 'local-model',
+      ORCAROUTER_API_KEY: 'orkey',
+      ORCAROUTER_MODEL: 'openai/gpt-4o-mini',
+    });
+    expect(config).toEqual({ provider: 'custom', endpoint: 'https://mine.test/v1/chat/completions', model: 'local-model', apiKey: undefined });
+  });
+
+  it('returns null without configuration (the deterministic planner stays the default)', () => {
+    expect(resolveLlmConfigFromEnv({})).toBeNull();
+    expect(resolveLlmConfigFromEnv({ ORCAROUTER_API_KEY: 'orkey' })).toBeNull();
+    expect(resolveLlmConfigFromEnv({ ORCAROUTER_MODEL: 'm' })).toBeNull();
   });
 });

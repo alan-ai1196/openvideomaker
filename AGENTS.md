@@ -170,7 +170,10 @@ turns a natural goal + a compact id-complete project description into a
 validated EditScript through any OpenAI-compatible endpoint (one repair
 round; the model's only output is data, compiled against the REAL
 project); the desktop app exposes it through ovm:agent-plan IPC when
-OVM_LLM_ENDPOINT/OVM_LLM_MODEL are configured and advertises
+a provider is configured - the generic OVM_LLM_ENDPOINT/OVM_LLM_MODEL
+preset or the optional OrcaRouter preset (ORCAROUTER_API_KEY/
+ORCAROUTER_MODEL, official endpoint by default; OrcaRouter never
+overrides an explicit generic configuration) - and advertises
 llmPlanner honestly - the Studio Agent panel's 'AI plan' uses the same
 proposal UI, and the deterministic planner remains the honest default. `@openvideomaker/mcp` exposes that contract
 to agents as an MCP server (spec 2025-06-18, stdio): semantic tools

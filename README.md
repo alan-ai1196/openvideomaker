@@ -48,7 +48,9 @@ stays a normal, editable part of your project instead of a dead-end file.
   run through the registry, artifact store and isolated runners, then
   land in projects as editable assets with full provenance.
 - **Agent editing** (`@openvideomaker/agent`) — EditPlan/EditScript
-  proposals compiled to the same typed operations as manual edits.
+  proposals compiled to the same typed operations as manual edits,
+  with an optional LLM planner (OpenAI-compatible) that can use
+  OrcaRouter as a hosted provider preset.
 - **Script-first editing** — durable scripts (speech lines linked to
   characters) that place onto the timeline in one reviewable step.
 - **Desktop shell** (`apps/desktop`) — Electron around the same Studio
@@ -79,6 +81,26 @@ invariants and `CONTRIBUTING.md` for contribution guidance.
 - **MCP server + SDK/CLI** — agent and developer interfaces over the same
   operation layer.
 - **Website/docs** — `openvideomaker.heartboat.me`.
+
+## Optional hosted AI provider: OrcaRouter
+
+The desktop app's LLM editing planner can use any OpenAI-compatible
+endpoint. [OrcaRouter](https://www.orcarouter.ai/ref/ref_e4908f8ea3f52f14d855)
+is available as an optional hosted provider preset:
+
+- **Optional** - the deterministic planner remains the default; nothing
+  routes through OrcaRouter unless you configure it, and explicit
+  `OVM_LLM_ENDPOINT` / `OVM_LLM_MODEL` settings take precedence.
+- **Your own key, your own model** - configure
+  `ORCAROUTER_API_KEY` and `ORCAROUTER_MODEL` (provider-prefixed model
+  IDs work, e.g. `openai/gpt-4o-mini`). The official OpenAI-compatible
+  endpoint `https://api.orcarouter.ai/v1` is the default; set
+  `ORCAROUTER_BASE_URL` only to override it. Technical documentation:
+  <https://docs.orcarouter.ai/>.
+
+If you create an OrcaRouter account through our partner link above,
+OpenVideoMaker may receive a referral commission at no additional cost
+to you.
 
 ## Hardware
 

@@ -282,8 +282,12 @@ describes the repository truth and is updated whenever that truth changes.
   repair round using the exact validation error) and compiled against
   the REAL project by the same deterministic pipeline the demo planner
   uses. The desktop app exposes it through `ovm:agent-plan` IPC when
-  `OVM_LLM_ENDPOINT`/`OVM_LLM_MODEL` are configured and advertises
-  `llmPlanner` honestly; the Studio Agent panel gains an 'AI plan'
+  a provider is configured - the generic `OVM_LLM_ENDPOINT`/
+  `OVM_LLM_MODEL` preset or the optional OrcaRouter provider preset
+  (`ORCAROUTER_API_KEY`/`ORCAROUTER_MODEL`, official endpoint
+  `https://api.orcarouter.ai/v1` by default, overridable via
+  `ORCAROUTER_BASE_URL`; the generic preset takes precedence) - and
+  advertises `llmPlanner` honestly; the Studio Agent panel gains an 'AI plan'
   input whose proposals flow through the same preview/apply (one
   undoable transaction)/reject UI. Verified: 4 agent tests against a
   real local HTTP endpoint (wire path, repair round, clean failure),

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { attachAsrResult, generatedAsset, importedAsset, mediaClip, ProjectSession } from '@openvideomaker/core';
-import { LlmPlanner } from '@openvideomaker/agent';
+import { LlmPlanner, resolveLlmConfigFromEnv } from '@openvideomaker/agent';
 import { ProjectStore } from '@openvideomaker/persistence';
 import { doctorRecommendations, formatDoctor, probeDeviceGraph } from '@openvideomaker/devices';
 import { analyzeMedia, analyzeMediaLevel2, probeMediaPath, runTool } from '@openvideomaker/media';
@@ -208,16 +208,19 @@ function failedGenerate(message: string): DesktopGenerateResult {
 }
 
 /**
- * The LLM editing planner, configured explicitly through environment
- * (OpenAI-compatible endpoint). When unset, the desktop honestly reports
- * llmPlanner: false and the Studio keeps the deterministic planner.
+ * The LLM editing planner, configured explicitly through environment:
+ * the generic OpenAI-compatible preset (OVM_LLM_ENDPOINT/OVM_LLM_MODEL,
+ * optional OVM_LLM_API_KEY) or the optional OrcaRouter provider preset
+ * (ORCAROUTER_API_KEY/ORCAROUTER_MODEL, official endpoint by default).
+ * When unset, the desktop honestly reports llmPlanner: false and the
+ * Studio keeps the deterministic planner. OrcaRouter is never mandatory
+ * and never overrides an explicit generic configuration.
  */
 function buildLlmPlanner(): void {
-  const endpoint = process.env.OVM_LLM_ENDPOINT;
-  const model = process.env.OVM_LLM_MODEL;
-  if (!endpoint || !model) return;
-  llmPlanner = new LlmPlanner({ endpoint, model, apiKey: process.env.OVM_LLM_API_KEY });
-  console.log('desktop: LLM planner configured (' + model + ')');
+  const config = resolveLlmConfigFromEnv(process.env);
+  if (!config) return;
+  llmPlanner = new LlmPlanner({ endpoint: config.endpoint, model: config.model, apiKey: config.apiKey });
+  console.log('desktop: LLM planner configured via ' + config.provider + ' (' + config.model + ')');
 }
 
 function registerIpc(): void {
